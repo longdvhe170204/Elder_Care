@@ -6,6 +6,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.approval.scheduling.ApplyDueRequestsJob;
+import com.eldercare.backend.resident.api.AssessmentApi;
+import com.eldercare.backend.resident.api.dto.CareLevel;
+import com.eldercare.backend.resident.internal.assessment.domain.AssessmentType;
 import com.eldercare.backend.support.fake.administration.FakeFamilyRelationships;
 import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,20 +35,94 @@ abstract class ChangeTestBase extends ContractTestBase {
     @Autowired
     protected FakeFamilyRelationships families;
 
+    @Autowired
+    protected AssessmentApi assessmentApi;
+
     /** Người cao tuổi có người đại diện và hợp đồng nội trú dài hạn Hiệu lực (Cơ bản, dịch vụ chăm sóc, suất ăn thuộc gói). */
     protected record Setup(long residentId, long contractId) {}
 
+    /** Người đại diện của lần {@link #activeSetup()} gần nhất. */
+    protected Long lastRepresentative;
+
     protected Setup activeSetup() throws Exception {
         long residentId = residentWithRepresentative();
+        lastRepresentative = representativeOf(residentId);
         ObjectNode body = body(residentId);
         ((ArrayNode) body.get("services")).add(line(meal));
         return new Setup(residentId, activeContract(residentId, body));
     }
 
+    /**
+     * Thân lập yêu cầu, kèm xác nhận của Hành chính với người đại diện (mỗi lần một tệp bằng chứng mới, tệp chỉ gắn được
+     * một lần).
+     */
     protected ObjectNode request(long contractId, String changeTypes, String newValue, LocalDate effective) {
-        return (ObjectNode) JSON.readTree("""
+        ObjectNode body =
+                (ObjectNode) JSON.readTree("""
                 {"contractId": %d, "changeTypes": %s, "newValue": %s, "requestedEffectiveDate": "%s",
                  "reason": "%s"}""".formatted(contractId, changeTypes, newValue, effective, REASON));
+        body.set("representativeConfirmation", confirmation(today(), representativeOfContract(contractId)));
+        if (changeTypes.contains("CARE_LEVEL") && body.path("newValue").hasNonNull("careLevel")) {
+            assessedAs(
+                    contractId,
+                    CareLevel.valueOf(body.get("newValue").get("careLevel").asString()));
+        }
+        return body;
+    }
+
+    /**
+     * FR-043j (R20): yêu cầu đổi mức cần lần đánh giá gần nhất đã xác nhận ra đúng mức mới. Bác sĩ xác nhận một lần đánh
+     * giá (lần đầu nếu chưa có, không thì đánh giá lại) ra mức {@code level} khi lần gần nhất chưa ra mức này.
+     */
+    protected void assessedAs(long contractId, CareLevel level) {
+        long residentId = jdbc.queryForObject("SELECT resident_id FROM contract WHERE id = ?", Long.class, contractId);
+        var latest = assessmentApi.latestConfirmed(residentId);
+        if (latest.isPresent() && latest.get().careLevel() == level) {
+            return;
+        }
+        boolean initialDone = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM assessment WHERE resident_id = ? AND type = 'INITIAL' AND status = 'CONFIRMED'",
+                        Integer.class,
+                        residentId)
+                > 0;
+        // confirmed() đổi người dùng sang Điều dưỡng, Bác sĩ; runAs trả lại người dùng trước đó
+        user.runAs(
+                doctor.user(),
+                () -> confirmed(
+                        residentId,
+                        initialDone ? AssessmentType.REASSESSMENT : AssessmentType.INITIAL,
+                        level,
+                        "Đánh giá lại thử",
+                        null));
+    }
+
+    /**
+     * Xác nhận gặp trực tiếp người đại diện ngày {@code on}, kèm tệp bằng chứng mới; người đã xác nhận là người đại diện
+     * của người cao tuổi dựng gần nhất bằng {@link #activeSetup()} (Q-415).
+     */
+    protected ObjectNode confirmation(LocalDate on) {
+        return confirmation(on, lastRepresentative);
+    }
+
+    protected ObjectNode confirmation(LocalDate on, Long representativeFamilyMemberId) {
+        ObjectNode node = JSON.createObjectNode();
+        node.put("method", "IN_PERSON");
+        node.put("confirmedOn", on.toString());
+        node.put("evidenceFileId", scan());
+        if (representativeFamilyMemberId != null) {
+            node.put("representativeFamilyMemberId", representativeFamilyMemberId);
+        }
+        return node;
+    }
+
+    /** Người đại diện của người cao tuổi của hợp đồng, nếu dựng bằng {@link #residentWithRepresentative()}. */
+    protected Long representativeOfContract(long contractId) {
+        long residentId = jdbc.queryForObject("SELECT resident_id FROM contract WHERE id = ?", Long.class, contractId);
+        try {
+            return representativeOf(residentId);
+        } catch (IllegalStateException none) {
+            return null;
+        }
     }
 
     protected ResultActions createRaw(String path, ObjectNode body) throws Exception {
@@ -100,12 +177,63 @@ abstract class ChangeTestBase extends ContractTestBase {
         user.set(office.user());
     }
 
-    /** Lập, gửi duyệt rồi Quản lý viện duyệt; trả mã yêu cầu phê duyệt. */
+    /**
+     * Lập, gửi duyệt rồi Quản lý viện duyệt; phụ lục Chờ ký (không phải thay đổi nhỏ, FR-043d) thì Hành chính ghi nhận bản
+     * đã ký ngay hôm duyệt để ngày hiệu lực không đổi. Trả mã yêu cầu phê duyệt.
+     */
     protected long createAndApprove(ObjectNode body) throws Exception {
+        long id = createApproveUnsigned(body);
+        if ("PENDING_SIGNATURE".equals(addendumStatus(id))) {
+            sign(id, today()).andExpect(status().isOk());
+            // Trước FR-043d, duyệt khi ngày hiệu lực đã tới thì áp dụng ngay; nay phụ lục áp dụng ở lượt job kế tiếp
+            // sau khi ký
+            applyJob.run();
+        }
+        return id;
+    }
+
+    /** Lập, gửi duyệt, Quản lý viện duyệt; không ghi nhận ký (FR-043d). */
+    protected long createApproveUnsigned(ObjectNode body) throws Exception {
         long id = createChange(body).get("approvalRequestId").asLong();
         submit(id);
         managerApproves(id);
         return id;
+    }
+
+    /** Trạng thái phụ lục của yêu cầu ở cơ sở dữ liệu; chưa có phụ lục thì {@code null}. */
+    protected String addendumStatus(long requestId) {
+        return jdbc
+                .query(
+                        "SELECT addendum_status FROM contract_version WHERE kind = 'ADDENDUM' AND approval_request_id = ?",
+                        (rs, i) -> rs.getString(1),
+                        requestId)
+                .stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    /** Hành chính ghi nhận phụ lục đã ký ngày {@code signedDate}, người ký là người đại diện, kèm bản scan mới. */
+    protected ResultActions sign(long requestId, LocalDate signedDate) throws Exception {
+        long residentId =
+                jdbc.queryForObject("SELECT resident_id FROM approval_request WHERE id = ?", Long.class, requestId);
+        return signRaw(requestId, signedDate, representativeOf(residentId), null);
+    }
+
+    protected ResultActions signRaw(long requestId, LocalDate signedDate, long familyMemberId, Long facilityStaffId)
+            throws Exception {
+        user.set(office.user());
+        ObjectNode body = JSON.createObjectNode();
+        body.put("signedDate", signedDate.toString());
+        body.put("signedByFamilyMemberId", familyMemberId);
+        if (facilityStaffId != null) {
+            body.put("facilitySignatoryStaffId", facilityStaffId);
+        }
+        body.put("fileId", scan());
+        return mvc.perform(post("/api/v1/residency-change-requests/" + requestId + "/addendum-signature")
+                .with(csrf())
+                .header("If-Match", requestEtag(requestId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body.toString()));
     }
 
     protected JsonNode addenda(long contractId) throws Exception {

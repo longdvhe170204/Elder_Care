@@ -481,7 +481,7 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CatalogReason' }
       responses: { '200': { description: OK } }
-  # Bổ sung 2026-11-22 (Q-416, FR-056): mốc sinh hoạt cố định của toàn viện; quyền như danh mục công việc chăm sóc.
+  # Bổ sung 2026-11-22 (Q-440, FR-056): mốc sinh hoạt cố định của toàn viện; quyền như danh mục công việc chăm sóc.
   /daily-routines:
     get:
       x-implementation-phase: 2

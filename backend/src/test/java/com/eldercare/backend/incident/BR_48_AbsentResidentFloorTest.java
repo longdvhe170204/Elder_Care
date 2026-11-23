@@ -69,4 +69,24 @@ class BR_48_AbsentResidentFloorTest {
         assertThat(AcknowledgementDeadlines.of(IncidentLevel.LOW, NOW, 10L, parameters, Optional.of(staff)))
                 .isEqualTo(next.endsAt());
     }
+
+    /** Chủ dự án chốt 2026-11-23 (A2): tầng không có ca hiện tại thì hạn là hết ca kế tiếp, không có thì CFG-M05-01. */
+    @Test
+    void BR_48_lowAlertWithoutCurrentShiftIsDueAtEndOfNextShiftElseMediumDuration() {
+        var parameters = mock(ParameterApi.class);
+        var medium = mock(ParameterValue.class);
+        when(medium.asDuration()).thenReturn(Duration.ofMinutes(15));
+        when(parameters.read(ParameterCode.CFG_M05_01)).thenReturn(medium);
+        var staff = mock(AlertStaffPort.class);
+        when(staff.shiftAt(10L, NOW)).thenReturn(Optional.empty());
+
+        var next = new AlertShiftView(2L, 10L, NOW.plusSeconds(1200), NOW.plusSeconds(30000));
+        when(staff.nextShift(eq(10L), any())).thenReturn(Optional.of(next));
+        assertThat(AcknowledgementDeadlines.of(IncidentLevel.LOW, NOW, 10L, parameters, Optional.of(staff)))
+                .isEqualTo(next.endsAt());
+
+        when(staff.nextShift(eq(10L), any())).thenReturn(Optional.empty());
+        assertThat(AcknowledgementDeadlines.of(IncidentLevel.LOW, NOW, 10L, parameters, Optional.of(staff)))
+                .isEqualTo(NOW.plus(Duration.ofMinutes(15)));
+    }
 }

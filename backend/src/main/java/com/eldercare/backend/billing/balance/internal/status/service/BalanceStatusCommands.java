@@ -73,7 +73,7 @@ public class BalanceStatusCommands {
         LedgerState ledger = ledgers.lock(residentId).orElseThrow(NotFoundException::new);
         if (!residents.isFinalStatus(residentId)) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "NOT_FINAL_STATUS", "Chỉ dừng nhắc cho hồ sơ đã ở trạng thái cuối (FR-020)");
+                    HttpStatus.CONFLICT, "NOT_FINAL_STATUS", "Chỉ dừng nhắc cho hồ sơ đã ở trạng thái cuối");
         }
         if (ledger.balance() >= 0) {
             throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Hồ sơ không còn nợ");

@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 004 T075 (US5 #6, #9; FR-043, Q-338; research T-06; 000 T105): Quản lý viện duyệt mọi yêu cầu thay đổi lưu trú; Hành chính
@@ -33,9 +35,12 @@ class FR_043_MinorChangeIT extends ChangeTestBase {
     @Test
     void US5_9_officeCreatesAndSelfApprovesAMinorChange() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Dịch vụ thuộc gói", null, 100_000);
-        JsonNode created =
-                createChange(request(s.contractId(), "[\"SERVICE\"]", addInPackage(extra), today().plusDays(3)));
+        // Bớt suất ăn thuộc gói của hợp đồng: thay đổi nhỏ (R19: dấu thuộc gói theo hợp đồng hiện hành)
+        JsonNode created = createChange(request(
+                s.contractId(),
+                "[\"SERVICE\"]",
+                "{\"services\": [{\"serviceId\": " + meal + ", \"action\": \"REMOVE\"}]}",
+                today().plusDays(3)));
         assertThat(created.get("minorChange").asBoolean()).isTrue();
         long id = created.get("approvalRequestId").asLong();
         submit(id);
@@ -55,6 +60,39 @@ class FR_043_MinorChangeIT extends ChangeTestBase {
                 .as("nhật ký ghi tự duyệt")
                 .isEqualTo("true");
         assertThat(addenda(s.contractId())).hasSize(1);
+    }
+
+    /** R19: thêm dịch vụ chưa có trong hợp đồng, dù người lập gửi dấu thuộc gói, không phải thay đổi nhỏ. */
+    @Test
+    void R19_addNewServiceMarkedInPackage_isNotMinor_officeCannotApprove() throws Exception {
+        Setup s = activeSetup();
+        long extra = service("ACTIVITY", "Dịch vụ mới " + System.nanoTime(), null, 100_000);
+        JsonNode created =
+                createChange(request(s.contractId(), "[\"SERVICE\"]", addInPackage(extra), today().plusDays(3)));
+        assertThat(created.get("minorChange").asBoolean()).isFalse();
+        assertThat(created.get("representativeConfirmationRequired").asBoolean())
+                .isTrue();
+        long id = created.get("approvalRequestId").asLong();
+        submit(id);
+
+        user.set(office.user());
+        approveRaw(id).andExpect(status().isForbidden());
+        managerApproves(id);
+        assertThat(addendumStatus(id)).isEqualTo("PENDING_SIGNATURE");
+    }
+
+    /** R19: thêm dịch vụ mà hợp đồng hiện hành có dòng thuộc gói là thay đổi nhỏ. */
+    @Test
+    void R19_addServiceAlreadyInPackage_isMinor() throws Exception {
+        // Dịch vụ thêm được theo FR-043k (hoạt động) có sẵn dòng thuộc gói trong hợp đồng
+        long residentId = residentWithRepresentative();
+        long activity = service("ACTIVITY", "Hoạt động thuộc gói", null, 100_000);
+        ObjectNode body = body(residentId);
+        ((ArrayNode) body.get("services")).add(line(meal)).add(line(activity));
+        long contractId = activeContract(residentId, body);
+        JsonNode created =
+                createChange(request(contractId, "[\"SERVICE\"]", addInPackage(activity), today().plusDays(3)));
+        assertThat(created.get("minorChange").asBoolean()).isTrue();
     }
 
     private java.util.List<Long> approversOf(long requestId) {

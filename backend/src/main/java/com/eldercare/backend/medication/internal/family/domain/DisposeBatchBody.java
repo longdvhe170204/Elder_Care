@@ -13,6 +13,16 @@ public class DisposeBatchBody {
 
     private Long representativeId;
 
+    private String kind; // FAMILY_REQUEST (mặc định) | EXPIRED
+
+    public String getKind() {
+        return kind;
+    }
+
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+
     private String requestMethod;
 
     @NotBlank(message = "Disposal witness is required")

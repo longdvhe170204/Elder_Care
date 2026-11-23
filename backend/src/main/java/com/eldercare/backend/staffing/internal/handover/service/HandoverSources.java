@@ -84,7 +84,7 @@ public class HandoverSources {
     }
 
     /**
-     * Q-417 (FR-061): phạm vi ca còn công việc chưa đóng hoặc cảnh báo đang mở; nguồn chưa đọc được thì coi như còn,
+     * Q-441 (FR-061): phạm vi ca còn công việc chưa đóng hoặc cảnh báo đang mở; nguồn chưa đọc được thì coi như còn,
      * để bàn giao vẫn bắt buộc.
      */
     public boolean outstanding(WorkShift s) {

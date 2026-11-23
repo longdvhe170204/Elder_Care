@@ -5,6 +5,7 @@ import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
 import com.eldercare.backend.administration.approval.api.events.RequestCancelled;
 import com.eldercare.backend.administration.approval.api.events.RequestDecided;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
+import com.eldercare.backend.admission.api.events.ResidencyChangeOutcomeNotice;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 class ResidencyChangeListeners {
+
+    /** Lý do đóng do 000 ghi khi người cao tuổi sang trạng thái cuối ({@code closeForFinalState}). */
+    static final String FINAL_STATE_CLOSING = "Người cao tuổi sang trạng thái cuối";
 
     private final AddendumClosing closing;
     private final ResidencyLock residencyLock;
@@ -40,6 +44,7 @@ class ResidencyChangeListeners {
         if (ResidencyChangeHandler.TYPE.equals(request.type()) && ApprovalStatus.REJECTED.equals(event.outcome())) {
             residencyLock.lock(request.target().residentId());
             handler.rejected(request);
+            handler.outcome(request, ResidencyChangeOutcomeNotice.Outcome.REJECTED);
         }
     }
 
@@ -50,7 +55,12 @@ class ResidencyChangeListeners {
             return;
         }
         residencyLock.lock(request.target().residentId());
-        closing.close(request.id(), request.target().residentId(), new Basis(null, request.id(), null, null));
+        // Q-421: phụ lục Chờ ký, Chờ hiệu lực của yêu cầu bị hủy chuyển Đã hủy
+        closing.cancel(request.id(), request.target().residentId(), new Basis(null, request.id(), null, null));
         handler.withdrawn(request);
+        // Hủy vì người cao tuổi sang trạng thái cuối (FR-070) không báo người đại diện như một kết quả của yêu cầu
+        if (!FINAL_STATE_CLOSING.equals(request.closingReason())) {
+            handler.outcome(request, ResidencyChangeOutcomeNotice.Outcome.CANCELLED);
+        }
     }
 }

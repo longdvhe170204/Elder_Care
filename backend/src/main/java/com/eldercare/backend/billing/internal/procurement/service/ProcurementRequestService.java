@@ -167,7 +167,13 @@ public class ProcurementRequestService {
         requireStatus(row, DRAFT);
         requireCreator(row);
         requireAuthor(row.type(), row.departmentId());
-        move(row, PENDING_APPROVAL, "submit", null, Map.of(), List.of(ProcurementNotices.manager()));
+        move(
+                row,
+                PENDING_APPROVAL,
+                "submit",
+                null,
+                Map.of("submitted_at", time.now()),
+                List.of(ProcurementNotices.manager()));
     }
 
     @RequiresPermission(function = Function.PURCHASE_REQUEST, operation = Operation.UPDATE)

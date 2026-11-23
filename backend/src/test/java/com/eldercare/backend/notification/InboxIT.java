@@ -20,6 +20,7 @@ import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.notification.FakeFamilyNotifications;
+import com.eldercare.backend.support.fake.notification.FakeSourceRecordAccess;
 import com.eldercare.backend.support.fake.resident.FakeConsentApi;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @AutoConfigureMockMvc
 @RecordApplicationEvents
-@Import({FakeM15Config.class, FakeConsentApi.Config.class})
+@Import({FakeM15Config.class, FakeConsentApi.Config.class, FakeSourceRecordAccess.Config.class})
 class InboxIT extends M13IntegrationTestBase {
 
     private static final String INBOX = "/api/v1/me/notifications";
@@ -68,6 +69,9 @@ class InboxIT extends M13IntegrationTestBase {
     @Autowired
     ApplicationEvents events;
 
+    @Autowired
+    FakeSourceRecordAccess sourceAccess;
+
     TestUsers users;
     long resident;
 
@@ -81,6 +85,7 @@ class InboxIT extends M13IntegrationTestBase {
     void resetFamily() {
         family.reset();
         consents.reset();
+        sourceAccess.reset();
     }
 
     private NotificationRequest notice(
@@ -164,5 +169,83 @@ class InboxIT extends M13IntegrationTestBase {
         assertThat(events.stream(NotificationViewed.class).filter(e -> e.notificationId() == id))
                 .hasSize(1);
         assertThat(getJson(INBOX, token).get("unreadCount").asInt()).isZero();
+    }
+
+    /**
+     * BF-14 test web 2026-11-23 (chủ dự án chọn port chung): {@code sourceRecord.canOpen} theo câu trả lời của module nguồn
+     * qua {@code SourceRecordAccessPort}; không có port cho loại đó hoặc port lỗi thì {@code false}.
+     */
+    @Test
+    void sourceRecordCanOpen_followsSourceModulePort() throws Exception {
+        TestUser office = users.staff(Role.OFFICE_STAFF);
+        String token = users.session(office.accountId());
+        String allowed = send(notice(
+                "open-yes-" + resident,
+                NotificationLevel.LOW,
+                staff(office),
+                Optional.empty(),
+                InformationType.GENERAL));
+        String denied = send(notice(
+                "open-no-" + resident,
+                NotificationLevel.LOW,
+                staff(office),
+                Optional.empty(),
+                InformationType.GENERAL));
+        sourceAccess.allow(allowed);
+
+        JsonNode opened = getJson(INBOX + "/" + notificationId(allowed, office.accountId()), token);
+        JsonNode closed = getJson(INBOX + "/" + notificationId(denied, office.accountId()), token);
+        JsonNode list = getJson(INBOX, token);
+
+        assertThat(opened.get("sourceRecord").get("canOpen").asBoolean()).isTrue();
+        assertThat(closed.get("sourceRecord").get("canOpen").asBoolean()).isFalse();
+        boolean listedOpen = false;
+        for (JsonNode n : list.get("items")) {
+            if (allowed.equals(n.get("sourceRecord").get("id").asString())) {
+                listedOpen = n.get("sourceRecord").get("canOpen").asBoolean();
+            }
+        }
+        assertThat(listedOpen).isTrue();
+    }
+
+    /**
+     * FR-034 (chủ dự án chốt 2026-11-21, F14 BF-01 bước 15a): nhân viên có phạm vi Toàn viện ở Hồ sơ người cao tuổi
+     * (Phụ lục 27, Hành chính) thấy Phần chung của thông báo về người cao tuổi dù không có phân công; nhân viên theo
+     * phân công mà không được phân công thì chỉ thấy tiêu đề.
+     */
+    @Test
+    void FR_034_facilityWideStaff_seesGeneralPart_withoutAssignment() throws Exception {
+        TestUser office = users.staff(Role.OFFICE_STAFF);
+        TestUser caregiver = users.staff(Role.CAREGIVER);
+        String key = send(new NotificationRequest(
+                "M05",
+                "TEST_EVENT",
+                SourceGroup.OTHER,
+                new SourceRecord("M05.TEST", "fr034fw-" + resident),
+                "fr034fw-" + resident,
+                Optional.of(NotificationLevel.LOW),
+                Optional.of(resident),
+                Optional.empty(),
+                List.of(staff(office), staff(caregiver)),
+                List.of(new ContentPart(InformationType.GENERAL, "Phần GENERAL")),
+                Optional.of("Rút gọn"),
+                Optional.of("Tiêu đề"),
+                Optional.empty(),
+                false,
+                time.now(),
+                Map.of(),
+                false,
+                Optional.empty(),
+                Optional.empty()));
+
+        JsonNode toOffice =
+                getJson(INBOX + "/" + notificationId(key, office.accountId()), users.session(office.accountId()));
+        JsonNode toCaregiver =
+                getJson(INBOX + "/" + notificationId(key, caregiver.accountId()), users.session(caregiver.accountId()));
+
+        assertThat(toOffice.get("content")).hasSize(1);
+        assertThat(toOffice.get("hiddenParts")).isEmpty();
+        assertThat(toCaregiver.get("content")).isEmpty();
+        assertThat(toCaregiver.get("hiddenParts").get(0).asString()).isEqualTo("GENERAL");
     }
 }

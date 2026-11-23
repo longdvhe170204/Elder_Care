@@ -94,6 +94,10 @@ public class BelongingHandoverService {
     private static final Set<BelongingStatus> CONSENT_ENDS = EnumSet.of(
             BelongingStatus.RETURNED, BelongingStatus.LOST, BelongingStatus.DAMAGED, BelongingStatus.DISPOSED);
 
+    /** Đã trả, Thất lạc, Đã xử lý: không còn người giữ (data-model mục 3). */
+    private static final Set<BelongingStatus> NO_HOLDER =
+            EnumSet.of(BelongingStatus.RETURNED, BelongingStatus.LOST, BelongingStatus.DISPOSED);
+
     private static final Set<String> INVALID_CODES = Set.of("REASON_REQUIRED", "STORAGE_LOCATION_REQUIRED");
 
     /** Bản ghi đã tạo. */
@@ -121,6 +125,7 @@ public class BelongingHandoverService {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
+    private final StaffNoticeDetails details;
 
     BelongingHandoverService(
             BelongingLocks locks,
@@ -141,7 +146,9 @@ public class BelongingHandoverService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             BusinessTime time,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.locks = locks;
         this.belongings = belongings;
         this.handovers = handovers;
@@ -655,7 +662,7 @@ public class BelongingHandoverService {
         }
         notices(ctx, p.kind(), p.target(), record, p.typeName());
         if (command.holderAbsent()) {
-            events.publishEvent(BelongingNotices.notice(
+            events.publishEvent(details.forStaff(BelongingNotices.notice(
                     "BELONGING_HANDOVER_HOLDER_ABSENT",
                     RECORD_TYPE,
                     record,
@@ -664,7 +671,7 @@ public class BelongingHandoverService {
                     List.of(new RecipientGroup.Staff(b.holderId(), "HOLDER")),
                     p.typeName() + ": Hành chính đã bàn giao thay khi bạn vắng mặt",
                     ctx.user().accountId(),
-                    ctx.now()));
+                    ctx.now())));
         }
     }
 
@@ -747,8 +754,10 @@ public class BelongingHandoverService {
             Long location,
             long levelId) {
         BelongingView source = belongings.find(b.id()).orElseThrow(NotFoundException::new);
-        HolderType holderType =
-                holder == null ? null : holder == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;
+        // Như applyHandover: phần tách sang Đã trả, Thất lạc, Đã xử lý không còn người giữ (data-model mục 3)
+        HolderType holderType = holder == null || NO_HOLDER.contains(status)
+                ? null
+                : holder == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;
         long part = belongings.insertSplit(
                 new NewBelonging(
                         ctx.residentId(),
@@ -828,10 +837,7 @@ public class BelongingHandoverService {
         HolderType holderType = recipientType == null
                 ? null
                 : recipientType == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;
-        // Đã trả, Thất lạc, Đã xử lý: không còn người giữ (data-model mục 3)
-        boolean noHolder = target == BelongingStatus.LOST
-                || target == BelongingStatus.RETURNED
-                || target == BelongingStatus.DISPOSED;
+        boolean noHolder = NO_HOLDER.contains(target);
         belongings.applyHandover(
                 belongingId,
                 target,
@@ -911,7 +917,7 @@ public class BelongingHandoverService {
         return new BusinessException(
                 INVALID_CODES.contains(code) ? HttpStatus.UNPROCESSABLE_CONTENT : HttpStatus.CONFLICT,
                 code,
-                "Lệnh bàn giao không đạt điều kiện: " + String.join(", ", violations),
+                HandoverCommandCheck.describe(violations),
                 Map.of("belongingId", belongingId, "violations", violations));
     }
 

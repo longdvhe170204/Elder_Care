@@ -236,7 +236,8 @@ public class BedTransferService {
                         old.residentId(), store.roomType(old.bedId()), store.roomType(target), time.today());
         if (different && !medical)
             throw conflict(
-                    "RESIDENCY_CHANGE_REQUEST_REQUIRED", "Cần yêu cầu thay đổi lưu trú đã duyệt khi chuyển khác giá");
+                    "RESIDENCY_CHANGE_REQUEST_REQUIRED",
+                    "Cần yêu cầu điều chỉnh hợp đồng đã duyệt khi chuyển khác giá");
         var hold = store.absentHold(old.bedId());
         allocations.close(id, at, "BED_TRANSFER", actor);
         long next = allocations.create(

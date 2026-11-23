@@ -70,7 +70,7 @@ public class AlertHandlingService {
     private static final PermissionKey HANDLING = new PermissionKey(Function.ALERT_HANDLING, Operation.UPDATE);
     /** Khóa loại của cảnh báo công việc Bắt buộc quá hạn (research S-08): đóng phải có lý do (BR-M04-06). */
     private static final String OVERDUE_TASK_PREFIX = "QUA_HAN:";
-    /** Q-418: chỉ Trưởng tầng (trong phạm vi tầng) và Bác sĩ đóng cảnh báo. */
+    /** Q-442: chỉ Trưởng tầng (trong phạm vi tầng) và Bác sĩ đóng cảnh báo. */
     static final Set<Role> CLOSERS = Set.of(Role.FLOOR_MANAGER, Role.DOCTOR);
     /** Cảnh báo từ nút SOS, nút hỗ trợ khẩn cấp: luồng khẩn cấp gác lại, giữ người đóng như FR-036 (2026-11-22). */
     static final Set<String> PRESSED_TYPES = Set.of("RESIDENT_HELP_REQUEST", "STAFF_ASSIST_REQUEST");
@@ -194,7 +194,7 @@ public class AlertHandlingService {
         var alert = lockForHandler(alertId, user);
         if (!mayClose(alert, user)) {
             throw new PermissionDeniedException(
-                    "Chỉ Trưởng tầng của tầng người cao tuổi và Bác sĩ đóng cảnh báo (Q-418)");
+                    "Chỉ Trưởng tầng của tầng người cao tuổi và Bác sĩ đóng cảnh báo (Q-442)");
         }
         requireStatus(alert, AlertStatus.IN_PROGRESS);
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
@@ -208,13 +208,13 @@ public class AlertHandlingService {
         if (alert.residentId() != null) events.publishEvent(new ResidentItemClosed(alert.residentId()));
     }
 
-    /** Q-418: Trưởng tầng, Bác sĩ; cảnh báo nút SOS, nút hỗ trợ giữ người đóng của FR-036 (gác lại). */
+    /** Q-442: Trưởng tầng, Bác sĩ; cảnh báo nút SOS, nút hỗ trợ giữ người đóng của FR-036 (gác lại). */
     static boolean mayClose(AlertRecord alert, CurrentUser user) {
         return PRESSED_TYPES.contains(alert.type()) || user.roles().stream().anyMatch(CLOSERS::contains);
     }
 
     /**
-     * Ghi kết quả theo dõi vào cảnh báo đang mở (FR-087, Q-419): Điều dưỡng, Nhân viên chăm sóc có người cao tuổi trong
+     * Ghi kết quả theo dõi vào cảnh báo đang mở (FR-087, Q-443): Điều dưỡng, Nhân viên chăm sóc có người cao tuổi trong
      * phạm vi, Trưởng tầng, Bác sĩ; không đổi trạng thái, mức hay cấp leo thang.
      */
     @Transactional

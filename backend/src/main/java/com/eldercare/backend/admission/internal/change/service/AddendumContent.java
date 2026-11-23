@@ -174,7 +174,8 @@ final class AddendumContent {
                 }
                 ObjectNode line = F.objectNode();
                 line.put("serviceId", service.serviceId());
-                line.put("inPackage", service.inPackage());
+                // R19: dấu thuộc gói theo hợp đồng hiện hành, bỏ qua dấu người lập gửi
+                line.put("inPackage", IsMinorChange.inPackage(base, service.serviceId()));
                 line.set(
                         "quantity",
                         F.numberNode(BigDecimal.valueOf(service.quantity()).stripTrailingZeros()));

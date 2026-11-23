@@ -217,6 +217,11 @@ public final class ReconciliationBodies {
                         : b.getConfirmedIssues().stream()
                                 .map(c -> new NewPrescriptionRequest.IssueConfirmationInput(
                                         c.getIssueCode(), c.getReason()))
-                                .toList());
+                                .toList(),
+                b.getTimeCriticality() == null
+                        ? null
+                        : NewPrescriptionRequest.TimeCriticality.valueOf(b.getTimeCriticality()),
+                b.getRequiredMeasurements(),
+                b.getIndication());
     }
 }

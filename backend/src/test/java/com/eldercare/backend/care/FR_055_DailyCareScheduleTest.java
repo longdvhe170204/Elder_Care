@@ -29,7 +29,7 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 
-/** 005 FR-055, FR-056 (Q-416): ghép giờ bữa, hoạt động, mốc sinh hoạt và công việc; trạng thái rút gọn, giá trị đo có điều kiện. */
+/** 005 FR-055, FR-056 (Q-440): ghép giờ bữa, hoạt động, mốc sinh hoạt và công việc; trạng thái rút gọn, giá trị đo có điều kiện. */
 class FR_055_DailyCareScheduleTest {
     private static final long RESIDENT = 9;
     private static final LocalDate DAY = LocalDate.of(2035, 5, 2);

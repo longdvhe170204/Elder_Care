@@ -105,7 +105,7 @@ class FR_029_AlertLifecycleTest {
     }
 
     @Test
-    void Q_418_onlyFloorManagerAndDoctorClose() {
+    void Q_442_onlyFloorManagerAndDoctorClose() {
         lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
 
         assertThatThrownBy(() -> service.close(ID, "Huyết áp ổn định", null, user))
@@ -120,7 +120,7 @@ class FR_029_AlertLifecycleTest {
     }
 
     @Test
-    void Q_418_floorManagerClosesWithoutTimeLimit() {
+    void Q_442_floorManagerClosesWithoutTimeLimit() {
         when(user.roles()).thenReturn(Set.of(Role.FLOOR_MANAGER));
         lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
 

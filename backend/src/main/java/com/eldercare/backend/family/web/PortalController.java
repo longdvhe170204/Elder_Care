@@ -37,7 +37,7 @@ class PortalController {
         this.dailyCare = dailyCare;
     }
 
-    /** 012 FR-076 (Q-416): Lịch chăm sóc hằng ngày, mặc định hôm nay. */
+    /** 012 FR-076 (Q-440): Lịch chăm sóc hằng ngày, mặc định hôm nay. */
     @GetMapping("/family-portal/residents/{residentId}/daily-care-schedule")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "OK", content = @Content),

@@ -7,7 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 005 FR-055 (a), Q-416: giờ bữa của người cao tuổi cho "Lịch chăm sóc hằng ngày"; người có trong lịch bữa theo FR-042. */
+/** 005 FR-055 (a), Q-440: giờ bữa của người cao tuổi cho "Lịch chăm sóc hằng ngày"; người có trong lịch bữa theo FR-042. */
 @Service
 class ResidentMealSlots implements DailyMealPort {
     private final DailyMeals dailyMeals;

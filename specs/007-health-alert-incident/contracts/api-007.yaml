@@ -296,7 +296,7 @@ paths:
   /alerts/{id}/follow-ups:
     post:
       tags: [alerts]
-      summary: Ghi kết quả theo dõi vào cảnh báo đang mở (bổ sung 2026-11-22, Q-419); không đổi trạng thái
+      summary: Ghi kết quả theo dõi vào cảnh báo đang mở (bổ sung 2026-11-22, Q-443); không đổi trạng thái
       x-fr: [FR-087]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [content], properties: { content: { type: string, minLength: 1 } } } } } }
@@ -1049,7 +1049,7 @@ components:
         skipArrivalTime: { type: boolean }
         sources: { type: array, items: { type: object, properties: { sourceType: { type: string }, sourceId: { type: integer, format: int64 }, level: { $ref: '#/components/schemas/IncidentLevel' }, occurredAt: { type: string, format: date-time }, resolvedAt: { type: string, format: date-time } } } }
         allowedCommands: { type: array, items: { type: string } }
-        followUps: { type: array, description: 'Bổ sung 2026-11-22 (FR-087, Q-419): kết quả theo dõi, cũ trước', items: { type: object, properties: { content: { type: string }, at: { type: string, format: date-time }, recordedBy: { type: string } } } }
+        followUps: { type: array, description: 'Bổ sung 2026-11-22 (FR-087, Q-443): kết quả theo dõi, cũ trước', items: { type: object, properties: { content: { type: string }, at: { type: string, format: date-time }, recordedBy: { type: string } } } }
     IncidentFromAlert:
       type: object
       properties: { incidentTypeId: { type: integer, format: int64 }, description: { type: string }, initialResponse: { type: string }, residentId: { type: integer, format: int64, description: "Bổ sung 2026-10-22 (FR-047i): bắt buộc khi cảnh báo STAFF_ASSIST_REQUEST chưa gắn người cao tuổi (422 RESIDENT_REQUIRED)" } }

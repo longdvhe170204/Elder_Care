@@ -35,7 +35,12 @@ public record PrescriptionResponse(
         List<Long> boundBatchIds,
         List<String> allowedCommands,
         List<String> hiddenFields,
-        int version) {
+        int version,
+        String timeCriticality,
+        List<String> requiredMeasurements,
+        String indication,
+        Instant tempResumedAt,
+        String tempResumeBasis) {
 
     public record FrequencyResponse(
             String type, List<String> timedSlots, Integer everyNHours, Instant firstSlot, List<Integer> daysOfWeek) {
@@ -82,6 +87,19 @@ public record PrescriptionResponse(
 
         public Long tepDonId() {
             return prescriptionFileId;
+        }
+    }
+
+    /** Mã chỉ số cần đo trước khi dùng, lưu JSON mảng chuỗi. */
+    public static List<String> parseMeasurements(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readValue(json, new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            return List.of();
         }
     }
 
@@ -152,6 +170,11 @@ public record PrescriptionResponse(
                 boundBatchIds != null ? boundBatchIds : List.of(),
                 allowedCommands != null ? allowedCommands : List.of(),
                 hiddenFields != null ? hiddenFields : List.of(),
-                p.getVersion());
+                p.getVersion(),
+                p.getTimeCriticality() != null ? p.getTimeCriticality().name() : "NORMAL",
+                parseMeasurements(p.getPreDoseMeasurements()),
+                p.getIndication(),
+                p.getTempResumedAt(),
+                p.getTempResumeBasis());
     }
 }

@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 005 FR-055 (Q-416): ghép giờ bữa (011), buổi hoạt động có tên hoặc mở cho toàn viện (014), mốc sinh hoạt cố định (FR-056)
+ * 005 FR-055 (Q-440): ghép giờ bữa (011), buổi hoạt động có tên hoặc mở cho toàn viện (014), mốc sinh hoạt cố định (FR-056)
  * và công việc chăm sóc của người cao tuổi, trừ Đã hủy; trạng thái rút gọn, không lý do, không liều thuốc. Người bán trú chỉ
  * hiện mục trong giờ có mặt.
  */

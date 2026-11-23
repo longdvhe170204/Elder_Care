@@ -434,14 +434,21 @@ components:
         depositStatus: { type: string, enum: [NOT_REQUIRED, SATISFIED, NOT_SATISFIED] }
         remindersStopped: { type: boolean }
         paymentInstructions: { $ref: '#/components/schemas/PaymentInstructions' }
+        representative: { $ref: '#/components/schemas/BalanceRepresentative' }
         hiddenFields: { type: array, items: { type: string } }
+    BalanceRepresentative:
+      type: [object, 'null']
+      description: 'Người đại diện hiệu lực hiện tại, để Kế toán chọn người nhận hoàn tiền (FR-014; chủ dự án duyệt 2026-11-22). Hành chính không thấy (hiddenFields).'
+      properties:
+        familyMemberId: { type: integer, format: int64 }
+        fullName: { type: [string, 'null'] }
     PortalBalance:
       type: object
       properties:
         balance: { type: integer, format: int64 }
         depositBalance: { type: integer, format: int64 }
         debt: { type: [integer, 'null'], format: int64 }
-        transactions: { type: array, items: { $ref: '#/components/schemas/BalanceTransaction' }, description: 'Chỉ Đã xác nhận; thanh toán bảng chỉ hiện tổng (Q-133)' }
+        transactions: { type: array, items: { $ref: '#/components/schemas/BalanceTransaction' }, description: 'Chỉ Đã xác nhận; thanh toán bảng chỉ hiện tổng (Q-133); note (ghi chú nội bộ của Kế toán) luôn rỗng (chủ dự án chốt 2026-11-22)' }
         paymentInstructions: { $ref: '#/components/schemas/PaymentInstructions' }
     BalanceTransaction:
       type: object
@@ -456,8 +463,8 @@ components:
         costStatementId: { type: [integer, 'null'], format: int64 }
         originalTransactionId: { type: [integer, 'null'], format: int64 }
         linkedTransactionId: { type: [integer, 'null'], format: int64 }
-        createdBy: { type: string }
-        approvedBy: { type: [string, 'null'] }
+        createdBy: { type: string, description: 'Họ tên người lập; "Hệ thống" với giao dịch lập kèm lệnh chốt bảng (chủ dự án duyệt 2026-11-22)' }
+        approvedBy: { type: [string, 'null'], description: 'Họ tên người duyệt' }
         reason: { type: [string, 'null'] }
         note: { type: [string, 'null'] }
         status: { $ref: '#/components/schemas/TransactionStatus' }

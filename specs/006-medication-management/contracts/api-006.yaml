@@ -119,11 +119,11 @@ paths:
   /prescriptions/{id}/instruction-note:
     patch:
       tags: [prescription]
-      summary: Sửa ghi chú hướng dẫn (trường duy nhất sửa được)
-      description: 'Người có quyền nhập đơn đó; lưu trước/sau ở nhật ký. Mọi trường khác bị chặn (FR-014, DBR-14).'
+      summary: Sửa ghi chú hướng dẫn, mức quan trọng về thời gian, chỉ số cần đo, chỉ định (các trường sửa được)
+      description: 'Người có quyền nhập đơn đó; lưu trước/sau ở nhật ký. Thuốc, liều, tần suất bị chặn (FR-014, DBR-14). Mức quan trọng, chỉ số cần đo, chỉ định không đổi việc dùng thuốc nên sửa được như ghi chú (BR-M07-26, 27; sửa BF-07 2026-11-22).'
       x-fr: [FR-014]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [instructionNote], properties: { instructionNote: { type: string, maxLength: 2000 } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { instructionNote: { type: string, maxLength: 2000 }, timeCriticality: { type: string, enum: [NORMAL, CRITICAL] }, requiredMeasurements: { type: array, items: { type: string } }, indication: { type: string, maxLength: 500 } } } } } }
       responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Problem' } }
   /prescriptions/{id}/suspend:
     post:
@@ -140,6 +140,16 @@ paths:
       summary: Tiếp tục đơn
       description: 'Chỉ khi đơn Tạm dừng do lệnh (không phải "chờ đối chiếu") và không có phiếu đối chiếu mở (FR-037). Đơn nội bộ: Bác sĩ có quyền kê đơn hợp lệ (FR-005), không thì 403 LEGAL_CONDITION_NOT_MET (Q-413, bổ sung 2026-11-19).'
       x-fr: [FR-011, FR-037]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/PrescriptionCommand' }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /prescriptions/{id}/resume-temporarily:
+    post:
+      tags: [prescription]
+      summary: Tiếp tục tạm đơn Quan trọng có trong giấy ra viện, khi đang chờ đối chiếu
+      description: 'Chỉ khi người cao tuổi trở về từ bệnh viện (đơn Tạm dừng "chờ đối chiếu") và đơn có timeCriticality CRITICAL. Bắt buộc externalBasis loại DISCHARGE_PAPER (giấy ra viện, BR-M07-16). Bác sĩ có quyền kê đơn hợp lệ làm được với mọi đơn; Điều dưỡng chỉ với đơn bên ngoài có căn cứ từ cơ sở kê (Q-413). Phiếu đối chiếu được xác nhận thì quyết định từng dòng của phiếu thay cho lệnh này (BR-M07-28, Q-430).'
+      x-fr: [FR-011, FR-013, FR-037]
+      x-br: [BR-M07-28]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/PrescriptionCommand' }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
@@ -243,6 +253,58 @@ paths:
       parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DoseResult' } } } }
       responses: { '200': { description: Không thực hiện }, '409': { $ref: '#/components/responses/DoseAlreadyClosed' }, '422': { $ref: '#/components/responses/Problem' } }
+  /medication-doses/{doseKey}/postpone:
+    post:
+      tags: [dose]
+      summary: Hoãn có chủ đích (bắt buộc lý do)
+      description: 'Chỉ liều Đến giờ hoặc Trễ. Liều giữ trạng thái, dấu postponed bật; không đổi mốc Bỏ lỡ (BR-M07-02, BR-M07-26). Liều đang có người khác nhận còn hạn thì 409 DOSE_CLAIMED.'
+      x-fr: [FR-021, FR-026]
+      x-br: [BR-M07-26]
+      parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DoseResult' } } } }
+      responses:
+        '200': { description: Hoãn có chủ đích, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /medication-doses/{doseKey}/claim:
+    post:
+      tags: [dose]
+      summary: Nhận liều trước khi soạn thuốc
+      description: 'Liều Đến giờ hoặc Trễ (kể cả Hoãn). Người khác không xác nhận được tới khi hết hạn CFG-M07-08 (15 phút) hoặc người nhận bỏ nhận. Không đổi trạng thái liều; bản ghi ngoại tuyến không bị chặn (BR-M07-20, BR-M07-26, Q-428).'
+      x-fr: [FR-026]
+      x-br: [BR-M07-26]
+      parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses:
+        '200': { description: Đã nhận liều, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+  /medication-doses/{doseKey}/release:
+    post:
+      tags: [dose]
+      summary: Bỏ nhận liều
+      description: 'Người đang nhận bỏ nhận; người khác bị 409 DOSE_CLAIMED khi lượt nhận còn hạn.'
+      x-br: [BR-M07-26]
+      parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses:
+        '200': { description: Đã bỏ nhận liều, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+  /floors/{floorAreaId}/temporary-nurses:
+    get:
+      tags: [dose]
+      summary: Điều dưỡng đang được chỉ định phụ trách tạm của tầng (còn hiệu lực)
+      x-br: [BR-M07-31]
+      parameters: [ { name: floorAreaId, in: path, required: true, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TemporaryNurse' } } } } } }
+    post:
+      tags: [dose]
+      summary: Quản lý viện chỉ định Điều dưỡng tầng khác phụ trách tạm khi tầng không có Điều dưỡng nào có ca
+      description: 'Chỉ Quản lý viện. Tầng không còn Điều dưỡng có ca (409 FLOOR_HAS_NURSE), tầng có ca đang diễn ra (409 NO_SHIFT), Điều dưỡng được chỉ định đang có ca ở tầng khác (409 NURSE_NOT_ON_SHIFT). Quyền hết khi hết ca của tầng (BR-M07-31, Q-436).'
+      x-br: [BR-M07-31]
+      parameters: [ { name: floorAreaId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nurseAccountId], properties: { nurseAccountId: { type: integer, format: int64 } } } } } }
+      responses:
+        '200': { description: Đã chỉ định, content: { application/json: { schema: { $ref: '#/components/schemas/TemporaryNurse' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
   /dose-reviews:
     get:
       tags: [dose]
@@ -283,6 +345,18 @@ paths:
         '201': { description: Đã dùng }
         '409': { $ref: '#/components/responses/PrnProblem' }
         '422': { $ref: '#/components/responses/Problem' }
+  /prescriptions/{id}/prn-administrations/{prnId}/effectiveness:
+    post:
+      tags: [prn]
+      summary: Ghi hiệu quả của một lần dùng PRN
+      description: 'Mỗi lần dùng một lần ghi (409 EFFECTIVENESS_ALREADY_RECORDED). Sau CFG-M07-11 (60 phút) chưa ghi thì hệ thống nhắc Điều dưỡng (mức Nhẹ; BR-M07-04, Q-432).'
+      x-br: [BR-M07-04]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { name: prnId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [effectiveness], properties: { effectiveness: { type: string, minLength: 1, maxLength: 2000 } } } } } }
+      responses:
+        '201': { description: Đã ghi hiệu quả }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
 
   # ---------------- Đối chiếu thuốc ----------------
   /residents/{residentId}/medication-reconciliations:
@@ -338,7 +412,7 @@ paths:
     put:
       tags: [reconciliation]
       summary: Thay danh sách dòng và quyết định (chỉ khi Mở)
-      description: 'Dòng CHANGE_DOSE, ADD_NEW kiểm FR-007 và đủ trường FR-004 ngay trên phiếu; vấn đề chưa có lý do trả 409 ISSUES_REQUIRE_CONFIRMATION theo dòng. Người không phải Bác sĩ có quyền kê đơn hợp lệ (FR-005) ghi dòng DISCONTINUE, CHANGE_DOSE mà reason trống (căn cứ từ cơ sở kê bên ngoài: cơ sở, người, ngày) hoặc newPrescription không phải đơn bên ngoài thì 409 EXTERNAL_BASIS_REQUIRED (FR-035, FR-006, Q-411).'
+      description: 'Dòng tạo đơn (CHANGE_DOSE, ADD_NEW; CONTINUE của dòng DISCHARGE_PRESCRIPTION, ADMISSION_CURRENT_MEDICATION, ghi kèm newPrescription theo đơn bệnh viện, FR-034a, User Story 4 kịch bản 10) kiểm FR-007 và đủ trường FR-004 ngay trên phiếu; vấn đề chưa có lý do trả 409 ISSUES_REQUIRE_CONFIRMATION theo dòng. Người không phải Bác sĩ có quyền kê đơn hợp lệ (FR-005) ghi dòng DISCONTINUE, CHANGE_DOSE mà reason trống (căn cứ từ cơ sở kê bên ngoài: cơ sở, người, ngày) hoặc newPrescription không phải đơn bên ngoài thì 409 EXTERNAL_BASIS_REQUIRED (FR-035, FR-006, Q-411).'
       x-fr: [FR-035, FR-036, FR-007]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ReconciliationItem' } } } } }
@@ -347,7 +421,7 @@ paths:
     post:
       tags: [reconciliation]
       summary: Gửi xác nhận
-      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Hiệu lực, Tạm dừng, Chờ hiệu lực chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do (FR-034, FR-034a).'
+      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Hiệu lực, Tạm dừng, Chờ hiệu lực chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do, dòng tạo đơn thiếu newPrescription (FR-034, FR-034a).'
       x-fr: [FR-034, FR-034a, FR-035]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: Chờ xác nhận }, '409': { $ref: '#/components/responses/Blocked' } }
@@ -474,16 +548,17 @@ paths:
       x-fr: [FR-041, FR-045]
       x-br: [BR-M07-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [quantity, recipient, returnedAt], properties: { quantity: { type: number }, recipient: { $ref: '#/components/schemas/ExternalPerson' }, returnedAt: { type: string, format: date-time } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [quantity, recipient, returnedAt, witness], properties: { quantity: { type: number }, recipient: { $ref: '#/components/schemas/ExternalPerson' }, returnedAt: { type: string, format: date-time }, witness: { type: string, description: 'Người chứng kiến việc trả (BR-M07-30)' } } } } } }
       responses: { '200': { description: Đã hoàn trả }, '409': { $ref: '#/components/responses/Blocked' } }
   /family-medications/{id}/dispose:
     post:
       tags: [family-medication]
-      summary: Hủy cả lô theo yêu cầu gia đình (người đại diện yêu cầu; có người chứng kiến; quantity đếm thực tế)
+      summary: Hủy cả lô, theo yêu cầu gia đình (mặc định) hoặc do hết hạn dùng; có người chứng kiến; quantity đếm thực tế
+      description: 'kind FAMILY_REQUEST (mặc định) cần representativeId và requestMethod (422 REQUEST_BASIS_REQUIRED). kind EXPIRED chỉ khi lô đã qua ngày hạn dùng (409 NOT_EXPIRED); người thân được thông báo như khi hết hạn dùng (BR-M07-30, Q-434).'
       x-fr: [FR-041, FR-045]
       x-br: [BR-M07-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [quantity, representativeId, requestMethod, witness, reason], properties: { quantity: { type: number }, representativeId: { type: integer, format: int64 }, requestMethod: { type: string }, witness: { type: string }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [quantity, witness, reason], properties: { quantity: { type: number }, kind: { type: string, enum: [FAMILY_REQUEST, EXPIRED] }, representativeId: { type: integer, format: int64 }, requestMethod: { type: string }, witness: { type: string }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: Đã hủy theo yêu cầu gia đình }, '409': { $ref: '#/components/responses/Blocked' } }
 
   # ---------------- Mang theo ----------------
@@ -665,6 +740,9 @@ components:
         prescriber: { $ref: '#/components/schemas/Prescriber' }
         instructionNote: { type: string }
         issueConfirmations: { type: array, items: { type: object, required: [issueCode, reason], properties: { issueCode: { type: string }, reason: { $ref: '#/components/schemas/Reason' } } } }
+        timeCriticality: { type: string, enum: [NORMAL, CRITICAL], description: 'Mức quan trọng về thời gian (BR-M07-27); mặc định NORMAL' }
+        requiredMeasurements: { type: array, items: { type: string }, description: 'Chỉ số phải đo trước khi dùng (BR-M07-26)' }
+        indication: { type: string, maxLength: 500, description: 'Chỉ định dùng thuốc khi cần (PRN)' }
     Prescription:
       allOf:
         - $ref: '#/components/schemas/NewPrescription'
@@ -683,6 +761,8 @@ components:
             boundBatchIds: { type: array, items: { type: integer, format: int64 } }
             allowedCommands: { type: array, items: { type: string } }
             hiddenFields: { type: array, items: { type: string } }
+            tempResumedAt: { type: string, format: date-time, description: 'Tiếp tục tạm theo giấy ra viện (BR-M07-28)' }
+            tempResumeBasis: { type: string }
     Dose:
       type: object
       properties:
@@ -709,6 +789,12 @@ components:
         result: { $ref: '#/components/schemas/DoseResult' }
         closedBy: { type: string }
         needsReview: { type: boolean, description: 'Thời điểm dùng sau thời điểm qua đời ghi trong quá khứ (Edge Case)' }
+        postponed: { type: boolean, description: 'Có dấu Hoãn có chủ đích (BR-M07-26); liều vẫn ở Đến giờ hoặc Trễ' }
+        postponedReason: { type: string }
+        claimedBy: { type: integer, format: int64, description: 'Điều dưỡng đang nhận liều còn hạn (BR-M07-26)' }
+        claimExpiresAt: { type: string, format: date-time }
+        timeCriticality: { type: string, enum: [NORMAL, CRITICAL] }
+        requiredMeasurements: { type: array, items: { type: string }, description: 'Mã chỉ số phải đo trước khi dùng (BR-M07-26)' }
         hiddenFields: { type: array, items: { type: string } }
     DoseResult:
       type: object
@@ -720,6 +806,9 @@ components:
         reason: { $ref: '#/components/schemas/Reason' }
         note: { type: string }
         recordedAfterDisconnect: { type: boolean, description: 'Chỉ cho thuốc kiểm soát đặc biệt ghi trực tuyến sau khi mất kết nối (FR-029)' }
+        late: { type: boolean, readOnly: true, description: 'Đã dùng muộn: dùng khi liều đã Trễ hoặc Bỏ lỡ, administeredAt là giờ thực tế (BR-M07-26)' }
+        id: { type: integer, format: int64, readOnly: true, description: 'Mã kết quả liều, dùng để đính chính qua POST /corrections/M07.DOSE_RESULT/{id} (api-000)' }
+        measurements: { type: array, items: { type: object, required: [code, value], properties: { code: { type: string }, value: { type: number } } }, description: 'Chỉ số đo trước khi dùng; bắt buộc đủ mã của requiredMeasurements khi Đã dùng' }
     NewPrnAdministration:
       type: object
       required: [administeredAt, dosage, reason]
@@ -807,6 +896,8 @@ components:
         administeredBy: { type: string, description: 'Họ tên người ghi' }
         reportedBy: { type: string, description: 'Họ tên người báo lại (FR-027)' }
         exceededLimit: { type: boolean }
+        effectiveness: { type: string, description: 'Hiệu quả sau khi dùng (BR-M07-04); trống khi chưa ghi' }
+        effectivenessRecordedAt: { type: string, format: date-time }
         recordedAfterDisconnect: { type: boolean }
     PrnHistory:
       type: object
@@ -816,6 +907,18 @@ components:
         administrations: { type: array, items: { $ref: '#/components/schemas/PrnAdministration' } }
         earliestNextAllowedTime: { type: string, format: date-time }
         canAdministerNow: { type: boolean }
+        indication: { type: string, description: 'Chỉ định dùng của đơn PRN' }
+    TemporaryNurse:
+      type: object
+      description: 'Điều dưỡng tầng khác phụ trách tạm khi tầng không có Điều dưỡng (BR-M07-31)'
+      properties:
+        id: { type: integer, format: int64 }
+        floorAreaId: { type: integer, format: int64 }
+        shiftId: { type: integer, format: int64 }
+        nurseAccountId: { type: integer, format: int64 }
+        assignedById: { type: integer, format: int64 }
+        assignedAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
     DoseReview:
       type: object
       description: 'Bản ghi chờ xem lại (FR-029) (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
@@ -905,6 +1008,7 @@ components:
         deliverer: { $ref: '#/components/schemas/ExternalPerson' }
         purchaseAssistanceId: { type: integer, format: int64 }
         receivedAt: { type: string, format: date-time }
+        intakeChecks: { type: object, required: [labelOk, expiryOk, packagingOk, nameOk], description: 'Kiểm tra khi tiếp nhận, mỗi mục Đạt (true) hoặc Không đạt (false); có mục Không đạt thì không chọn được Được sử dụng (422 INTAKE_CHECK_FAILED; BR-M07-30)', properties: { labelOk: { type: boolean }, expiryOk: { type: boolean }, packagingOk: { type: boolean }, nameOk: { type: boolean } } }
     FamilyMedicationBatch:
       allOf:
         - $ref: '#/components/schemas/ReceiveFamilyMedication'
@@ -915,6 +1019,8 @@ components:
             boundPrescriptionIds: { type: array, items: { type: integer, format: int64 } }
             finalQuantity: { type: number, description: 'Số lượng đếm thực tế khi Hoàn trả hoặc Hủy (Q-393)' }
             closedAt: { type: string, format: date-time }
+            witness: { type: string, description: 'Người chứng kiến Hoàn trả, Hủy (BR-M07-30)' }
+            disposeKind: { type: string, enum: [FAMILY_REQUEST, EXPIRED] }
     NewMedicationHandover:
       type: object
       required: [recipient, items]

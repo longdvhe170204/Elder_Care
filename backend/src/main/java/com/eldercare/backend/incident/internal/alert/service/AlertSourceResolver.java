@@ -89,7 +89,7 @@ public class AlertSourceResolver {
     }
 
     /**
-     * Q-418: hệ thống chỉ tự đóng cảnh báo quá hạn của công việc (công việc Bắt buộc quá hạn, bỏ lỡ lần đo theo lịch);
+     * Q-442: hệ thống chỉ tự đóng cảnh báo quá hạn của công việc (công việc Bắt buộc quá hạn, bỏ lỡ lần đo theo lịch);
      * cảnh báo về tình trạng sức khỏe chỉ được ghi nguồn đã xử lý, người đóng là Trưởng tầng hoặc Bác sĩ.
      */
     public static boolean closesBySystem(String typeLock) {

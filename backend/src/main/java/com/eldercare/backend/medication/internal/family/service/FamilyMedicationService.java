@@ -103,6 +103,7 @@ public class FamilyMedicationService {
                 null,
                 businessTime.now());
 
+        batch.recordIntakeChecks(body.getLabelOk(), body.getExpiryOk(), body.getPackagingOk(), body.getNameOk());
         FamilyMedicationBatch saved = batchRepo.save(batch);
         return toResponse(saved, List.of());
     }
@@ -124,6 +125,13 @@ public class FamilyMedicationService {
                     HttpStatus.CONFLICT,
                     "INVALID_STATE",
                     "Medication batch can only be confirmed for use when in PENDING_RECONCILIATION or HOLD_ONLY status");
+        }
+
+        if (batch.intakeChecksFailed()) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "INTAKE_CHECK_FAILED",
+                    "Có mục kiểm tra khi tiếp nhận Không đạt, không chọn được Được sử dụng (BR-M07-30)");
         }
 
         if (body.getPackagingRecognizable() == null || !body.getPackagingRecognizable()) {
@@ -232,6 +240,7 @@ public class FamilyMedicationService {
                 body.getQuantity(),
                 body.getRecipientName(),
                 body.getRelationship(),
+                body.getWitness(),
                 actorId,
                 body.getReturnedAt() != null ? body.getReturnedAt() : businessTime.now());
         batchRepo.save(batch);
@@ -242,7 +251,26 @@ public class FamilyMedicationService {
     /** Dispose the whole batch per family request (FR-041, FR-045, BR-M07-19); records counted quantity and witness. */
     public FamilyMedicationBatchResponse disposeBatch(Long batchId, DisposeBatchBody body, Long actorId) {
         FamilyMedicationBatch batch = closable(batchId, "dispose");
-        batch.markDisposed(body.getReason(), body.getQuantity(), body.getWitness(), actorId, businessTime.now());
+        FamilyMedicationBatch.DisposeKind kind = "EXPIRED".equalsIgnoreCase(body.getKind())
+                ? FamilyMedicationBatch.DisposeKind.EXPIRED
+                : FamilyMedicationBatch.DisposeKind.FAMILY_REQUEST;
+        if (kind == FamilyMedicationBatch.DisposeKind.EXPIRED) {
+            // Hủy do hết hạn dùng chỉ khi đã qua ngày hạn dùng (BR-M07-30)
+            if (batch.getExpiryDate() == null || !batch.getExpiryDate().isBefore(businessTime.today())) {
+                throw new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "NOT_EXPIRED",
+                        "Lô chưa qua ngày hạn dùng, không hủy do hết hạn (BR-M07-30)");
+            }
+        } else if (body.getRepresentativeId() == null
+                || body.getRequestMethod() == null
+                || body.getRequestMethod().isBlank()) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "REQUEST_BASIS_REQUIRED",
+                    "Hủy theo yêu cầu gia đình cần người đại diện và hình thức yêu cầu (BR-M07-19)");
+        }
+        batch.markDisposed(body.getReason(), body.getQuantity(), body.getWitness(), kind, actorId, businessTime.now());
         batchRepo.save(batch);
         events.publishEvent(new StoredMedicationClosed(batch.getResidentId()));
         return getBatch(batchId);
@@ -379,6 +407,13 @@ public class FamilyMedicationService {
         res.setFileIds(fileIds(batch.getFileIds()));
         res.setFinalQuantity(batch.getFinalQuantity());
         res.setClosedAt(batch.getClosedAt());
+        res.setLabelOk(batch.getLabelOk());
+        res.setExpiryOk(batch.getExpiryOk());
+        res.setPackagingOk(batch.getPackagingOk());
+        res.setNameOk(batch.getNameOk());
+        res.setWitness(batch.getWitness());
+        res.setDisposeKind(
+                batch.getDisposeKind() == null ? null : batch.getDisposeKind().name());
         return res;
     }
 }

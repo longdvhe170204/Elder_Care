@@ -73,7 +73,7 @@ public class ShiftLifecycle implements M09TimedTask {
         return handovers.orderedStream().anyMatch(reader -> reader.prepared(id));
     }
 
-    /** Q-417: xét lại tại giờ kết thúc ca; chưa có phần bàn giao thì coi như bắt buộc. */
+    /** Q-441: xét lại tại giờ kết thúc ca; chưa có phần bàn giao thì coi như bắt buộc. */
     private boolean mandatory(long id) {
         var readers = handovers.orderedStream().toList();
         return readers.isEmpty() || readers.stream().anyMatch(reader -> reader.mandatory(id));

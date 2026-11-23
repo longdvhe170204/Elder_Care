@@ -70,6 +70,10 @@ class ApplyTransaction {
             return Outcome.NOT_APPLICABLE;
         }
         RequestTypeHandler handler = directory.handler(request.type());
+        if (!handler.readyToApply(request)) {
+            // Loại yêu cầu hoãn áp dụng (000 FR-041a (2)): giữ Đã duyệt, lần chạy sau xét lại
+            return Outcome.NOT_APPLICABLE;
+        }
         Instant now = time.now();
         Basis basis = new Basis(null, id, null, schedulerRunId);
         List<UnmetCondition> unmet = handler.checkApplyConditions(request);

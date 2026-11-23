@@ -20,7 +20,11 @@ public record BalanceDetails(
         DepositStatus depositStatus,
         Boolean remindersStopped,
         PaymentInstructions paymentInstructions,
+        Representative representative,
         List<String> hiddenFields) {
+
+    /** Người đại diện hiệu lực hiện tại (chủ dự án chọn 2026-11-22): Kế toán chọn người nhận hoàn tiền (FR-014). */
+    public record Representative(long familyMemberId, String fullName) {}
 
     /** Trường Hành chính không xem (E-12: Hành chính chỉ thấy số dư, số dư cọc, trạng thái đặt cọc). */
     public static final List<String> OFFICE_HIDDEN = List.of(
@@ -30,7 +34,8 @@ public record BalanceDetails(
             "daysCovered",
             "unfinalizedTotal",
             "remindersStopped",
-            "paymentInstructions");
+            "paymentInstructions",
+            "representative");
 
     public BalanceDetails forOfficeStaff() {
         return new BalanceDetails(
@@ -43,6 +48,7 @@ public record BalanceDetails(
                 null,
                 null,
                 depositStatus,
+                null,
                 null,
                 null,
                 OFFICE_HIDDEN);

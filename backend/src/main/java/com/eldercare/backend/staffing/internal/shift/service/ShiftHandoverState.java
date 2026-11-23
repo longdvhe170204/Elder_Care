@@ -4,7 +4,7 @@ package com.eldercare.backend.staffing.internal.shift.service;
 public interface ShiftHandoverState {
     boolean prepared(long shiftId);
 
-    /** Q-417 (FR-061): bàn giao chỉ bắt buộc khi phạm vi ca còn công việc chưa đóng hoặc cảnh báo đang mở. */
+    /** Q-441 (FR-061): bàn giao chỉ bắt buộc khi phạm vi ca còn công việc chưa đóng hoặc cảnh báo đang mở. */
     default boolean mandatory(long shiftId) {
         return true;
     }

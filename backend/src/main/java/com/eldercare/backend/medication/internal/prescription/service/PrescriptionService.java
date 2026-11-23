@@ -43,6 +43,7 @@ import com.eldercare.backend.medication.internal.prescription.domain.Prescriptio
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
 import com.eldercare.backend.medication.internal.prescription.domain.SuspensionReason;
 import com.eldercare.backend.medication.internal.prescription.domain.TerminationReason;
+import com.eldercare.backend.medication.internal.prescription.domain.TimeCriticality;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionBasisRepository;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionIssueRepository;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
@@ -134,7 +135,88 @@ public class PrescriptionService implements PrescriptionApi {
             Long prescriptionFileId,
             String instructionNote,
             boolean pendingAdmission,
-            Map<String, String> confirmedIssues) {}
+            Map<String, String> confirmedIssues,
+            String timeCriticality,
+            List<String> requiredMeasurements,
+            String indication) {
+
+        /** Lệnh không nêu mức quan trọng, chỉ số, chỉ định (đơn từ phiếu đối chiếu, thay thế cũ). */
+        public CreatePrescriptionCommand(
+                Long medicationId,
+                BigDecimal dosage,
+                String dosageUnit,
+                String route,
+                PrescriptionType prescriptionType,
+                FrequencyType frequencyType,
+                String timedSlots,
+                Integer everyNHours,
+                Instant firstSlot,
+                String daysOfWeek,
+                Integer minIntervalMinutes,
+                Integer maxDosesPer24h,
+                Instant startedAt,
+                LocalDate endedAt,
+                MedicationSource medicationSource,
+                PrescriberType prescriberType,
+                String facilityName,
+                String prescriberName,
+                Long prescriberId,
+                LocalDate prescribedAt,
+                Long prescriptionFileId,
+                String instructionNote,
+                boolean pendingAdmission,
+                Map<String, String> confirmedIssues) {
+            this(
+                    medicationId,
+                    dosage,
+                    dosageUnit,
+                    route,
+                    prescriptionType,
+                    frequencyType,
+                    timedSlots,
+                    everyNHours,
+                    firstSlot,
+                    daysOfWeek,
+                    minIntervalMinutes,
+                    maxDosesPer24h,
+                    startedAt,
+                    endedAt,
+                    medicationSource,
+                    prescriberType,
+                    facilityName,
+                    prescriberName,
+                    prescriberId,
+                    prescribedAt,
+                    prescriptionFileId,
+                    instructionNote,
+                    pendingAdmission,
+                    confirmedIssues,
+                    null,
+                    null,
+                    null);
+        }
+    }
+
+    /** Mã chỉ số cần đo trước khi dùng lưu JSON mảng chuỗi (BR-M07-26); rỗng thì không có. */
+    static String measurementsJson(List<String> codes) {
+        if (codes == null || codes.isEmpty()) {
+            return null;
+        }
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper()
+                    .writeValueAsString(codes.stream()
+                            .filter(c -> c != null && !c.isBlank())
+                            .map(String::trim)
+                            .distinct()
+                            .toList());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    static TimeCriticality criticalityOf(String value) {
+        return "CRITICAL".equalsIgnoreCase(value) ? TimeCriticality.CRITICAL : TimeCriticality.NORMAL;
+    }
 
     /** Đối tượng kiểm quyền, phạm vi của lệnh đơn thuốc trên một người cao tuổi (kiểm ở {@code RequiresPermissionAspect}). */
     public static Target target(long residentId) {
@@ -328,7 +410,10 @@ public class PrescriptionService implements PrescriptionApi {
                 prescriptionFileId,
                 body.getInstructionNote(),
                 body.isPendingAdmission(),
-                confirmedMap);
+                confirmedMap,
+                body.getTimeCriticality(),
+                body.getRequiredMeasurements(),
+                body.getIndication());
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
@@ -342,14 +427,32 @@ public class PrescriptionService implements PrescriptionApi {
         return create(target, residentId, toCommand(body, currentUserId));
     }
 
+    /**
+     * Đơn tạo từ một dòng của phiếu đối chiếu đang được xác nhận (FR-036): thay đổi đã ghi trên phiếu nên không chặn theo
+     * FR-037 như lệnh Nhập đơn ngoài phiếu.
+     */
+    @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
+    @Transactional
+    public PrescriptionResponse createFromReconciliation(
+            Target target,
+            long residentId,
+            com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody body,
+            Long currentUserId) {
+        return create(residentId, toCommand(body, currentUserId), false);
+    }
+
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
     @Transactional
     public PrescriptionResponse create(Target target, long residentId, CreatePrescriptionCommand cmd) {
+        return create(residentId, cmd, true);
+    }
+
+    private PrescriptionResponse create(long residentId, CreatePrescriptionCommand cmd, boolean outsideTicket) {
         // 1. Khóa trạng thái M07 theo người trên resident_module_state (research D-03, R-15)
         residentMedicationLock.lock(residentId);
 
         // 2. Chặn nếu đang có phiếu đối chiếu Mở hoặc Chờ xác nhận (FR-037)
-        if (reconciliationCheckPort.hasOpenOrPendingReconciliation(residentId)) {
+        if (outsideTicket && reconciliationCheckPort.hasOpenOrPendingReconciliation(residentId)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
                     "RECONCILIATION_IN_PROGRESS",
@@ -457,6 +560,8 @@ public class PrescriptionService implements PrescriptionApi {
                 med.getAllergenIds(),
                 businessTime.now());
 
+        p.applyBf07(
+                criticalityOf(cmd.timeCriticality()), measurementsJson(cmd.requiredMeasurements()), cmd.indication());
         Prescription saved = prescriptionRepository.save(p);
 
         // Lưu các vấn đề đã xác nhận vào prescription_issue
@@ -486,6 +591,34 @@ public class PrescriptionService implements PrescriptionApi {
         }
 
         return toResponse(saved);
+    }
+
+    /** Sửa mức quan trọng, chỉ số cần đo, chỉ định như ghi chú hướng dẫn (11.1): không đổi thuốc, liều, tần suất. */
+    @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
+    @Transactional
+    public PrescriptionResponse updateEditableFields(
+            Target target,
+            long id,
+            String ifMatch,
+            String newNote,
+            String timeCriticality,
+            List<String> requiredMeasurements,
+            String indication) {
+        Prescription p = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
+        VersionEtag.requireMatch(ifMatch, p.getVersion(), toResponse(p));
+        if (newNote != null) {
+            p.changeInstructionNote(newNote);
+        }
+        if (timeCriticality != null) {
+            p.changeTimeCriticality(criticalityOf(timeCriticality));
+        }
+        if (requiredMeasurements != null) {
+            p.changePreDoseMeasurements(measurementsJson(requiredMeasurements));
+        }
+        if (indication != null) {
+            p.changeIndication(indication);
+        }
+        return toResponse(prescriptionRepository.save(p));
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
@@ -587,6 +720,49 @@ public class PrescriptionService implements PrescriptionApi {
             }
         }
 
+        return toResponse(saved);
+    }
+
+    /**
+     * Tiếp tục tạm đơn Quan trọng có trong giấy ra viện khi đang chờ đối chiếu (BR-M07-28, Q-430): căn cứ bắt buộc là giấy ra
+     * viện; Bác sĩ có quyền kê đơn với đơn nội bộ, Điều dưỡng chỉ với đơn bên ngoài (Q-413, như lệnh Tiếp tục).
+     */
+    @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
+    @Transactional
+    public PrescriptionResponse resumeTemporarily(
+            Target target, long id, OrderPrescriptionBody body, Long currentUserId, boolean isDoctor) {
+        Prescription p = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
+        residentMedicationLock.lock(p.getResidentId());
+
+        if (p.getStatus() != PrescriptionStatus.SUSPENDED
+                || p.getSuspensionReason() != SuspensionReason.RECONCILIATION_PENDING) {
+            throw conditionNotMet("INVALID_STATE", "Chỉ đơn Tạm dừng chờ đối chiếu mới Tiếp tục tạm (BR-M07-28)");
+        }
+        if (p.getTimeCriticality() != TimeCriticality.CRITICAL) {
+            throw conditionNotMet("NOT_CRITICAL", "Chỉ đơn Quan trọng về thời gian được Tiếp tục tạm (BR-M07-28)");
+        }
+        ExternalBasisBody basis = body.getExternalBasis();
+        if (basis == null || parseBasisType(basis.getBasisType()) != PrescriptionBasisType.DISCHARGE_PAPER) {
+            throw conditionNotMet(
+                    "DISCHARGE_PAPER_REQUIRED", "Căn cứ Tiếp tục tạm phải là giấy ra viện (BR-M07-16, BR-M07-28)");
+        }
+
+        validateAndSaveBasis(p, basis, PrescriptionBasisCommand.RESUME, currentUserId, isDoctor);
+
+        Instant now = businessTime.now();
+        String summary = "Giấy ra viện: " + (basis.getFacilityName() == null ? "" : basis.getFacilityName());
+        p.resumeTemporarily(currentUserId, summary, now);
+        Prescription saved = prescriptionRepository.save(p);
+
+        if (doseRepository != null) {
+            for (MedicationDose d :
+                    doseRepository.findByPrescriptionIdAndStatusIn(p.getId(), List.of(DoseStatus.SUSPENDED))) {
+                if (d.getWindowTo().isAfter(now)) {
+                    d.resumeFromSuspension(now);
+                    doseRepository.save(d);
+                }
+            }
+        }
         return toResponse(saved);
     }
 
@@ -784,6 +960,8 @@ public class PrescriptionService implements PrescriptionApi {
                 med.getAllergenIds(),
                 businessTime.now());
 
+        newPrescription.applyBf07(
+                criticalityOf(cmd.timeCriticality()), measurementsJson(cmd.requiredMeasurements()), cmd.indication());
         newPrescription.markReplaces(oldPrescription.getId());
         Prescription savedNew = prescriptionRepository.save(newPrescription);
 
@@ -1056,6 +1234,10 @@ public class PrescriptionService implements PrescriptionApi {
             allowedCommands.add("RESUME");
             allowedCommands.add("DISCONTINUE");
             allowedCommands.add("EXTEND");
+            if (p.getSuspensionReason() == SuspensionReason.RECONCILIATION_PENDING
+                    && p.getTimeCriticality() == TimeCriticality.CRITICAL) {
+                allowedCommands.add("RESUME_TEMPORARILY");
+            }
         }
 
         return PrescriptionResponse.from(p, replacedBy, false, issues, List.of(), allowedCommands, List.of());

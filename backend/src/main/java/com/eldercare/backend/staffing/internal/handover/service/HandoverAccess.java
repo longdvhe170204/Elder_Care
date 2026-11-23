@@ -113,7 +113,7 @@ public class HandoverAccess {
     }
 
     /**
-     * Q-417: người phụ trách ca sau xác nhận; ca sau đã bắt đầu mà người đó vắng, hoặc đã quá CFG-M09-05, thì
+     * Q-441: người phụ trách ca sau xác nhận; ca sau đã bắt đầu mà người đó vắng, hoặc đã quá CFG-M09-05, thì
      * Trưởng tầng của phạm vi xác nhận thay, không cần có tên trong ca sau.
      */
     public boolean receiver(WorkShift receivingShift, CurrentUser user) {

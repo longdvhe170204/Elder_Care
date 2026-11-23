@@ -3,7 +3,6 @@ package com.eldercare.backend.admission.internal.change.service;
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.AccountType;
-import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -22,25 +21,38 @@ import com.eldercare.backend.admission.api.UnitPriceApi;
 import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
 import com.eldercare.backend.admission.api.events.AddendumApplied;
+import com.eldercare.backend.admission.api.events.AddendumAppliedNotice;
 import com.eldercare.backend.admission.api.events.DepositAmountChanged;
 import com.eldercare.backend.admission.api.events.ResidenceTypeChanged;
+import com.eldercare.backend.admission.api.events.ResidencyChangeOutcomeNotice;
+import com.eldercare.backend.admission.api.events.ResidencyChangeReturnedToDraft;
+import com.eldercare.backend.admission.api.events.ResidencyChangeSubmittedNotice;
 import com.eldercare.backend.admission.api.spi.RepresentativePort;
 import com.eldercare.backend.admission.internal.change.domain.Addendum;
 import com.eldercare.backend.admission.internal.change.domain.ChangeType;
+import com.eldercare.backend.admission.internal.change.domain.RegistrableServiceTypes;
 import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeContent;
+import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeContent.ServiceChange;
+import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeDigest;
+import com.eldercare.backend.admission.internal.change.domain.ResidentOpinion;
 import com.eldercare.backend.admission.internal.change.persistence.AddendumStore;
+import com.eldercare.backend.admission.internal.change.persistence.ResidentOpinionStore;
 import com.eldercare.backend.admission.internal.contract.domain.Contract;
 import com.eldercare.backend.admission.internal.contract.domain.ContractVersion;
 import com.eldercare.backend.admission.internal.contract.persistence.ContractStore;
 import com.eldercare.backend.admission.internal.contract.service.ContractService;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.AssessmentApi;
 import com.eldercare.backend.resident.api.CareLevelApi;
+import com.eldercare.backend.resident.api.ResidentApi;
+import com.eldercare.backend.resident.api.dto.AssessmentSummary;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
@@ -48,6 +60,7 @@ import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.dto.RoomTypeRef;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +70,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
@@ -74,9 +88,16 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     static final String ADDENDUM_ENTITY = "M02.ADDENDUM";
     static final String SUPERSEDE = "SUPERSEDE";
     static final String SUPERSEDED = "SUPERSEDED";
+    static final String CONFIRMATION_REQUIRED = "REPRESENTATIVE_CONFIRMATION_REQUIRED";
+    static final String CARE_LEVEL_NOT_FROM_ASSESSMENT = "CARE_LEVEL_NOT_FROM_ASSESSMENT";
+    static final String RESIDENT_DISAGREE_REASON_REQUIRED = "RESIDENT_DISAGREE_REASON_REQUIRED";
+    static final String RESIDENT_OPINION_MISSING = "RESIDENT_OPINION_MISSING";
+    static final String RESIDENT_OPINION_OUTDATED = "RESIDENT_OPINION_OUTDATED";
     static final AuditAction ADDENDUM_CREATED = new AuditAction("M02_ADDENDUM_CREATED", false);
     static final AuditAction ADDENDUM_APPLIED = new AuditAction("M02_ADDENDUM_APPLIED", false);
     static final AuditAction ADDENDUM_NOT_APPLIED = new AuditAction("M02_ADDENDUM_NOT_APPLIED", false);
+    static final AuditAction ADDENDUM_CANCELLED = new AuditAction("M02_ADDENDUM_CANCELLED", false);
+    static final AuditAction ADDENDUM_SIGNED = new AuditAction("M02_ADDENDUM_SIGNED", false);
 
     private final ContractStore contracts;
     private final AddendumStore addenda;
@@ -95,8 +116,15 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     private final ObjectProvider<BedAllocationCommandApi> beds;
     private final ObjectProvider<LocationStructureApi> structure;
     private final ObjectProvider<ApprovalRequestApi> approvals;
+    private final ChangeConfirmations confirmations;
+    private final ObjectProvider<AssessmentApi> assessments;
+    private final ResidentOpinionStore opinions;
+    private final ObjectProvider<ResidentApi> residents;
 
     ResidencyChangeHandler(
+            ChangeConfirmations confirmations,
+            ObjectProvider<AssessmentApi> assessments,
+            ResidentOpinionStore opinions,
             ObjectProvider<BedAllocationCommandApi> beds,
             ObjectProvider<LocationStructureApi> structure,
             ObjectProvider<ApprovalRequestApi> approvals,
@@ -112,7 +140,11 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<RepresentativePort> representatives,
-            ObjectProvider<AccountApi> accounts) {
+            ObjectProvider<AccountApi> accounts,
+            ObjectProvider<ResidentApi> residents) {
+        this.confirmations = confirmations;
+        this.assessments = assessments;
+        this.opinions = opinions;
         this.beds = beds;
         this.structure = structure;
         this.approvals = approvals;
@@ -129,6 +161,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         this.currentUser = currentUser;
         this.representatives = representatives;
         this.accounts = accounts;
+        this.residents = residents;
     }
 
     @Override
@@ -160,22 +193,105 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 throw new PermissionDeniedException("Chỉ người đại diện hiệu lực lập yêu cầu qua cổng (FR-039)");
             }
         }
+        List<UnmetCondition> serviceTypes = serviceTypeConditions(change);
+        if (!serviceTypes.isEmpty()) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    RegistrableServiceTypes.CODE,
+                    serviceTypes.stream().map(UnmetCondition::description).collect(Collectors.joining("; ")));
+        }
+        List<UnmetCondition> careLevel = careLevelConditions(change);
+        if (!careLevel.isEmpty()) {
+            throw new ConditionNotMetException(careLevel);
+        }
+    }
+
+    /**
+     * FR-043k (Q-426, R21): dòng thêm dịch vụ chỉ thuộc phục hồi chức năng, hoạt động, đưa đi khám, tiêm; bớt không xét
+     * loại. Lập, sửa: 422 qua {@link #validateContent}; gửi duyệt, duyệt: 409 cùng các điều kiện khác (yêu cầu lập trước khi
+     * có quy tắc).
+     */
+    List<UnmetCondition> serviceTypeConditions(ResidencyChangeContent change) {
+        if (!change.has(ChangeType.SERVICE)) {
+            return List.of();
+        }
+        List<UnmetCondition> unmet = new ArrayList<>();
+        for (ServiceChange line : change.services()) {
+            if (line.action() != ServiceChange.Action.ADD) {
+                continue;
+            }
+            contracts
+                    .serviceKind(line.serviceId())
+                    .filter(kind -> !RegistrableServiceTypes.registrable(kind.type()))
+                    .ifPresent(kind -> unmet.add(new UnmetCondition(
+                            RegistrableServiceTypes.CODE,
+                            RegistrableServiceTypes.description(line.serviceId(), kind.type()))));
+        }
+        return unmet;
+    }
+
+    /**
+     * FR-043j (R20): mức chăm sóc mới phải bằng mức của lần đánh giá gần nhất đã xác nhận, và mức đó khác mức của hợp đồng
+     * hiện hành. Kiểm khi lập, sửa (409 qua {@link #validateContent}), gửi duyệt và duyệt (cùng các điều kiện khác).
+     */
+    List<UnmetCondition> careLevelConditions(ResidencyChangeContent change) {
+        if (!change.has(ChangeType.CARE_LEVEL)) {
+            return List.of();
+        }
+        Contract contract = contracts.find(change.contractId()).orElse(null);
+        Optional<ContractVersion> base = contract == null ? Optional.empty() : base(contract.id());
+        if (contract == null || base.isEmpty()) {
+            return List.of();
+        }
+        String contractLevel = base.get().content().path("careLevel").asString("");
+        Optional<AssessmentSummary> latest = assessments.getObject().latestConfirmed(contract.residentId());
+        if (latest.isEmpty()
+                || latest.get().careLevel() == null
+                || latest.get().careLevel().name().equals(contractLevel)) {
+            return List.of(new UnmetCondition(
+                    CARE_LEVEL_NOT_FROM_ASSESSMENT,
+                    "Chưa có lần đánh giá lại đã xác nhận ra mức chăm sóc khác mức của hợp đồng; Bác sĩ đánh giá lại trước"
+                            + " khi lập yêu cầu đổi mức"));
+        }
+        if (latest.get().careLevel() != change.careLevel()) {
+            return List.of(new UnmetCondition(
+                    CARE_LEVEL_NOT_FROM_ASSESSMENT,
+                    "Mức chăm sóc mới phải là mức của lần đánh giá gần nhất đã xác nhận ("
+                            + levelName(latest.get().careLevel()) + "); sửa mức trong yêu cầu cho khớp"));
+        }
+        return List.of();
+    }
+
+    /** Lần đánh giá gần nhất đã xác nhận, để giao diện điền sẵn mức chăm sóc mới (FR-043j). */
+    Optional<AssessmentSummary> assessedLevel(long residentId) {
+        return assessments.getObject().latestConfirmed(residentId);
+    }
+
+    private static String levelName(CareLevel level) {
+        return switch (level) {
+            case BASIC -> "Chăm sóc cơ bản";
+            case REGULAR -> "Chăm sóc thường xuyên";
+            case SPECIAL -> "Chăm sóc đặc biệt";
+        };
     }
 
     /**
      * Sửa, gửi duyệt Nháp (FR-039): người yêu cầu, hoặc Hành chính khi người yêu cầu là người đại diện gửi qua cổng người
-     * thân (tài khoản người thân). Hủy vẫn chỉ người yêu cầu (000).
+     * thân (tài khoản người thân) hoặc là Bác sĩ (Hành chính xác nhận với người đại diện, kèm bằng chứng). Hủy vẫn chỉ
+     * người yêu cầu (000).
      */
     @Override
     public boolean mayActOnDraft(CurrentUser user, ApprovalRequestView request) {
         if (request.requesterId() == user.accountId()) {
             return true;
         }
+        // Hành chính hoàn thiện cả nháp của Bác sĩ (xác nhận với người đại diện, kèm bằng chứng; 2026-11-20)
         return user.roles().contains(Role.OFFICE_STAFF)
                 && accounts.getObject()
                         .byId(request.requesterId())
-                        .map(AccountView::type)
-                        .filter(type -> type == AccountType.FAMILY_MEMBER)
+                        .filter(requester -> requester.type() == AccountType.FAMILY_MEMBER
+                                || (requester.roles().contains(Role.DOCTOR)
+                                        && !requester.roles().contains(Role.OFFICE_STAFF)))
                         .isPresent();
     }
 
@@ -226,13 +342,111 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (base.isEmpty()) {
             return List.of(new UnmetCondition("CONTRACT_NOT_ACTIVE", "Hợp đồng chưa có nội dung đã ký"));
         }
-        return rules.check(contract, base.get().content(), change, effectiveOn(request), request.id());
+        List<UnmetCondition> unmet = new ArrayList<>(
+                rules.check(contract, base.get().content(), change, effectiveOn(request), request.id()));
+        unmet.addAll(checkOnSubmit(request));
+        return unmet;
     }
 
-    /** DBR-07: tạo phụ lục Chờ hiệu lực, khóa thuộc tính (FR-046); đổi giường thì giữ giường theo lịch ở 003 (FR-041). */
+    /**
+     * Yêu cầu do Hành chính hoặc Bác sĩ lập chỉ gửi Quản lý viện duyệt được khi Hành chính đã xác nhận với người đại diện,
+     * kèm bằng chứng (chủ dự án yêu cầu 2026-11-20); yêu cầu người đại diện tự gửi qua cổng và thay đổi nhỏ thì không
+     * cần. Người đại diện đồng ý trên ứng dụng (FR-043c) thay cho xác nhận kèm bằng chứng. Kiểm lại lúc duyệt.
+     */
+    @Override
+    public List<UnmetCondition> checkOnSubmit(ApprovalRequestView request) {
+        ResidencyChangeContent change = ResidencyChangeContent.parse(request.content());
+        List<UnmetCondition> content = new ArrayList<>(serviceTypeConditions(change));
+        content.addAll(careLevelConditions(change));
+        if (!content.isEmpty()) {
+            return content;
+        }
+        if (!confirmationRequired(request)
+                || confirmations
+                        .validConfirmation(request.id(), request.content())
+                        .isPresent()
+                || confirmations.accepted(request.id())) {
+            return List.of();
+        }
+        return List.of(new UnmetCondition(
+                CONFIRMATION_REQUIRED,
+                "Hành chính cần xác nhận với người đại diện và đính kèm bằng chứng trước khi gửi Quản lý viện duyệt"));
+    }
+
+    /**
+     * Cần xác nhận khi không phải thay đổi nhỏ (Q-338: chỉ dịch vụ thuộc gói, chi phí không đổi, viện tự quyết; sửa
+     * 2026-11-20) và người yêu cầu không phải tài khoản người thân (người đại diện gửi qua cổng đã là xác nhận của chính
+     * họ).
+     */
+    boolean confirmationRequired(ApprovalRequestView request) {
+        if (isMinor(request)) {
+            return false;
+        }
+        boolean portal = accounts.getObject()
+                .byId(request.requesterId())
+                .map(requester -> requester.type() == AccountType.FAMILY_MEMBER)
+                .orElse(false);
+        if (!portal) {
+            return true;
+        }
+        // FR-043i (Q-418): Hành chính đổi phần thực chất của yêu cầu người đại diện gửi qua cổng thì phải xác nhận lại;
+        // yêu cầu gửi trước khi có dấu nội dung thì giữ hành vi cũ
+        return opinions.portalDigest(request.id())
+                .map(sent ->
+                        !sent.equals(ResidencyChangeDigest.of(request.content(), request.requestedEffectiveDate())))
+                .orElse(false);
+    }
+
+    /**
+     * FR-043h (Q-417, R11): như {@link #checkOnSubmit(ApprovalRequestView)}, thêm: ý kiến hiện hành của người cao tuổi là
+     * Không đồng ý thì gửi duyệt bắt buộc lý do. Thiếu ý kiến không chặn (chỉ cảnh báo trong phản hồi). Thay đổi nhỏ không xét.
+     */
+    @Override
+    public List<UnmetCondition> checkOnSubmit(
+            ApprovalRequestView request, Optional<com.eldercare.backend.common.Reason> reason) {
+        List<UnmetCondition> unmet = new ArrayList<>(checkOnSubmit(request));
+        if (reason.isEmpty()
+                && !isMinor(request)
+                && opinions.current(request.id())
+                        .map(o -> o.opinion() == ResidentOpinion.Opinion.DISAGREE)
+                        .orElse(false)) {
+            unmet.add(new UnmetCondition(
+                    RESIDENT_DISAGREE_REASON_REQUIRED,
+                    "Người cao tuổi không đồng ý với thay đổi này; nhập lý do vẫn gửi duyệt để Quản lý viện xem xét"));
+        }
+        return unmet;
+    }
+
+    /**
+     * Cảnh báo không chặn của yêu cầu (FR-043h, R11, R18): chưa ghi ý kiến người cao tuổi, hoặc ý kiến hiện hành ghi trước
+     * khi phần thực chất của yêu cầu đổi. Thay đổi nhỏ và yêu cầu đã rời Nháp, Chờ duyệt không cảnh báo.
+     */
+    List<String> warnings(ApprovalRequestView request) {
+        if (!(ApprovalStatus.DRAFT.equals(request.status()) || ApprovalStatus.PENDING_APPROVAL.equals(request.status()))
+                || isMinor(request)) {
+            return List.of();
+        }
+        Optional<ResidentOpinion> current = opinions.current(request.id());
+        if (current.isEmpty()) {
+            return List.of(RESIDENT_OPINION_MISSING);
+        }
+        return outdated(request, current.get()) ? List.of(RESIDENT_OPINION_OUTDATED) : List.of();
+    }
+
+    /** Ý kiến ghi khi phần thực chất của yêu cầu còn khác hiện tại (R18). */
+    boolean outdated(ApprovalRequestView request, ResidentOpinion opinion) {
+        return !opinion.contentDigest()
+                .equals(ResidencyChangeDigest.of(request.content(), request.requestedEffectiveDate()));
+    }
+
+    /**
+     * DBR-07: tạo phụ lục, khóa thuộc tính (FR-046); đổi giường thì giữ giường theo lịch ở 003 (FR-041). Không phải thay
+     * đổi nhỏ thì phụ lục ở Chờ ký tới khi Hành chính ghi nhận bản đã ký (FR-043d, Q-420); thay đổi nhỏ thì Chờ hiệu lực.
+     */
     @Override
     public void onApprove(ApprovalRequestView request, LocalDate actualEffectiveDate) {
         ResidencyChangeContent change = ResidencyChangeContent.parse(request.content());
+        boolean minor = isMinor(request);
         Contract found = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
         residencyLock.lock(found.residentId());
         Contract contract = contracts.lock(change.contractId()).orElseThrow(NotFoundException::new);
@@ -246,7 +460,9 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 built.before(),
                 built.after(),
                 actualEffectiveDate,
-                time.now());
+                time.now(),
+                !minor,
+                minor ? Addendum.Status.PENDING_EFFECTIVE : Addendum.Status.PENDING_SIGNATURE);
         addenda.addAttributes(
                 request.id(), contract.id(), contract.residentId(), change.changeTypes(), request.requesterId());
         try {
@@ -285,6 +501,179 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     /**
+     * Ký phụ lục muộn (FR-043d, Q-420): giữ giường đặt lúc duyệt (chuyển theo lịch, hoặc phân bổ đầu tiên của người bán
+     * trú sang nội trú) dời sang ngày hiệu lực mới, cùng logic và điều kiện như {@link #onApprove}; không đạt thì 409 liệt
+     * kê điều kiện, cả lệnh rollback. Sau chuyển gấp thì không có giữ giường nên bỏ qua.
+     */
+    void moveReservation(ApprovalRequestView request, LocalDate newDate) {
+        ResidencyChangeContent change = ResidencyChangeContent.parse(request.content());
+        if (change.afterUrgentTransfer() || change.newBedId() == null) {
+            return;
+        }
+        Contract contract = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
+        boolean first = change.firstBed(baseType(base(contract.id()).orElseThrow()));
+        if (!first && !change.has(ChangeType.BED)) {
+            return;
+        }
+        BedAllocationCommandApi api = beds.getObject();
+        api.cancelScheduledAllocation(
+                request.id(), new com.eldercare.backend.common.Reason("Ký phụ lục muộn, dời ngày hiệu lực (Q-420)"));
+        List<UnmetCondition> unmet = first
+                ? api.checkFirstAllocationReservation(
+                        contract.residentId(),
+                        change.newBedId(),
+                        newDate,
+                        ResidencyChangeRules.firstBedExpectedEnd(change),
+                        ResidencyChangeRules.residencyType(change.residenceType()))
+                : api.checkScheduledReservation(contract.residentId(), change.newBedId(), newDate);
+        if (!unmet.isEmpty()) {
+            throw new ConditionNotMetException(unmet);
+        }
+        if (first) {
+            api.reserveFirstAllocation(
+                    request.id(),
+                    contract.residentId(),
+                    change.newBedId(),
+                    newDate,
+                    ResidencyChangeRules.firstBedExpectedEnd(change),
+                    ResidencyChangeRules.residencyType(change.residenceType()));
+        } else {
+            api.reserveScheduledTransfer(request.id(), contract.residentId(), change.newBedId(), newDate);
+        }
+    }
+
+    /** FR-043e (Q-419): người duyệt trả về Nháp thay vì sửa nội dung. */
+    @Override
+    public boolean allowReturnToDraft() {
+        return true;
+    }
+
+    /** FR-043e: xác nhận người đại diện cũ bị bỏ (cả kèm bằng chứng và trên ứng dụng); người lập, Hành chính được báo. */
+    @Override
+    public void onReturnToDraft(ApprovalRequestView request, com.eldercare.backend.common.Reason reason) {
+        confirmations.voidAll(request.id(), time.now());
+        Long requesterStaff = accounts.getObject()
+                .byId(request.requesterId())
+                .filter(a -> a.type() != AccountType.FAMILY_MEMBER)
+                .map(a -> a.staffId())
+                .orElse(null);
+        events.publishEvent(new ResidencyChangeReturnedToDraft(
+                request.id(), request.target().residentId(), requesterStaff, reason.value(), time.now()));
+    }
+
+    /**
+     * FR-043f (Q-421): Nháp, Chờ duyệt do người lập, Hành chính, Quản lý viện hủy; tài khoản người thân chỉ hủy yêu cầu do
+     * chính mình lập. Đã duyệt vẫn do người duyệt (000).
+     */
+    @Override
+    public boolean mayCancel(CurrentUser user, ApprovalRequestView request) {
+        if (request.requesterId() == user.accountId()) {
+            return true;
+        }
+        return user.type() != AccountType.FAMILY_MEMBER
+                && (user.roles().contains(Role.OFFICE_STAFF) || user.roles().contains(Role.NURSING_HOME_MANAGER));
+    }
+
+    /** FR-043g (Q-422): gửi duyệt yêu cầu liên quan tới gia đình thì người đại diện khác được báo. */
+    @Override
+    public void onSubmit(ApprovalRequestView submitted) {
+        if (!familyRelated(submitted)) {
+            return;
+        }
+        ResidencyChangeContent change = ResidencyChangeContent.parse(submitted.content());
+        events.publishEvent(new ResidencyChangeSubmittedNotice(
+                submitted.id(),
+                submitted.target().residentId(),
+                names(change.changeTypes()),
+                submitted.requestedEffectiveDate(),
+                confirmerAccount(submitted),
+                time.now()));
+    }
+
+    private static final Map<ChangeType, String> TYPE_LABELS = Map.of(
+            ChangeType.RESIDENCE_TYPE, "Loại lưu trú",
+            ChangeType.CARE_LEVEL, "Mức chăm sóc",
+            ChangeType.SERVICE, "Dịch vụ",
+            ChangeType.DURATION, "Thời hạn",
+            ChangeType.BED, "Giường",
+            ChangeType.ARRIVAL_SCHEDULE, "Lịch đến");
+
+    /**
+     * Thông báo gửi duyệt tới Quản lý viện nêu người cao tuổi, số hợp đồng, loại thay đổi, ngày hiệu lực mong muốn (chủ dự
+     * án yêu cầu 2026-11-21: người duyệt biết yêu cầu của cụ nào, hợp đồng nào). Không nêu giá trị mới, giá.
+     */
+    @Override
+    public Optional<String> submittedNoticeSummary(ApprovalRequestView submitted) {
+        ResidencyChangeContent change = ResidencyChangeContent.parse(submitted.content());
+        String name =
+                residents.getObject().identity(submitted.target().residentId()).fullName();
+        String number = contracts
+                .find(change.contractId())
+                .map(Contract::contractNumber)
+                .orElse(null);
+        String types =
+                change.changeTypes().stream().sorted().map(TYPE_LABELS::get).collect(Collectors.joining(", "));
+        return Optional.of("Điều chỉnh hợp đồng " + (number == null ? "" : number + " ") + "của " + name + ": "
+                + types + "; ngày hiệu lực mong muốn "
+                + "%02d/%02d/%d"
+                        .formatted(
+                                submitted.requestedEffectiveDate().getDayOfMonth(),
+                                submitted.requestedEffectiveDate().getMonthValue(),
+                                submitted.requestedEffectiveDate().getYear())
+                + ".");
+    }
+
+    /**
+     * Liên quan tới gia đình (FR-043g): không phải thay đổi nhỏ, hoặc do người đại diện lập qua cổng. Thay đổi nhỏ do viện tự
+     * quyết thì không báo người đại diện.
+     */
+    boolean familyRelated(ApprovalRequestView request) {
+        return !isMinor(request)
+                || accounts.getObject()
+                        .byId(request.requesterId())
+                        .map(a -> a.type() == AccountType.FAMILY_MEMBER)
+                        .orElse(false);
+    }
+
+    /** Báo người đại diện kết quả (FR-043g), khi yêu cầu liên quan tới gia đình. */
+    void outcome(ApprovalRequestView request, ResidencyChangeOutcomeNotice.Outcome outcome) {
+        if (familyRelated(request)) {
+            events.publishEvent(new ResidencyChangeOutcomeNotice(
+                    request.id(),
+                    request.target().residentId(),
+                    outcome,
+                    names(ResidencyChangeContent.parse(request.content()).changeTypes()),
+                    time.now()));
+        }
+    }
+
+    /** Tài khoản người đại diện đã xác nhận: người đồng ý trên ứng dụng, hoặc người được ghi trong xác nhận kèm bằng chứng. */
+    private Long confirmerAccount(ApprovalRequestView request) {
+        Optional<Long> app = confirmations
+                .latest(request.id())
+                .filter(r ->
+                        com.eldercare.backend.admission.internal.change.domain.ChangeConfirmationRequest.ACCEPTED
+                                .equals(r.status()))
+                .map(r -> r.content().respondedByAccountId());
+        if (app.isPresent()) {
+            return app.get();
+        }
+        return confirmations
+                .validConfirmation(request.id(), request.content())
+                .flatMap(c -> accounts.getObject().byFamilyMember(c.representativeFamilyMemberId()))
+                .map(a -> a.accountId())
+                .orElse(null);
+    }
+
+    /** FR-043d (Q-420): phụ lục còn Chờ ký thì chưa áp dụng; yêu cầu giữ Đã duyệt, không Áp dụng không thành. */
+    @Override
+    public boolean readyToApply(ApprovalRequestView request) {
+        return addenda.findByRequest(request.id())
+                .map(addendum -> addendum.status() != Addendum.Status.PENDING_SIGNATURE)
+                .orElse(true);
+    }
+
+    /**
      * FR-045: hợp đồng gốc còn Hiệu lực, người cao tuổi chưa ở trạng thái cuối, điều kiện FR-041 còn thỏa. Không thỏa thì
      * yêu cầu chuyển Áp dụng không thành ngay sau hàm này, cùng transaction, nên đóng phụ lục tại đây (phụ lục Không áp dụng,
      * thuộc tính được nhả); module không nghe {@code RequestApplyFailed} được (M13ArchTest).
@@ -297,6 +686,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             residencyLock.lock(residentId);
             closing.close(request.id(), residentId, new Basis(null, request.id(), null, null));
             withdrawn(request);
+            outcome(request, ResidencyChangeOutcomeNotice.Outcome.APPLY_FAILED);
         }
         return unmet;
     }
@@ -369,6 +759,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 .build());
         events.publishEvent(new AddendumApplied(
                 addendum.id(), contract.id(), contract.residentId(), names(change.changeTypes()), effective));
+        events.publishEvent(new AddendumAppliedNotice(
+                addendum.id(), contract.residentId(), names(change.changeTypes()), effective, time.now()));
         if (names(change.changeTypes()).contains("RESIDENCE_TYPE")) {
             beds.getObject().residenceTypeChanged(contract.residentId());
             events.publishEvent(new ResidenceTypeChanged(contract.residentId()));

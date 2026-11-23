@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Kết quả theo dõi của cảnh báo đang mở (FR-087, Q-419): nhóm 3, bảng chung {@code record_event} kind
+ * Kết quả theo dõi của cảnh báo đang mở (FR-087, Q-443): nhóm 3, bảng chung {@code record_event} kind
  * {@code M05.ALERT_FOLLOW_UP}, chỉ ghi thêm. Không có bean ghi nhận chung thì bỏ qua (test đơn vị).
  */
 final class AlertFollowUps {

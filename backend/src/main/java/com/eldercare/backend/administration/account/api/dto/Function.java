@@ -13,7 +13,7 @@ public enum Function {
     ASSESSMENT_CARE_LEVEL("Đánh giá, mức chăm sóc"),
     ADMISSION_CONTRACT_DEPOSIT("Tiếp nhận, hợp đồng, đặt cọc"),
     WAITING_LIST("Danh sách chờ, dấu ưu tiên"),
-    RESIDENCY_CHANGE_REQUEST("Yêu cầu thay đổi lưu trú"),
+    RESIDENCY_CHANGE_REQUEST("Yêu cầu điều chỉnh hợp đồng"),
     ABSENCE_RETURN("Tạm vắng, trở về"),
     RESIDENCY_END_DEATH("Kết thúc lưu trú, qua đời"),
     TRANSFER_OUT("Chuyển viện"),
@@ -24,7 +24,7 @@ public enum Function {
     BED_MAINTENANCE("Xử lý hư hỏng, đưa giường vào bảo trì"),
     BED_READINESS("Xác nhận giường sẵn sàng"),
     CARE_PLAN("Kế hoạch chăm sóc"),
-    SHIFT_TASK_PLANNING("Lập công việc tháng, công việc phát sinh"), // Phụ lục 27 đổi tên 2026-11-22 (Q-415)
+    SHIFT_TASK_PLANNING("Lập công việc tháng, công việc phát sinh"), // Phụ lục 27 đổi tên 2026-11-22 (Q-439)
     TASK_CHECKLIST("Checklist, ghi nhận công việc"),
     DAY_CARE_ATTENDANCE("Điểm danh bán trú đến/về"),
     OVERDUE_TASK_HANDLING("Xử lý việc quá hạn"),
@@ -32,8 +32,8 @@ public enum Function {
     LATE_RETURN_CONSENT("Đồng ý về muộn"),
     QUALITY_CHECK("Kiểm tra chất lượng"),
     CARE_TASK_CATALOG("Danh mục công việc chăm sóc"),
-    DAILY_ROUTINE("Mốc sinh hoạt cố định"), // Q-416, Phụ lục 27 thêm 2026-11-22
-    DAILY_CARE_SCHEDULE("Lịch chăm sóc hằng ngày"), // Q-416, Phụ lục 27 thêm 2026-11-22
+    DAILY_ROUTINE("Mốc sinh hoạt cố định"), // Q-440, Phụ lục 27 thêm 2026-11-22
+    DAILY_CARE_SCHEDULE("Lịch chăm sóc hằng ngày"), // Q-440, Phụ lục 27 thêm 2026-11-22
     ACTIVITY_CATALOG("Danh mục loại hoạt động, nhóm sở thích"),
     VITAL_SIGN("Chỉ số sức khỏe"),
     ALERT_THRESHOLD("Ngưỡng cảnh báo"),
@@ -47,6 +47,7 @@ public enum Function {
     PRESCRIPTION("Đơn thuốc"),
     MEDICATION_CATALOG("Danh mục thuốc"),
     MEDICATION_ADMINISTRATION("Phát thuốc, thuốc khi cần"),
+    TEMPORARY_NURSE_ASSIGNMENT("Chỉ định Điều dưỡng phụ trách tạm"),
     MEDICATION_RECONCILIATION("Đối chiếu thuốc, thuốc gia đình gửi"),
     MEDICATION_RECEIPT("Tiếp nhận thuốc cung ứng"),
     DIET("Chế độ ăn"),

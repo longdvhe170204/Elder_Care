@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 
-/** Q-417 (spec 008 FR-061): ca không còn công việc chưa đóng hay cảnh báo mở thì đóng ca không chờ bàn giao. */
-class Q_417_ConditionalHandoverTest {
+/** Q-441 (spec 008 FR-061): ca không còn công việc chưa đóng hay cảnh báo mở thì đóng ca không chờ bàn giao. */
+class Q_441_ConditionalHandoverTest {
     private static final Instant ENDS = Instant.parse("2035-05-01T15:00:00Z");
     private static final WorkShift SHIFT = new WorkShift(
             5, 1, 1, ENDS.minus(Duration.ofHours(8)), ENDS, "FLOOR", 7L, true, "IN_PROGRESS", 11L, false, 0);
@@ -34,7 +34,7 @@ class Q_417_ConditionalHandoverTest {
     }
 
     @Test
-    void Q_417_nothingOutstandingClosesShiftWithoutHandover() {
+    void Q_441_nothingOutstandingClosesShiftWithoutHandover() {
         var lifecycle = lifecycle();
         when(state.prepared(SHIFT.id())).thenReturn(false);
         when(state.mandatory(SHIFT.id())).thenReturn(false);
@@ -43,7 +43,7 @@ class Q_417_ConditionalHandoverTest {
     }
 
     @Test
-    void Q_417_outstandingWorkKeepsShiftAwaitingHandover() {
+    void Q_441_outstandingWorkKeepsShiftAwaitingHandover() {
         var lifecycle = lifecycle();
         when(state.prepared(SHIFT.id())).thenReturn(false);
         when(state.mandatory(SHIFT.id())).thenReturn(true);

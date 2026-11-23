@@ -3,7 +3,9 @@ package com.eldercare.backend.notification.web;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.notification.internal.inbox.domain.InboxFilter;
+import com.eldercare.backend.notification.internal.inbox.domain.InboxItem;
 import com.eldercare.backend.notification.internal.inbox.service.InboxService;
+import com.eldercare.backend.notification.internal.inbox.service.SourceRecordAccess;
 import com.eldercare.backend.notification.internal.urgent.service.UrgentTakeCharge;
 import com.eldercare.backend.notification.web.request.PushDeviceBody;
 import com.eldercare.backend.notification.web.response.InboxBody;
@@ -38,10 +40,16 @@ public class InboxController {
 
     private final InboxService inbox;
     private final UrgentTakeCharge takeCharge;
+    private final SourceRecordAccess sourceAccess;
 
-    public InboxController(InboxService inbox, UrgentTakeCharge takeCharge) {
+    public InboxController(InboxService inbox, UrgentTakeCharge takeCharge, SourceRecordAccess sourceAccess) {
         this.inbox = inbox;
         this.takeCharge = takeCharge;
+        this.sourceAccess = sourceAccess;
+    }
+
+    private boolean canOpenSource(InboxItem row) {
+        return sourceAccess.canOpen(row.sourceRecordType(), row.sourceRecordId());
     }
 
     @GetMapping("/me/notifications")
@@ -52,7 +60,9 @@ public class InboxController {
             @RequestParam(required = false) Long residentId,
             @RequestParam(required = false) String cursor) {
         return InboxBody.of(
-                inbox.list(new InboxFilter(level, unread, eventType, residentId), cursor), takeCharge::available);
+                inbox.list(new InboxFilter(level, unread, eventType, residentId), cursor),
+                takeCharge::available,
+                this::canOpenSource);
     }
 
     @GetMapping("/me/notifications/{id}")
@@ -67,7 +77,7 @@ public class InboxController {
     })
     NotificationBody open(@PathVariable long id) {
         InboxService.Opened opened = inbox.open(id);
-        return NotificationBody.of(opened, takeCharge.available(opened.row()));
+        return NotificationBody.of(opened, takeCharge.available(opened.row()), canOpenSource(opened.row()));
     }
 
     @PostMapping("/me/notifications/{id}/hide")

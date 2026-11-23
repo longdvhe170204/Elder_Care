@@ -16,7 +16,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/** 005 FR-056 (Q-416): mốc sinh hoạt cố định của toàn viện; không có xóa. */
+/** 005 FR-056 (Q-440): mốc sinh hoạt cố định của toàn viện; không có xóa. */
 @RestController
 @RequestMapping("/api/v1")
 @Tag(name = "danh-muc")

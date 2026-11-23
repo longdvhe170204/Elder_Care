@@ -170,7 +170,7 @@ public class CareChecklistService {
                     .toList();
             handover = staffing.handoverTasks(actor, shiftId);
         }
-        // 005 FR-057 (Q-419): mọi người xem checklist thấy cảnh báo đang mở của người cao tuổi trong phạm vi để hiện
+        // 005 FR-057 (Q-443): mọi người xem checklist thấy cảnh báo đang mở của người cao tuổi trong phạm vi để hiện
         // nhãn
         // "Đang theo dõi"; với người không phải điều dưỡng, thiếu nguồn cảnh báo thì bỏ nhãn, không chặn checklist.
         var alertReader = alerts.getIfAvailable();

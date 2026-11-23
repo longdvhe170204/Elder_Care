@@ -17,7 +17,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 /**
- * "Lịch chăm sóc hằng ngày" (012 FR-076, FR-083 (a); Q-416): người thân có quan hệ Hiệu lực xem của người cao tuổi, giá trị
+ * "Lịch chăm sóc hằng ngày" (012 FR-076, FR-083 (a); Q-440): người thân có quan hệ Hiệu lực xem của người cao tuổi, giá trị
  * đo chỉ khi quyền xem sức khỏe có tác dụng (FR-011); người cao tuổi xem của chính mình, không có giá trị đo. Chỉ xem.
  */
 @Service

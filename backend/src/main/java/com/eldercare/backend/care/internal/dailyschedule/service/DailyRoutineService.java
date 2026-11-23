@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 005 FR-056 (Q-416): Quản lý viện lập, sửa, ngừng mốc sinh hoạt cố định của toàn viện; mọi thay đổi áp dụng từ ngày hôm
+ * 005 FR-056 (Q-440): Quản lý viện lập, sửa, ngừng mốc sinh hoạt cố định của toàn viện; mọi thay đổi áp dụng từ ngày hôm
  * sau. Quyền theo dòng "Mốc sinh hoạt cố định" của Phụ lục 27: Quản lý viện cấu hình, nhân viên khác xem.
  */
 @Service

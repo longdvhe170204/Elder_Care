@@ -19,6 +19,17 @@ public class ReturnBatchBody {
 
     private Instant returnedAt;
 
+    @NotBlank(message = "Return witness is required")
+    private String witness;
+
+    public String getWitness() {
+        return witness;
+    }
+
+    public void setWitness(String witness) {
+        this.witness = witness;
+    }
+
     public BigDecimal getQuantity() {
         return quantity;
     }

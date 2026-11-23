@@ -173,7 +173,7 @@ class BR_18_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void Q_420_shiftLeadNurseCannotPlanShiftTasks() throws Exception {
+    void Q_444_shiftLeadNurseCannotPlanShiftTasks() throws Exception {
         var nurse = new TestUsers(jdbc, time).staff(Role.NURSING_STAFF);
         shifts.shiftLead(shiftId, nurse.staffId());
         assignments.assign(

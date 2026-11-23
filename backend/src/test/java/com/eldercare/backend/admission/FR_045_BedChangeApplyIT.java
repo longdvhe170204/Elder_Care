@@ -41,6 +41,50 @@ class FR_045_BedChangeApplyIT extends ChangeTestBase {
                 bedId);
     }
 
+    /** Dịch vụ phí lưu trú của loại phòng, đơn giá mở từ 2020-01-01. */
+    private void residencyFee(long roomTypeId, int price) {
+        String name = "Phí lưu trú " + roomTypeId + " " + System.nanoTime();
+        jdbc.update(
+                M02Sql.INSERT_SERVICE,
+                name,
+                M02Sql.attributes("RESIDENCY_FEE", "tháng", "MONTH", null, roomTypeId, null));
+        long id = jdbc.queryForObject(M02Sql.SERVICE_ID, Long.class, name);
+        jdbc.update(
+                "INSERT INTO price_version (service_id, unit_price, effective_from) VALUES (?, ?, '2020-01-01')",
+                id,
+                price);
+    }
+
+    private long roomTypeOf(long roomId) {
+        return jdbc.queryForObject("SELECT room_type_id FROM room WHERE id=?", Long.class, roomId);
+    }
+
+    /** FR-038: đổi sang giường ở loại phòng khác thì ảnh hưởng chi phí có dòng phí lưu trú theo loại phòng cũ, mới. */
+    @Test
+    void FR_038_bedOfAnotherRoomType_showsResidencyFeeImpact() throws Exception {
+        long oldRoom = realRoom(true);
+        long newRoom = realRoom(true);
+        residencyFee(roomTypeOf(oldRoom), 3_000_000);
+        residencyFee(roomTypeOf(newRoom), 5_000_000);
+        long residentId = residentWithRepresentative();
+        var body = body(residentId);
+        body.put("roomTypeId", roomTypeOf(oldRoom));
+        long contractId = activeContract(residentId, body);
+        activeAllocation(residentId, realBed(oldRoom, "OCCUPIED"));
+        long newBed = realBed(newRoom, "EMPTY");
+
+        var created = createChange(
+                request(contractId, "[\"BED\"]", "{\"newBedId\": %d}".formatted(newBed), today().plusDays(2)));
+
+        var fee = java.util.stream.StreamSupport.stream(
+                        created.get("costImpact").spliterator(), false)
+                .filter(item -> "RESIDENCY_FEE".equals(item.get("item").asString()))
+                .findFirst();
+        assertThat(fee).as("costImpact %s", created.get("costImpact")).isPresent();
+        assertThat(fee.get().get("previousUnitPrice").asLong()).isEqualTo(3_000_000);
+        assertThat(fee.get().get("newUnitPrice").asLong()).isEqualTo(5_000_000);
+    }
+
     @Test
     void FR_041_approveReserves_effectiveDateTransfersAtMidnight() throws Exception {
         Beds b = setup();

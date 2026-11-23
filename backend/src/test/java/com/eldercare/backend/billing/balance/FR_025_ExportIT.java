@@ -48,7 +48,8 @@ class FR_025_ExportIT extends BalanceTestBase {
                         "{\"residentIds\":[" + a + "],\"from\":\"" + today.minusYears(2) + "\",\"to\":\"" + today
                                 + "\",\"format\":\"XLSX\"}")
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.errorCode").value("EXPORT_RANGE_EXCEEDED"));
+                .andExpect(jsonPath("$.errorCode").value("EXPORT_RANGE_EXCEEDED"))
+                .andExpect(jsonPath("$.detail").value("Khoảng xuất không được dài hơn 12 tháng"));
 
         // Excel và PDF cùng số liệu
         String body = "{\"residentIds\":[" + a + "," + b + "]," + range + ",\"format\":\"%s\"}";

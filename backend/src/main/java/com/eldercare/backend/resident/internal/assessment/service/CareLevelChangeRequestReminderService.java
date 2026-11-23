@@ -8,6 +8,7 @@ import com.eldercare.backend.resident.api.events.CareLevelChangeRequestReminder;
 import com.eldercare.backend.resident.api.spi.CareLevelChangeRequestApi;
 import com.eldercare.backend.resident.internal.assessment.domain.AssessmentStatus;
 import com.eldercare.backend.resident.internal.assessment.persistence.AssessmentRepository;
+import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelChangeDecisionStore;
 import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelHistoryStore;
 import com.eldercare.backend.resident.internal.domain.DueReminder;
 import com.eldercare.backend.resident.internal.persistence.PeriodicReminderStore;
@@ -21,7 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Nhắc Hành chính lập yêu cầu đổi mức chăm sóc (001 T064; FR-036, Q-318, research H-12): sau khi đánh giá lại ra mức
  * khác mức hiện hành, mỗi CFG-M03-02 nhắc một lần cho tới khi 004 có yêu cầu đổi mức chưa kết thúc, có lần đánh giá lại
- * mới (nhắc theo lần mới), mức hiện hành đã bằng mức mới, hoặc hồ sơ sang trạng thái cuối. Yêu cầu bị Từ chối không dừng
+ * mới (nhắc theo lần mới), mức hiện hành đã bằng mức mới, Hành chính ghi quyết định khi gia đình không đồng ý đổi mức
+ * (FR-036b, Q-424: dừng nhắc của lần đánh giá đó), hoặc hồ sơ sang trạng thái cuối. Yêu cầu bị Từ chối không dừng
  * nhắc. Chỉ phát sự kiện và ghi bảng kỹ thuật {@code reminder_marker}, không tạo yêu cầu (Q-306). Chưa có bản 004 thì coi
  * như không có yêu cầu nào.
  */
@@ -37,6 +39,7 @@ public class CareLevelChangeRequestReminderService {
     private final AssessmentRepository assessments;
     private final AssessmentContents contents;
     private final CareLevelHistoryStore history;
+    private final CareLevelChangeDecisionStore decisions;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
 
@@ -47,6 +50,7 @@ public class CareLevelChangeRequestReminderService {
             AssessmentRepository assessments,
             AssessmentContents contents,
             CareLevelHistoryStore history,
+            CareLevelChangeDecisionStore decisions,
             ApplicationEventPublisher events,
             BusinessTime time) {
         this.reminders = reminders;
@@ -55,6 +59,7 @@ public class CareLevelChangeRequestReminderService {
         this.assessments = assessments;
         this.contents = contents;
         this.history = history;
+        this.decisions = decisions;
         this.events = events;
         this.time = time;
     }
@@ -77,7 +82,7 @@ public class CareLevelChangeRequestReminderService {
             long assessmentId = row.milestoneId();
             var latest = assessments.findFirstByResidentIdAndStatusOrderByConfirmedAtDescIdDesc(
                     residentId, AssessmentStatus.CONFIRMED);
-            if (latest.isEmpty() || latest.get().getId() != assessmentId) {
+            if (latest.isEmpty() || latest.get().getId() != assessmentId || decisions.existsFor(assessmentId)) {
                 continue;
             }
             CareLevel newLevel = contents.of(latest.get()).careLevel();

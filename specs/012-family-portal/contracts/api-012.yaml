@@ -271,7 +271,7 @@ paths:
   /family-portal/residents/{residentId}/daily-care-schedule:
     get:
       tags: [family-portal]
-      summary: "Lịch chăm sóc hằng ngày (bổ sung 2026-11-22, Q-416): giờ bữa, hoạt động, mốc sinh hoạt, công việc chăm sóc và trạng thái; giá trị đo chỉ khi quyền xem sức khỏe có tác dụng; mặc định hôm nay"
+      summary: "Lịch chăm sóc hằng ngày (bổ sung 2026-11-22, Q-440): giờ bữa, hoạt động, mốc sinh hoạt, công việc chăm sóc và trạng thái; giá trị đo chỉ khi quyền xem sức khỏe có tác dụng; mặc định hôm nay"
       x-fr: [FR-076]
       x-family-member: true
       parameters:
@@ -404,7 +404,7 @@ paths:
   /resident-channel/daily-care-schedule:
     get:
       tags: [resident-channel]
-      summary: "Lịch chăm sóc hằng ngày của chính mình (bổ sung 2026-11-22, Q-416): không có giá trị đo, liều thuốc; mặc định hôm nay"
+      summary: "Lịch chăm sóc hằng ngày của chính mình (bổ sung 2026-11-22, Q-440): không có giá trị đo, liều thuốc; mặc định hôm nay"
       x-fr: [FR-083]
       parameters: [ { name: date, in: query, schema: { type: string, format: date } } ]
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }

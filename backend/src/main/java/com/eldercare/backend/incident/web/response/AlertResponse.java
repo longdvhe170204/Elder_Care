@@ -61,7 +61,7 @@ public record AlertResponse(
     public record AlertSource(
             String sourceType, Long sourceId, IncidentLevel level, Instant occurredAt, Instant resolvedAt) {}
 
-    /** Kết quả theo dõi (FR-087, Q-419). */
+    /** Kết quả theo dõi (FR-087, Q-443). */
     public record AlertFollowUp(String content, Instant at, String recordedBy) {}
 
     public static AlertResponse of(AlertDetails details, boolean merged) {

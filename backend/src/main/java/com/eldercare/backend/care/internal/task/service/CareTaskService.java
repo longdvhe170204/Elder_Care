@@ -102,7 +102,7 @@ public class CareTaskService {
                 .allowed()) throw new PermissionDeniedException("Không có quyền với đối tượng này");
     }
 
-    /** Q-420 (chủ dự án 2026-11-23): chỉ Trưởng tầng lập công việc của ca, kể cả lập trước; Người phụ trách ca thì không. */
+    /** Q-444 (chủ dự án 2026-11-23): chỉ Trưởng tầng lập công việc của ca, kể cả lập trước; Người phụ trách ca thì không. */
     private void floorManager(ShiftStaffPort.ShiftView shift) {
         if (!shift.published()) throw new BusinessException(HttpStatus.CONFLICT, "OUTSIDE_SHIFT", "Ca chưa công bố");
         if (!user.roles().contains(Role.FLOOR_MANAGER))

@@ -339,8 +339,8 @@ public class ScheduledTransfers {
                 .map(a -> a.staffId())
                 .ifPresent(staff -> recipients.add(new RecipientGroup.Staff(staff, "BED_TRANSFER_EXECUTOR")));
         String title = approved
-                ? "Yêu cầu thay đổi lưu trú sau chuyển giường gấp đã được duyệt"
-                : "Yêu cầu thay đổi lưu trú sau chuyển giường gấp bị từ chối: cần chuyển về phòng cùng giá";
+                ? "Yêu cầu điều chỉnh hợp đồng sau chuyển giường gấp đã được duyệt"
+                : "Yêu cầu điều chỉnh hợp đồng sau chuyển giường gấp bị từ chối: cần chuyển về phòng cùng giá";
         events.publishEvent(new ScheduledTransferNotice(
                 allocationId,
                 List.of(request(

@@ -3,7 +3,10 @@ package com.eldercare.backend.notification.internal.inbox.service;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.FieldVisibilityApi;
 import com.eldercare.backend.administration.account.api.ScopeApi;
+import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
+import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.dto.Visibility;
 import com.eldercare.backend.common.error.BusinessException;
@@ -206,12 +209,19 @@ public class InboxService {
         };
     }
 
+    private static final PermissionKey RESIDENT_PROFILE_VIEW =
+            new PermissionKey(Function.RESIDENT_PROFILE, Operation.VIEW);
+
     private Set<InformationType> staffAllowed(CurrentUser user, InboxItem row, Set<InformationType> allowed) {
         if (row.residentId() == null) {
             return allowed;
         }
         Target target = new Target("M13.NOTIFICATION", Long.toString(row.id()), row.residentId(), row.floorAreaId());
-        if (!scope.getObject().inScope(user, target)) {
+        // Phạm vi của 002 (FR-034): vai trò Toàn viện ở Hồ sơ người cao tuổi (Phụ lục 27) trong phạm vi mọi người cao
+        // tuổi; vai trò theo phân công thì theo phân công hiện hành (chủ dự án chốt 2026-11-21)
+        ScopeApi scopes = scope.getObject();
+        boolean facilityWide = scopes.filter(user, RESIDENT_PROFILE_VIEW).facilityWide();
+        if (!facilityWide && !scopes.inScope(user, target)) {
             return EnumSet.noneOf(InformationType.class);
         }
         FieldVisibilityApi visibility = fields.getObject();

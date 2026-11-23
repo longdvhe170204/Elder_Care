@@ -86,7 +86,7 @@ public class BedAllocationController {
     public ResponseEntity<?> transfer(@PathVariable long id, @Valid @RequestBody BedTransferWrite body) {
         if (body.transferAt() != null && body.transferAt().isAfter(time.now()))
             throw new com.eldercare.backend.common.error.InvalidValueException(
-                    "Chuyển trong tương lai phải qua yêu cầu thay đổi lưu trú");
+                    "Chuyển trong tương lai phải qua yêu cầu điều chỉnh hợp đồng");
         var outcome =
                 transfers.transfer(id, body.newBedId(), body.transferReasonId(), body.reason(), body.transferAt());
         return switch (outcome) {

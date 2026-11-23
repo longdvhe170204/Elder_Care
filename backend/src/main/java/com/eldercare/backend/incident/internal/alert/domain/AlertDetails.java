@@ -27,7 +27,7 @@ public record AlertDetails(
         this(alert, assigneeName, sources, allowedCommands, Press.NONE, List.of());
     }
 
-    /** Một lần ghi kết quả theo dõi (FR-087, Q-419): nội dung, thời điểm, người ghi. */
+    /** Một lần ghi kết quả theo dõi (FR-087, Q-443): nội dung, thời điểm, người ghi. */
     public record FollowUp(String content, Instant at, String recordedBy) {}
 
     /** Người bấm (nút hỗ trợ), loại sự việc và nơi đã chọn của cảnh báo từ nút SOS, nút hỗ trợ (FR-047f, FR-047i). */

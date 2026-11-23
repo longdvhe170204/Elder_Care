@@ -275,7 +275,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void Q_417_floorManagerConfirmsInsteadAfterConfirmDelay() {
+    void Q_441_floorManagerConfirmsInsteadAfterConfirmDelay() {
         long id = draft();
         assessment(id);
         service.complete(id);
@@ -289,7 +289,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
         assertThat(service.record(id).status()).isEqualTo("CONFIRMED");
     }
 
-    /** Q-417: trước CFG-M09-05 và khi người phụ trách ca sau có mặt, Trưởng tầng chưa xác nhận thay. */
+    /** Q-441: trước CFG-M09-05 và khi người phụ trách ca sau có mặt, Trưởng tầng chưa xác nhận thay. */
     @Test
     void FR_038_floorManagerMustBePresentInTheScheduledNextShift() {
         com.eldercare.backend.support.TableRows.each(

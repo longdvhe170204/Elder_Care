@@ -38,18 +38,21 @@ public class BelongingQueries {
     private final ValuableTypes valuableTypes;
     private final PermissionApi permissions;
     private final ObjectProvider<CurrentUser> users;
+    private final HandoverPartyNames partyNames;
 
     BelongingQueries(
             BelongingStore belongings,
             BelongingHandoverStore handovers,
             ValuableTypes valuableTypes,
             PermissionApi permissions,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            HandoverPartyNames partyNames) {
         this.belongings = belongings;
         this.handovers = handovers;
         this.valuableTypes = valuableTypes;
         this.permissions = permissions;
         this.users = users;
+        this.partyNames = partyNames;
     }
 
     /**
@@ -108,6 +111,7 @@ public class BelongingQueries {
             throw new NotFoundException();
         }
         long intake = belongings.intakeHandoverOf(belongingId).orElseThrow(NotFoundException::new);
-        return new BelongingDetail(belonging, handovers.ofIntakeWithBlocks(intake));
+        return new BelongingDetail(
+                belonging, partyNames.named(intake, belonging.residentId(), handovers.ofIntakeWithBlocks(intake)));
     }
 }

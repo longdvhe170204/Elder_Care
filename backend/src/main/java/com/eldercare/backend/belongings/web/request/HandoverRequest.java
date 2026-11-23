@@ -60,7 +60,8 @@ public record HandoverRequest(
             Long incidentId,
             String level,
             String description,
-            String place) {}
+            String place,
+            String lowerLevelReason) {}
 
     /** Thiếu trường bắt buộc của hợp đồng thì {@code null} (controller trả 422). */
     public HandoverCommand toCommand() {
@@ -87,7 +88,8 @@ public record HandoverRequest(
                                     item.incident().incidentId(),
                                     item.incident().level(),
                                     item.incident().description(),
-                                    item.incident().place())));
+                                    item.incident().place(),
+                                    item.incident().lowerLevelReason())));
         }
         GiverType giverType = giver == null ? null : giver.type();
         return new HandoverCommand(

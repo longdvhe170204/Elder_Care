@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Mốc sinh hoạt cố định (005 FR-056, Q-416): mỗi lần lập, sửa, ngừng thêm một phiên bản áp dụng từ ngày hôm sau; ngày D đọc
+ * Mốc sinh hoạt cố định (005 FR-056, Q-440): mỗi lần lập, sửa, ngừng thêm một phiên bản áp dụng từ ngày hôm sau; ngày D đọc
  * phiên bản mới nhất có {@code from} ≤ D. Sửa nhiều lần trong một ngày chỉ giữ lần cuối.
  */
 public record DailyRoutineAttributes(List<Version> versions) {

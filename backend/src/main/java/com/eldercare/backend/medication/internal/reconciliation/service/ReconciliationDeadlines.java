@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 public class ReconciliationDeadlines {
 
     static final String ALERT_TYPE = "CHUA_DOI_CHIEU";
+    static final String ESCALATED_ALERT_TYPE = "CHUA_DOI_CHIEU_QUA_8_GIO";
 
     private static final List<PrescriptionStatus> UNENDED =
             List.of(PrescriptionStatus.ACTIVE, PrescriptionStatus.PENDING_EFFECTIVE);
@@ -48,6 +49,9 @@ public class ReconciliationDeadlines {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
 
+    /** Tầng của người cao tuổi để báo Trưởng tầng (BR-M07-29). */
+    private final com.eldercare.backend.roombedallocation.api.ResidentLocationApi locations;
+
     public ReconciliationDeadlines(
             PrescriptionRepository prescriptions,
             MedicationDoseRepository doses,
@@ -55,7 +59,9 @@ public class ReconciliationDeadlines {
             ReconciliationDueStore due,
             ParameterApi parameters,
             ApplicationEventPublisher events,
-            BusinessTime time) {
+            BusinessTime time,
+            com.eldercare.backend.roombedallocation.api.ResidentLocationApi locations) {
+        this.locations = locations;
         this.prescriptions = prescriptions;
         this.doses = doses;
         this.tickets = tickets;
@@ -141,6 +147,41 @@ public class ReconciliationDeadlines {
                     now,
                     List.of()));
             due.markWarned(residentId, now);
+        }
+        escalate(now);
+    }
+
+    /**
+     * Quá CFG-M07-10 (8 giờ) kể từ lúc bắt đầu mà phiếu chưa được xác nhận thì báo thêm Trưởng tầng, Quản lý viện; mức giữ
+     * Trung bình vì hệ thống chỉ có ba mức độ (BR-M07-29, Q-431).
+     */
+    private void escalate(Instant now) {
+        var extra = parameters
+                .read(ParameterCode.CFG_M07_10)
+                .asDuration()
+                .minus(parameters.read(ParameterCode.CFG_M07_05).asDuration());
+        if (extra.isNegative()) {
+            extra = java.time.Duration.ZERO;
+        }
+        for (MedicationReconciliation ticket : tickets.findNeedingEscalation(now.minus(extra))) {
+            ticket.markEscalated(now);
+            tickets.save(ticket);
+            Long floorId = locations == null
+                    ? null
+                    : locations
+                            .at(ticket.getResidentId(), now)
+                            .map(location -> location.floorId())
+                            .orElse(null);
+            events.publishEvent(new com.eldercare.backend.medication.api.events.ReconciliationEscalated(
+                    ticket.getId(), ticket.getResidentId(), floorId, now));
+            events.publishEvent(new MedicationAlertRequestedEvent(
+                    ESCALATED_ALERT_TYPE,
+                    "TRUNG_BINH",
+                    ticket.getResidentId(),
+                    "resident:" + ticket.getResidentId(),
+                    ESCALATED_ALERT_TYPE + ":" + ticket.getId(),
+                    now,
+                    List.of()));
         }
     }
 }

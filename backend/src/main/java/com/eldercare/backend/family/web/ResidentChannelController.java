@@ -52,7 +52,7 @@ class ResidentChannelController {
         this.dailyCare = dailyCare;
     }
 
-    /** 012 FR-083 (a) (Q-416): Lịch chăm sóc hằng ngày của chính mình, không có giá trị đo. */
+    /** 012 FR-083 (a) (Q-440): Lịch chăm sóc hằng ngày của chính mình, không có giá trị đo. */
     @GetMapping("/daily-care-schedule")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "OK", content = @Content),

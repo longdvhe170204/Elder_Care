@@ -59,7 +59,7 @@ public class HandoverReminders implements M09TimedTask {
             var handover = store.forShift(id);
             boolean handled = false;
             if (handover.filter(h -> "CONFIRMED".equals(h.status())).isPresent()) continue;
-            // Q-417: chưa có bàn giao hoặc còn Bản nháp mà ca không còn gì tồn thì bàn giao không bắt buộc, không nhắc.
+            // Q-441: chưa có bàn giao hoặc còn Bản nháp mà ca không còn gì tồn thì bàn giao không bắt buộc, không nhắc.
             boolean optional = handover.filter(h -> !"DRAFT".equals(h.status())).isEmpty() && !sources.outstanding(s);
             if (optional) {
                 // Hết ca mà vẫn không bắt buộc: chốt các mốc để ca rời danh sách xét nhắc, không gửi gì.

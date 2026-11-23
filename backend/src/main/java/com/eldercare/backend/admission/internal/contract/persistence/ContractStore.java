@@ -382,6 +382,7 @@ public class ContractStore {
                 .map(item -> new ServiceKind(
                         item.attributes().type().name(),
                         item.attributes().careLevelCode(),
+                        item.attributes().roomTypeId(),
                         item.status() == CatalogStatus.ACTIVE));
     }
 

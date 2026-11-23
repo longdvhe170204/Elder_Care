@@ -296,6 +296,8 @@ paths:
       description: |
         Chặn khi thiếu nội dung bắt buộc (FR-019), không có đúng một dịch vụ chăm sóc theo mức của hợp đồng (FR-025, Q-297),
         hoặc có điều khoản khác chuẩn chưa được duyệt cho đúng nội dung hiện tại (FR-025a). Cảnh báo theo FR-025 không chặn.
+        Hợp đồng nội trú có loại phòng mà dòng phí lưu trú thuộc loại phòng khác: 409 CONDITION_NOT_MET, điều kiện
+        CONTRACT_RESIDENCY_FEE_MISMATCH (bổ sung 2026-11-21, chủ dự án duyệt).
       x-fr: [FR-020, FR-025, FR-025a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ContractResult' } } } }, '409': { $ref: '#/components/responses/Conflict' } }
@@ -452,7 +454,8 @@ paths:
         reference là lần đánh giá (BR-M01-03) hoặc lệnh chuyển giường gấp (003 FR-030). Hệ thống không tự lập yêu cầu (Q-306).
         Gửi duyệt, duyệt, từ chối, hủy qua api-000; khi duyệt, kiểm FR-041, FR-046 và tạo phụ lục (FR-042).
         minorChange do hệ thống tính (FR-043): Quản lý viện duyệt mọi yêu cầu, Hành chính chỉ duyệt yêu cầu là thay đổi nhỏ; kiểm lại lúc duyệt.
-      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043]
+        Loại thay đổi Dịch vụ chỉ thêm được REHABILITATION, ACTIVITY, MEDICAL_ESCORT, INJECTION (FR-043k, Q-426): thêm loại khác 422 SERVICE_TYPE_NOT_REGISTRABLE, mô tả chỉ đúng luồng cần dùng; bớt được mọi dòng đang có; gửi duyệt, duyệt kiểm lại (409 cùng mã).
+      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043, FR-043k]
       x-br: [BR-M01-03, BR-M02-16]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeRequestInput' } } } }
@@ -470,7 +473,63 @@ paths:
       x-fr: [FR-038, FR-039]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeRequestInput' } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Problem' }, '412': { $ref: '#/components/responses/Problem' } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Problem' }, '412': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /residency-change-requests/{id}/send-for-confirmation:
+    post:
+      tags: [change-requests]
+      summary: Gửi yêu cầu ở Nháp cho người đại diện xác nhận trên ứng dụng (Hành chính, Quản lý viện)
+      description: 'FR-043c (Q-416): người đại diện được báo, xem nội dung kèm ảnh hưởng chi phí rồi đồng ý hoặc không đồng ý. Lần gửi trước còn chờ hoặc đã đồng ý thành Bị thay thế. 409 REQUEST_NOT_DRAFT, CONFIRMATION_NOT_REQUIRED (thay đổi nhỏ, người đại diện tự gửi), NO_REPRESENTATIVE.'
+      x-fr: [FR-043a, FR-043c]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: Đã gửi, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeRequest' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '412': { $ref: '#/components/responses/Problem' } }
+  /residency-change-requests/{id}/resident-opinions:
+    get:
+      tags: [change-requests]
+      summary: Ý kiến người cao tuổi về yêu cầu, mới nhất trước
+      x-fr: [FR-043h]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidentOpinion' } } } } }, '403': { $ref: '#/components/responses/Problem' }, '404': { $ref: '#/components/responses/Problem' } }
+    post:
+      tags: [change-requests]
+      summary: Ghi ý kiến người cao tuổi (Hành chính, Bác sĩ, Điều dưỡng phụ trách)
+      description: 'FR-043h (Q-417): yêu cầu ở Nháp, Chờ duyệt (409 REQUEST_NOT_OPEN); ghi thêm, bản mới là hiện hành; không chặn gửi duyệt. Ý kiến hiện hành DISAGREE thì gửi duyệt (POST /approval-requests/{id}/submit) bắt buộc reason, thiếu thì 409 RESIDENT_DISAGREE_REASON_REQUIRED. Trả lịch sử ý kiến.'
+      x-fr: [FR-043h]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidentOpinionInput' } } } }
+      responses: { '200': { description: Đã ghi, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidentOpinion' } } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /residency-change-requests/{id}/addendum-signature:
+    post:
+      tags: [change-requests]
+      summary: Ghi nhận phụ lục đã ký (Hành chính, Quản lý viện)
+      description: 'FR-043d (Q-420): phụ lục Chờ ký → Chờ hiệu lực. Ngày ký từ ngày duyệt tới hôm nay; người ký là người đại diện hiện tại tại ngày ký; tệp PDF, JPG, PNG gắn vào hợp đồng như bản scan hợp đồng; người ký phía viện (tùy chọn) là nhân viên đang làm việc. Ký muộn hơn ngày hiệu lực thì ngày hiệu lực của yêu cầu, phụ lục, giữ giường dời sang ngày ký. 409 ADDENDUM_NOT_PENDING_SIGNATURE, SIGNER_NOT_REPRESENTATIVE, điều kiện giữ giường; 422 SIGNED_DATE_INVALID, FACILITY_SIGNATORY_INVALID.'
+      x-fr: [FR-043d]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AddendumSignatureInput' } } } }
+      responses: { '200': { description: Đã ghi nhận, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeRequest' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '412': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /family-portal/residency-change-confirmations:
+    get:
+      tags: [change-requests]
+      summary: Đề nghị xác nhận thay đổi lưu trú đang chờ người đại diện (cổng người thân)
+      description: 'FR-043c: chỉ đề nghị của người cao tuổi mà người dùng hiện là người đại diện; kèm giá trị trước, giá trị mới, ảnh hưởng chi phí.'
+      x-fr: [FR-043c]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidencyChangeConfirmation' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /family-portal/residency-change-confirmations/{id}/accept:
+    post:
+      tags: [change-requests]
+      summary: Người đại diện đồng ý yêu cầu thay đổi lưu trú
+      description: 'FR-043c: thay cho xác nhận kèm bằng chứng; Hành chính được báo và gửi Quản lý viện duyệt. 403 không phải người đại diện hiện tại; 409 CONFIRMATION_NOT_AWAITING, REQUEST_NOT_DRAFT.'
+      x-fr: [FR-043c]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: Đã đồng ý }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' } }
+  /family-portal/residency-change-confirmations/{id}/decline:
+    post:
+      tags: [change-requests]
+      summary: Người đại diện không đồng ý yêu cầu thay đổi lưu trú, kèm lý do
+      description: 'FR-043c: yêu cầu vẫn ở Nháp; Hành chính được báo, xem lý do để sửa hoặc hủy. 422 thiếu lý do.'
+      x-fr: [FR-043c]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeDecline' } } } }
+      responses: { '200': { description: Đã ghi không đồng ý }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Vắng ----------------
   /absences:
@@ -933,13 +992,61 @@ components:
       type: object
       properties:
         id: { type: integer, format: int64 }
+        addendumNo: { type: integer, format: int32, description: 'Số phụ lục tăng dần theo hợp đồng, không tái sử dụng (FR-043d)' }
         approvalRequestId: { type: integer, format: int64 }
         changeTypes: { type: array, items: { type: string } }
         contentBefore: { type: object }
         contentAfter: { type: object }
         effectiveDate: { type: string, format: date }
-        status: { type: string, enum: [PENDING_EFFECTIVE, APPLIED, NOT_APPLICABLE] }
+        status: { type: string, enum: [PENDING_SIGNATURE, PENDING_EFFECTIVE, APPLIED, NOT_APPLICABLE, CANCELLED], description: 'Chờ ký, Đã hủy bổ sung 2026-11-20 (FR-043d, FR-043f)' }
+        signatureRequired: { type: boolean, description: 'Yêu cầu không phải thay đổi nhỏ: phải ký trước khi áp dụng (FR-043d)' }
+        signedDate: { type: [string, 'null'], format: date }
+        signedByFamilyMemberId: { type: [integer, 'null'], format: int64 }
+        facilitySignatoryStaffId: { type: [integer, 'null'], format: int64 }
+        signedFileId: { type: [integer, 'null'], format: int64 }
         hiddenFields: { type: array, items: { type: string }, description: 'Trường tài chính bị bỏ theo 002 (FINANCE), quy ước đầu file (bổ sung 2026-11-10)' }
+    ResidentOpinionInput:
+      type: object
+      required: [opinion, source]
+      properties:
+        opinion: { type: string, enum: [AGREE, DISAGREE, UNABLE_TO_EXPRESS] }
+        source: { type: string, enum: [RESIDENT, STAFF_OBSERVATION], description: 'Người cao tuổi tự nói, hoặc nhân viên ghi nhận' }
+        note: { type: string, maxLength: 1000 }
+    ResidentOpinion:
+      type: object
+      description: 'Ý kiến người cao tuổi về yêu cầu (FR-043h, Q-417); outdated: ghi trước khi phần thực chất của yêu cầu đổi (R18)'
+      properties:
+        id: { type: integer, format: int64 }
+        opinion: { type: string, enum: [AGREE, DISAGREE, UNABLE_TO_EXPRESS] }
+        source: { type: string, enum: [RESIDENT, STAFF_OBSERVATION] }
+        note: { type: string }
+        recordedBy: { type: string, description: 'Tên người ghi' }
+        recordedAt: { type: string, format: date-time }
+        outdated: { type: boolean }
+    AddendumSignatureInput:
+      type: object
+      required: [signedDate, signedByFamilyMemberId, fileId]
+      properties:
+        signedDate: { type: string, format: date }
+        signedByFamilyMemberId: { type: integer, format: int64, description: 'Người đại diện ký' }
+        facilitySignatoryStaffId: { type: integer, format: int64, description: 'Người ký phía viện (nhân viên), tùy chọn' }
+        fileId: { type: integer, format: int64, description: 'Bản scan phụ lục đã ký (PDF, JPG, PNG)' }
+        note: { type: string, maxLength: 1000 }
+    ResidencyChangeAddendum:
+      type: object
+      readOnly: true
+      description: 'Phụ lục của yêu cầu, không gồm nội dung tài chính (FR-043d)'
+      properties:
+        id: { type: integer, format: int64 }
+        addendumNo: { type: integer, format: int32 }
+        status: { type: string, enum: [PENDING_SIGNATURE, PENDING_EFFECTIVE, APPLIED, NOT_APPLICABLE, CANCELLED] }
+        effectiveDate: { type: string, format: date }
+        signatureRequired: { type: boolean }
+        signedDate: { type: string, format: date }
+        signedByFamilyMemberId: { type: integer, format: int64 }
+        facilitySignatoryStaffId: { type: integer, format: int64 }
+        signedFileId: { type: integer, format: int64 }
+        createdAt: { type: string, format: date-time, description: 'Lúc tạo phụ lục, tức lúc duyệt' }
     Deposit:
       type: object
       properties:
@@ -968,14 +1075,28 @@ components:
       properties: { id: { type: integer, format: int64 }, unitPrice: { type: integer, format: int64 }, effectiveFrom: { type: string, format: date }, effectiveTo: { type: string, format: date }, referenced: { type: boolean } }
     ResidencyChangeRequestInput:
       type: object
-      required: [contractId, changeTypes, newValue, requestedEffectiveDate, reason]
+      required: [changeTypes, newValue, requestedEffectiveDate, reason]
       properties:
-        contractId: { type: integer, format: int64 }
+        contractId: { type: integer, format: int64, description: 'Hợp đồng Hiệu lực; không gửi thì gửi residentId (bổ sung 2026-11-18)' }
+        residentId: { type: integer, format: int64, description: 'Người cao tuổi, thay cho contractId khi người lập không xem được hợp đồng (Bác sĩ, Phụ lục 27): hệ thống lấy hợp đồng Hiệu lực của người đó, không có thì 409 CONTRACT_NOT_ACTIVE (bổ sung 2026-11-18, D, chờ B review)' }
         changeTypes: { type: array, minItems: 1, items: { type: string, enum: [RESIDENCE_TYPE, CARE_LEVEL, SERVICE, DURATION, BED, ARRIVAL_SCHEDULE] } }
-        newValue: { type: object, additionalProperties: true, description: 'Theo loại: residenceType, careLevel, services[], endDate, newBedId, arrivalSchedule[]' }
+        newValue: { type: object, additionalProperties: true, description: 'Theo loại: residenceType, careLevel, services[], endDate, newBedId, arrivalSchedule[]. services[].inPackage đã bỏ (deprecated, bỏ qua): hệ thống xác định thuộc gói theo hợp đồng hiện hành (FR-043, R19). careLevel phải bằng mức của lần đánh giá gần nhất đã xác nhận (409 CARE_LEVEL_NOT_FROM_ASSESSMENT, FR-043j)' }
         requestedEffectiveDate: { type: string, format: date }
         reference: { type: object, properties: { type: { type: string, enum: [ASSESSMENT, BED_TRANSFER_ORDER] }, id: { type: integer, format: int64 } } }
         reason: { $ref: '#/components/schemas/Reason' }
+        representativeConfirmation: { $ref: '#/components/schemas/ResidencyChangeRepresentativeConfirmation' }
+    ResidencyChangeRepresentativeConfirmation:
+      type: object
+      description: 'Hành chính xác nhận với người đại diện, kèm bằng chứng (FR-043a, Q-415; thay signedAddendumFileId). Ghi người đại diện đã xác nhận, phải là người đại diện hiện tại tại ngày xác nhận (409 CONFIRMER_NOT_REPRESENTATIVE); xác nhận cũ không có trường này phải xác nhận lại. Bắt buộc trước khi gửi duyệt yêu cầu do Hành chính, Bác sĩ lập, thiếu thì 409 REPRESENTATIVE_CONFIRMATION_REQUIRED; chỉ Hành chính, Quản lý viện ghi (403); confirmedOn không sau hôm nay (422 CONFIRMATION_DATE_IN_FUTURE)'
+      required: [method, confirmedOn, evidenceFileId, representativeFamilyMemberId]
+      properties:
+        method: { type: string, enum: [IN_PERSON, PHONE, MESSAGE], description: 'Gặp trực tiếp (ký phụ lục), gọi điện, tin nhắn' }
+        confirmedOn: { type: string, format: date }
+        evidenceFileId: { type: integer, format: int64, description: 'Tệp bằng chứng đã tải lên (PDF, JPG, PNG): bản scan phụ lục ký, ảnh chụp cuộc gọi, tin nhắn' }
+        representativeFamilyMemberId: { type: integer, format: int64, description: 'Người đại diện đã xác nhận (R16)' }
+        note: { type: string, maxLength: 500 }
+        recordedBy: { type: string, readOnly: true, description: 'Tên người ghi xác nhận' }
+        recordedAt: { type: string, format: date-time, readOnly: true }
     ResidencyChangeRequest:
       allOf:
         - $ref: '#/components/schemas/ResidencyChangeRequestInput'
@@ -987,8 +1108,44 @@ components:
             minorChange: { type: boolean, readOnly: true, description: 'Hệ thống tính lúc đọc trên hợp đồng hiện hành, không lưu (FR-043, Q-338; research T-06): chỉ thêm/bớt dịch vụ thuộc gói, ảnh hưởng chi phí bằng 0' }
             status: { type: string }
             addendumId: { type: integer, format: int64 }
+            addendum: { $ref: '#/components/schemas/ResidencyChangeAddendum' }
+            assessedCareLevel: { type: [object, 'null'], readOnly: true, description: 'Lần đánh giá gần nhất đã xác nhận (FR-043j)', properties: { assessmentId: { type: integer, format: int64 }, careLevel: { type: string, enum: [BASIC, REGULAR, SPECIAL] }, confirmedAt: { type: string, format: date-time } } }
+            currentResidentOpinion: { $ref: '#/components/schemas/ResidentOpinion' }
+            warnings: { type: array, readOnly: true, items: { type: string, enum: [RESIDENT_OPINION_MISSING, RESIDENT_OPINION_OUTDATED] }, description: 'Cảnh báo không chặn (FR-043h)' }
             requestedBy: { type: string }
+            representativeConfirmationRequired: { type: boolean, readOnly: true, description: 'Gửi duyệt cần xác nhận với người đại diện (yêu cầu không do người đại diện tự gửi qua cổng và không phải thay đổi nhỏ; bổ sung 2026-11-20)' }
+            confirmationRequest: { $ref: '#/components/schemas/ResidencyChangeConfirmationRequest' }
             hiddenFields: { type: array, items: { type: string }, description: 'Trường tài chính bị bỏ theo 002 (FINANCE), quy ước đầu file (bổ sung 2026-11-10)' }
+    ResidencyChangeConfirmationRequest:
+      type: object
+      readOnly: true
+      description: 'Lần gửi người đại diện xác nhận trên ứng dụng mới nhất (FR-043c). SUPERSEDED: nội dung đã sửa hoặc đã gửi lại, phải gửi lại.'
+      properties:
+        id: { type: integer, format: int64 }
+        status: { type: string, enum: [AWAITING, ACCEPTED, DECLINED, SUPERSEDED] }
+        sentAt: { type: string, format: date-time }
+        respondedAt: { type: string, format: date-time }
+        declineReason: { type: string }
+    ResidencyChangeConfirmation:
+      type: object
+      description: 'Đề nghị xác nhận đang chờ người đại diện (FR-043c); người đại diện thấy ảnh hưởng chi phí.'
+      properties:
+        id: { type: integer, format: int64 }
+        approvalRequestId: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        status: { type: string }
+        sentAt: { type: string, format: date-time }
+        changeTypes: { type: array, items: { type: string } }
+        previousValue: { type: object }
+        newValue: { type: object }
+        costImpact: { type: array, items: { type: object, properties: { item: { type: string }, previousUnitPrice: { type: integer }, newUnitPrice: { type: integer } } } }
+        requestedEffectiveDate: { type: string, format: date }
+        reason: { type: string }
+    ResidencyChangeDecline:
+      type: object
+      required: [reason]
+      properties:
+        reason: { $ref: '#/components/schemas/Reason' }
     Absence:
       type: object
       properties:

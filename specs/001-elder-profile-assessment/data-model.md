@@ -389,6 +389,10 @@ Tác động khi xác nhận: theo research H-10, trong cùng transaction. Các 
 
 ---
 
+## 9a. Quyết định khi gia đình không đồng ý đổi mức *(bổ sung 2026-11-20, FR-036b, Q-424; `V001_98`)*
+
+`care_level_change_decision` (nhóm 3): `resident_id`, `assessment_id` (`UNIQUE`), `decision` (`KEEP_CURRENT_LEVEL`, `LEAVE_FACILITY`), `risk_agreement_id`, `review_date` (bắt buộc cả hai khi giữ mức, `CHECK`), `note`, `recorded_by`, `recorded_at`, `review_notified_at` (cột duy nhất đổi được, đặt một lần; trigger `_no_update`, `_no_delete`).
+
 ## 10. Nhật ký và phân loại trường
 
 Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). `nguoi_cao_tuoi_id` luôn có, để lưu giữ theo hồ sơ (000 FR-050).

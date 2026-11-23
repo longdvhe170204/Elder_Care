@@ -59,7 +59,12 @@ public final class InventoryCheckRequests {
                         i == null
                                 ? null
                                 : new HandoverCommand.IncidentChoice(
-                                        i.method(), i.incidentId(), i.level(), i.description(), i.place())));
+                                        i.method(),
+                                        i.incidentId(),
+                                        i.level(),
+                                        i.description(),
+                                        i.place(),
+                                        i.lowerLevelReason())));
             }
             List<InventoryCheck.UnknownOwnerItem> unknown = new java.util.ArrayList<>();
             for (UnknownOwnerItem u : unknownOwnerItems == null ? List.<UnknownOwnerItem>of() : unknownOwnerItems) {

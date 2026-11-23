@@ -88,4 +88,41 @@ public final class BelongingNotices {
                 toFamily ? Optional.of(InformationSubject.ABOUT_FAMILY_MATTER) : Optional.empty(),
                 Optional.empty())));
     }
+
+    /**
+     * Thêm chi tiết (người cao tuổi, đồ, vị trí) vào nội dung đầy đủ của yêu cầu chỉ gửi nhân viên (test luồng BF-14
+     * 2026-11-23). Yêu cầu có người thân giữ nguyên (SC-012, Q-151); nội dung rút gọn cho kênh ngoài ứng dụng giữ nguyên
+     * (009 FR-019).
+     */
+    public static BelongingNotice withStaffDetail(BelongingNotice notice, String detail) {
+        if (detail == null || detail.isBlank()) {
+            return notice;
+        }
+        return new BelongingNotice(notice.notificationRequests().stream()
+                .map(r -> r.informationSubject().isPresent()
+                        ? r
+                        : new NotificationRequest(
+                                r.sourceModule(),
+                                r.eventType(),
+                                r.sourceGroup(),
+                                r.sourceRecord(),
+                                r.eventKey(),
+                                r.level(),
+                                r.residentId(),
+                                r.floorAreaId(),
+                                r.recipientGroups(),
+                                r.content().stream()
+                                        .map(c -> new ContentPart(c.type(), c.content() + ". " + detail))
+                                        .toList(),
+                                r.shortContent(),
+                                r.title(),
+                                r.causedBy(),
+                                r.notifyCauser(),
+                                r.occurredAt(),
+                                r.displayParams(),
+                                r.afterDeath(),
+                                r.informationSubject(),
+                                r.q354Case()))
+                .toList());
+    }
 }

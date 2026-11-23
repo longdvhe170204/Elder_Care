@@ -133,7 +133,7 @@ public class BelongingIncidents {
                                 null,
                                 description,
                                 choice.level(),
-                                null,
+                                choice.lowerLevelReason(),
                                 null,
                                 false),
                         user);

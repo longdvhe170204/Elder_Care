@@ -24,8 +24,8 @@ import java.time.*;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 
-/** Q-417 (spec 008 Cập nhật 2026-11-22): Trưởng tầng xác nhận thay khi người phụ trách ca sau vắng hoặc quá hạn. */
-class Q_417_HandoverSubstituteTest {
+/** Q-441 (spec 008 Cập nhật 2026-11-22): Trưởng tầng xác nhận thay khi người phụ trách ca sau vắng hoặc quá hạn. */
+class Q_441_HandoverSubstituteTest {
     private static final long FLOOR = 7, LEAD = 11, MANAGER = 12, OTHER = 13;
     private static final Instant STARTS = Instant.parse("2035-05-01T07:00:00Z");
     private static final WorkShift NEXT = new WorkShift(
@@ -37,7 +37,7 @@ class Q_417_HandoverSubstituteTest {
     private final PermissionApi permissions = mock(PermissionApi.class);
     private final ParameterApi parameters = mock(ParameterApi.class);
 
-    Q_417_HandoverSubstituteTest() {
+    Q_441_HandoverSubstituteTest() {
         var working = mock(StaffProfile.class);
         when(working.status()).thenReturn("WORKING");
         when(staff.find(anyLong())).thenReturn(Optional.of(working));
@@ -73,21 +73,21 @@ class Q_417_HandoverSubstituteTest {
     }
 
     @Test
-    void Q_417_floorManagerWaitsWhileNextLeadIsPresentAndOnTime() {
+    void Q_441_floorManagerWaitsWhileNextLeadIsPresentAndOnTime() {
         var access = at(STARTS.plus(Duration.ofMinutes(10)));
         assertThat(access.receiver(NEXT, user(LEAD, Role.NURSING_STAFF))).isTrue();
         assertThat(access.receiver(NEXT, user(MANAGER, Role.FLOOR_MANAGER))).isFalse();
     }
 
     @Test
-    void Q_417_floorManagerConfirmsAfterConfirmDelayWithoutBeingInNextShift() {
+    void Q_441_floorManagerConfirmsAfterConfirmDelayWithoutBeingInNextShift() {
         var access = at(STARTS.plus(Duration.ofMinutes(30)));
         assertThat(access.receiver(NEXT, user(MANAGER, Role.FLOOR_MANAGER))).isTrue();
         assertThat(access.receiver(NEXT, user(OTHER, Role.FLOOR_MANAGER))).isFalse();
     }
 
     @Test
-    void Q_417_floorManagerConfirmsWhenNextLeadIsAbsent() {
+    void Q_441_floorManagerConfirmsWhenNextLeadIsAbsent() {
         leadPresent(false);
         assertThat(at(STARTS.plus(Duration.ofMinutes(5))).receiver(NEXT, user(MANAGER, Role.FLOOR_MANAGER)))
                 .isTrue();
@@ -96,7 +96,7 @@ class Q_417_HandoverSubstituteTest {
     }
 
     @Test
-    void Q_417_noSubstituteBeforeNextShiftStarts() {
+    void Q_441_noSubstituteBeforeNextShiftStarts() {
         leadPresent(false);
         assertThat(at(STARTS.minus(Duration.ofMinutes(5))).receiver(NEXT, user(MANAGER, Role.FLOOR_MANAGER)))
                 .isFalse();

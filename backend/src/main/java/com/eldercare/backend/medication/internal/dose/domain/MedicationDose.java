@@ -96,6 +96,21 @@ public class MedicationDose {
     @Column(name = "floor_area_id")
     private Long floorAreaId;
 
+    @Column(name = "postponed_at")
+    private Instant postponedAt;
+
+    @Column(name = "postponed_by_id")
+    private Long postponedById;
+
+    @Column(name = "postponed_reason", length = 2000)
+    private String postponedReason;
+
+    @Column(name = "claimed_by_id")
+    private Long claimedById;
+
+    @Column(name = "claim_expires_at")
+    private Instant claimExpiresAt;
+
     @Version
     @Column(nullable = false)
     private int version;
@@ -245,6 +260,51 @@ public class MedicationDose {
             this.dueAt = now;
         }
         this.updatedAt = now;
+    }
+
+    /** Hoãn có chủ đích (BR-M07-26): liều giữ Đến giờ hoặc Trễ, không đổi mốc Bỏ lỡ. */
+    public void postpone(Long byId, String reason, Instant now) {
+        this.postponedAt = now;
+        this.postponedById = byId;
+        this.postponedReason = reason;
+        this.updatedAt = now;
+    }
+
+    /** Nhận liều (BR-M07-26): người khác không xác nhận được tới khi hết hạn. */
+    public void claim(Long nurseId, Instant expiresAt, Instant now) {
+        this.claimedById = nurseId;
+        this.claimExpiresAt = expiresAt;
+        this.updatedAt = now;
+    }
+
+    public void clearClaim(Instant now) {
+        this.claimedById = null;
+        this.claimExpiresAt = null;
+        this.updatedAt = now;
+    }
+
+    public boolean isClaimActive(Instant now) {
+        return claimedById != null && claimExpiresAt != null && claimExpiresAt.isAfter(now);
+    }
+
+    public Instant getPostponedAt() {
+        return postponedAt;
+    }
+
+    public Long getPostponedById() {
+        return postponedById;
+    }
+
+    public String getPostponedReason() {
+        return postponedReason;
+    }
+
+    public Long getClaimedById() {
+        return claimedById;
+    }
+
+    public Instant getClaimExpiresAt() {
+        return claimExpiresAt;
     }
 
     // Getters
