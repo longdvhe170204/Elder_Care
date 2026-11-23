@@ -12,6 +12,7 @@ import com.eldercare.backend.belongings.web.request.BelongingIntakeRequest;
 import com.eldercare.backend.belongings.web.request.HandoverRequest;
 import com.eldercare.backend.belongings.web.response.BelongingResponse;
 import com.eldercare.backend.belongings.web.response.EndingConditionResponse;
+import com.eldercare.backend.belongings.web.response.HandoverRefResponse;
 import com.eldercare.backend.belongings.web.response.HandoverResponse;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.web.ProblemBody;
@@ -117,6 +118,23 @@ class BelongingController {
     BelongingResponse.Detail detail(@PathVariable long id) {
         return BelongingResponse.Detail.of(
                 queries.detail(id), consents.effectiveOf(id).orElse(null));
+    }
+
+    /** Đồ, người cao tuổi của một bản ghi bàn giao, để mở đồ từ thông báo (api-013 bổ sung 2026-11-23). */
+    @GetMapping("/belongings/handovers/{id}")
+    @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(schema = @Schema(implementation = HandoverRefResponse.class)))
+    @ApiResponse(
+            responseCode = "404",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
+    HandoverRefResponse handoverRef(@PathVariable long id) {
+        return HandoverRefResponse.of(queries.handoverRef(id));
     }
 
     @PostMapping("/belongings/handovers")

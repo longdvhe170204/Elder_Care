@@ -133,8 +133,10 @@ public class HeldBelongingReminders {
         events.publishEvent(details.forStaff(
                 BelongingNotices.notice(
                         "BELONGINGS_AT_PREVIOUS_FLOOR",
-                        "M03.BED_ALLOCATION", // cùng loại nguồn với thông báo chuyển giường của 003
-                        event.nextAllocationId(),
+                        // Nguồn là đồ gửi của người cao tuổi để nhân viên mở được (test luồng BF-14 2026-11-23)
+                        ResidentBelongingsSourceAccess.SOURCE_TYPE,
+                        event.residentId(),
+                        "BELONGINGS_AT_PREVIOUS_FLOOR:" + event.nextAllocationId(),
                         NotificationLevel.LOW,
                         event.residentId(),
                         List.of(
@@ -142,7 +144,8 @@ public class HeldBelongingReminders {
                                 new RecipientGroup.AssignedNurse(event.residentId(), new Substitution.Default())),
                         held.size() + " đồ gửi Đang giữ ở vị trí tầng cũ: cần Chuyển giữ",
                         null,
-                        time.now()),
+                        time.now(),
+                        false),
                 details.belongings(held)));
     }
 }

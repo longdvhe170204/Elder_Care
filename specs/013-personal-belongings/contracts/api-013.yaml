@@ -109,6 +109,14 @@ paths:
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/HandoverCommand' } } } }
       responses: { '200': { description: Các bản ghi bàn giao đã tạo }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /belongings/handovers/{id}:
+    get:
+      tags: [belongings]
+      summary: Đồ và người cao tuổi của một bản ghi bàn giao, để mở đồ từ thông báo có nguồn là bản ghi bàn giao (bổ sung 2026-11-23, test luồng BF-14)
+      description: Cùng quyền xem với GET /belongings/{id}; không xem được người cao tuổi chủ đồ thì 404.
+      x-fr: [FR-011, FR-032]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/HandoverRef' } } } }, '404': { $ref: '#/components/responses/Problem' } }
   /belongings/handovers/{id}/link-incident:
     post:
       tags: [belongings]
@@ -307,6 +315,10 @@ components:
     HandoverEntry:
       type: object
       properties: { id: { type: integer, format: int64 }, belongingId: { type: integer, format: int64 }, kind: { type: string }, targetStatus: { type: string }, giverType: { type: string }, giverName: { type: string }, recipientType: { type: string }, recipientName: { type: string }, occurredAt: { type: string, format: date-time }, quantity: { type: number }, cashAmount: { type: number }, conditionLevelId: { type: integer, format: int64 }, conditionDescription: { type: string }, storageLocationId: { type: integer, format: int64 }, reason: { type: string }, photoFileIds: { type: array, items: { type: integer, format: int64 } }, incidentId: { type: integer, format: int64 }, recordedAt: { type: string, format: date-time } }
+    HandoverRef:
+      type: object
+      required: [id, belongingId, residentId, kind]
+      properties: { id: { type: integer, format: int64 }, belongingId: { type: integer, format: int64 }, residentId: { type: integer, format: int64 }, kind: { type: string } }
     BelongingDetail:
       type: object
       properties:

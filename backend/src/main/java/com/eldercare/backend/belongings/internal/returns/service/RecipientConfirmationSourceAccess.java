@@ -37,7 +37,8 @@ public class RecipientConfirmationSourceAccess implements SourceRecordAccessPort
             confirmations.viewOnPortal(id);
             return true;
         } catch (BusinessException e) {
-            return false;
+            // Nhân viên: Hành chính, Quản lý viện mở hồ sơ đồ gửi có yêu cầu (test luồng BF-14 2026-11-23)
+            return confirmations.staffCanOpen(id);
         }
     }
 }

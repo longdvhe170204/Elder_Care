@@ -93,7 +93,11 @@ public class TestClockController {
         REMIND_ASSET_DUE_DATES,
         REMIND_VEHICLE_SCHEDULES,
         // Job số dư của 017 (tính tình trạng, báo sắp hết tiền, nhắc; chủ dự án duyệt 2026-11-22, test BF-16)
-        COMPUTE_BALANCE_STATUS
+        COMPUTE_BALANCE_STATUS,
+        // Hai job của M12 (nhắc đồ chưa trả, kiểm kê; hạn xác nhận người nhận khác; chủ dự án duyệt 2026-11-23, test
+        // BF-14)
+        M12_DAILY,
+        M12_MINUTE
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}

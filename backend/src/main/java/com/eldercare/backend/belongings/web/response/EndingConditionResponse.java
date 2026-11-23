@@ -24,7 +24,10 @@ public record EndingConditionResponse(
                 ending.lostWithOpenIncident().stream()
                         .map(BelongingResponse::of)
                         .toList(),
-                new PostDeathItem(
-                        ending.postDeathItem().status(), ending.postDeathItem().basis()));
+                ending.postDeathItem() == null
+                        ? null
+                        : new PostDeathItem(
+                                ending.postDeathItem().status(),
+                                ending.postDeathItem().basis()));
     }
 }
