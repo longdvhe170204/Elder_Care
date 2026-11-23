@@ -19,6 +19,7 @@ import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
 import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
+import com.eldercare.backend.belongings.internal.belonging.service.StaffNoticeDetails;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogViews.BelongingTypeView;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogViews.ConditionLevelView;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogViews.StorageLocationView;
@@ -68,6 +69,7 @@ public class BelongingCatalogService {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
+    private final StaffNoticeDetails details;
 
     BelongingCatalogService(
             CatalogApi catalogs,
@@ -78,7 +80,9 @@ public class BelongingCatalogService {
             SelfCustodyConsentService consents,
             ApplicationEventPublisher events,
             BusinessTime time,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.catalogs = catalogs;
         this.history = history;
         this.parameters = parameters;
@@ -187,7 +191,7 @@ public class BelongingCatalogService {
             if (consents.hasEffective(b.belongingId())) {
                 continue;
             }
-            events.publishEvent(BelongingNotices.notice(
+            events.publishEvent(details.forStaff(BelongingNotices.notice(
                     "SELF_CUSTODY_CONSENT_REQUIRED_IN_USE",
                     "M12.BELONGING",
                     b.belongingId(),
@@ -198,7 +202,7 @@ public class BelongingCatalogService {
                             new RecipientGroup.AssignedNurse(b.residentId(), new Substitution.Default())),
                     typeName + ": loại đồ nay cần đồng ý cho tự giữ, đồ đang được sử dụng chưa có đồng ý, cần thu lại",
                     accountId,
-                    time.now()));
+                    time.now())));
         }
     }
 

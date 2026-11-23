@@ -56,6 +56,7 @@ List<NguoiThanView> nguoiDaiDien(long nctId);
 Optional<NguoiThanView> nguoiLienHeChinh(long nctId);
 List<NguoiThanView> duocPhepDonTai(long nctId, Instant t);           // 013 xác minh người nhận đồ (FR-016)
 Optional<GiayToView> giayTo(long nguoiThanId);                        // 013
+Optional<String> hoTen(long nguoiThanId);                             // 013 lịch sử bàn giao (bổ sung 2026-11-23, chủ dự án duyệt)
 ```
 
 ### 1.3. `family.api.NguoiThanThongKeApi` (016)

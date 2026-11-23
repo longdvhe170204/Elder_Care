@@ -33,4 +33,7 @@ public interface FamilyRightsApi {
 
     /** Giấy tờ tùy thân đã đăng ký; rỗng khi hồ sơ chưa có (013 xác minh người nhận). */
     Optional<IdDocumentView> idDocument(long familyMemberId);
+
+    /** Họ tên của người thân; 013 nêu người giao, người nhận trong lịch sử bàn giao (FR-011, FR-020). */
+    Optional<String> fullName(long familyMemberId);
 }

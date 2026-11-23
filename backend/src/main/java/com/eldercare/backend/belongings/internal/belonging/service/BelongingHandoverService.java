@@ -125,6 +125,7 @@ public class BelongingHandoverService {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
+    private final StaffNoticeDetails details;
 
     BelongingHandoverService(
             BelongingLocks locks,
@@ -145,7 +146,9 @@ public class BelongingHandoverService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             BusinessTime time,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.locks = locks;
         this.belongings = belongings;
         this.handovers = handovers;
@@ -659,7 +662,7 @@ public class BelongingHandoverService {
         }
         notices(ctx, p.kind(), p.target(), record, p.typeName());
         if (command.holderAbsent()) {
-            events.publishEvent(BelongingNotices.notice(
+            events.publishEvent(details.forStaff(BelongingNotices.notice(
                     "BELONGING_HANDOVER_HOLDER_ABSENT",
                     RECORD_TYPE,
                     record,
@@ -668,7 +671,7 @@ public class BelongingHandoverService {
                     List.of(new RecipientGroup.Staff(b.holderId(), "HOLDER")),
                     p.typeName() + ": Hành chính đã bàn giao thay khi bạn vắng mặt",
                     ctx.user().accountId(),
-                    ctx.now()));
+                    ctx.now())));
         }
     }
 

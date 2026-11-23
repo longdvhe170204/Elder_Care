@@ -51,14 +51,14 @@ Stream<PhieuKiemKeView> kiemKe(String maKy);
 
 | Giao diện | Module | Dùng cho | Kiểm thử thay thế |
 | --- | --- | --- | --- |
-| `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi` | 001 | FR-006, FR-027, FR-027a | Bản giả |
+| `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi`; `nhanDang` (họ tên, mã hồ sơ; bổ sung 2026-11-23) | 001 | FR-006, FR-027, FR-027a; FR-011, FR-020, FR-032 (tên trong lịch sử bàn giao, thông báo cho nhân viên) | Bản giả |
 | `QuyenApi`, `PhamViApi`; `TaiKhoanApi.theoNhanVien` | 002 | FR-007, FR-014, FR-029 | Bản thật |
 | `ViTriApi.hienTai`, `tangTaiNgay` | 003 | FR-028 | Bản giả |
 | `DanhSachViecSauQuaDoiApi.capNhat` | 004 | FR-026 | Bản giả |
 | `SuCoLenhApi.ghiNhan`, `themDienBien` (MANDATORY); `SuCoApi.xem` | 007 | FR-021, FR-024, FR-025, bảng (Tìm thấy) | Bản giả ghi lại lệnh |
-| `CaTrucApi.dangTrongCa`, `nguoiPhuTrachCa` | 008 | FR-014, FR-014a | Bản giả |
+| `CaTrucApi.dangTrongCa`, `nguoiPhuTrachCa`; `nhanVien` (họ tên nhân viên; bổ sung 2026-11-23) | 008 | FR-014, FR-014a; FR-011, FR-020 (tên trong lịch sử bàn giao) | Bản giả |
 | `ThongBaoTraCuuApi` (người đã nhận thông báo gốc) | 009 | FR-011a | Bản giả |
-| `QuyenNguoiThanApi.laNguoiDaiDien`, `duocPhepDonTai`, `giayTo`, `xemDoGui`, `nguoiDaiDien`, `nguoiLienHeChinh`; `NguoiDaiDienPort` | 012 | FR-005, FR-015a, FR-016, FR-017, FR-030, FR-032 | Bản giả |
+| `QuyenNguoiThanApi.laNguoiDaiDien`, `duocPhepDonTai`, `giayTo`, `xemDoGui`, `nguoiDaiDien`, `nguoiLienHeChinh`, `hoTen` (bổ sung 2026-11-23); `NguoiDaiDienPort` | 012 | FR-005, FR-011, FR-015a, FR-016, FR-017, FR-020, FR-030, FR-032 | Bản giả |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `YeuCauPheDuyetApi`, `NhacQuaHan` | 000 | Chung | Bản thật |
 
 ### 2.1. Sự kiện 013 nghe
