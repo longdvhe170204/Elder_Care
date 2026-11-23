@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * Thông báo trong hộp theo schema {@code Notification} của contracts/api-009.yaml: nội dung theo quyền hiện hành, phần bị
- * bỏ liệt kê ở {@code hiddenParts} (FR-034). Liên kết bản ghi nguồn chưa mở được (chờ khóa quyền xem của module nguồn);
+ * bỏ liệt kê ở {@code hiddenParts} (FR-034). {@code sourceRecord.canOpen} theo module nguồn ({@code SourceRecordAccess});
  * "Xác nhận và tiếp nhận" làm ở US1.
  */
 public record NotificationBody(
@@ -33,7 +33,7 @@ public record NotificationBody(
 
     public record Source(String type, String id, boolean canOpen) {}
 
-    public static NotificationBody of(Opened o, boolean canAcknowledgeAndTakeCharge) {
+    public static NotificationBody of(Opened o, boolean canAcknowledgeAndTakeCharge, boolean canOpenSource) {
         var r = o.row();
         return new NotificationBody(
                 r.id(),
@@ -48,7 +48,7 @@ public record NotificationBody(
                 r.viewedAt(),
                 r.acknowledgedAt(),
                 r.acknowledgementMethod(),
-                new Source(r.sourceRecordType(), r.sourceRecordId(), false),
+                new Source(r.sourceRecordType(), r.sourceRecordId(), canOpenSource),
                 canAcknowledgeAndTakeCharge);
     }
 }
