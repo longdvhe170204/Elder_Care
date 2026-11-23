@@ -222,9 +222,7 @@ public class CareTaskStore {
         args.add(limit);
         args.add(offset);
         return jdbc.query(
-                "SELECT * FROM care_task" + where + " ORDER BY id DESC LIMIT ? OFFSET ?",
-                this::row,
-                args.toArray());
+                "SELECT * FROM care_task" + where + " ORDER BY id DESC LIMIT ? OFFSET ?", this::row, args.toArray());
     }
 
     public long historyCount(
