@@ -469,9 +469,9 @@ Việc chuyển sang trạng thái lưu trú chính thức phải tuân theo đi
 
 ### 6.6. Điều chỉnh hợp đồng (trước đây: Thay đổi lưu trú)
 
-Tên hiển thị "Điều chỉnh hợp đồng" (Q-425, chủ dự án chốt 2026-11-21; trước đây gọi là "Thay đổi lưu trú"): yêu cầu gồm loại lưu trú, mức chăm sóc, dịch vụ, thời hạn, giường, lịch đến, kết quả là phụ lục hợp đồng. Tên trong mã, API, mã loại yêu cầu (`M02.RESIDENCY_CHANGE`) giữ nguyên.
+Tên hiển thị "Điều chỉnh hợp đồng" (Q-425, chủ dự án chốt 2026-11-21; trước đây gọi là "Thay đổi lưu trú"): yêu cầu gồm loại lưu trú, mức chăm sóc, dịch vụ, thời hạn, loại phòng (trước đây ghi "giường", Q-438), lịch đến, kết quả là phụ lục hợp đồng. Tên trong mã, API, mã loại yêu cầu (`M02.RESIDENCY_CHANGE`) giữ nguyên.
 
-Có thể thay đổi: loại lưu trú; mức chăm sóc; dịch vụ; thời gian; phòng/giường. Mọi yêu cầu thay đổi lưu trú đều phải được phê duyệt trước khi có hiệu lực (DBR-07): Quản lý viện duyệt mọi yêu cầu; riêng **thay đổi nhỏ** thì Hành chính cũng được duyệt (xem quy tắc "Người duyệt" bên dưới, Q-338). Chuyển giường trực tiếp theo 7.4 không phải thay đổi lưu trú.
+Có thể thay đổi: loại lưu trú; mức chăm sóc; dịch vụ; thời gian; loại phòng (kèm giường trống thuộc loại phòng mới để giữ trước). Chuyển sang giường khác cùng loại phòng của hợp đồng không phải điều chỉnh hợp đồng: dùng Chuyển giường trực tiếp (7.4), không lập yêu cầu, không ký phụ lục (Q-438). Mọi yêu cầu thay đổi lưu trú đều phải được phê duyệt trước khi có hiệu lực (DBR-07): Quản lý viện duyệt mọi yêu cầu; riêng **thay đổi nhỏ** thì Hành chính cũng được duyệt (xem quy tắc "Người duyệt" bên dưới, Q-338). Chuyển giường trực tiếp theo 7.4 không phải thay đổi lưu trú.
 
 Mọi thay đổi phải lưu: giá trị trước; giá trị sau; người yêu cầu; người duyệt; thời điểm; ngày hiệu lực; lý do.
 
@@ -2834,6 +2834,7 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-435 | Yêu cầu mua thuốc mức "Khẩn": Phụ trách bộ phận duyệt trước, Quản lý viện duyệt bổ sung trong 24 giờ | Tên mức giữ "Gấp" (11.7). Mâu thuẫn Q-284, 15.10, BR-M11-19: Phụ trách bộ phận không duyệt yêu cầu mua sắm, chỉ Quản lý viện duyệt. Giữ quy định đó; thêm báo Quản lý viện mức Trung bình khi yêu cầu Gấp chờ duyệt quá [24 giờ] (CFG-M11-12) | 11.7, 15.10, BR-M11-22 | 006, 019 |
 | Q-436 | Tầng không có Điều dưỡng: mức cảnh báo, chỉ định Điều dưỡng tầng khác | Mức "Cao" không có (Q-113): giữ Trung bình, người nhận Trưởng tầng và Quản lý viện như BR-M07-21. Quản lý viện chỉ định Điều dưỡng tầng khác có giấy phép còn hiệu lực phụ trách tạm; quyền hết khi hết ca | 11.3, BR-M07-21, 31, Phụ lục 27 | 006, 008 |
 | Q-437 | Phạm vi: tương tác thuốc, liều tối đa, tồn kho thuốc viện, thuốc gây nghiện | Người kê đơn chịu trách nhiệm kiểm tương tác và liều tối đa; không có tồn kho nên không cảnh báo thuốc viện sắp hết, sắp hết hạn (rủi ro chấp nhận); thuốc gây nghiện, hướng thần quản lý ngoài hệ thống theo quy định của Bộ Y tế (giữ Q-63) | BR-M07-23, 32 | 006 |
+| Q-438 | Loại thay đổi "Giường" của điều chỉnh hợp đồng: chuyển sang giường cùng loại phòng có cần lập yêu cầu, ký phụ lục không | Chủ dự án 2026-11-23: không. Hợp đồng ghi loại phòng và đơn giá, không ghi giường cụ thể, nên chuyển sang giường khác cùng loại phòng là sắp xếp vận hành, dùng Chuyển giường trực tiếp (7.4). Loại thay đổi đổi tên hiển thị thành "Loại phòng" (mã trong hệ thống giữ nguyên): chỉ dùng khi đổi sang loại phòng khác loại phòng của hợp đồng (đổi phí lưu trú, đi đủ luồng, ký phụ lục); người lập chọn loại phòng mới rồi chọn giường trống thuộc loại đó để giữ trước tới ngày hiệu lực. Yêu cầu chọn giường cùng loại phòng bị chặn, trừ khi đi kèm đổi bán trú sang nội trú (giường đầu tiên) hoặc lập sau chuyển giường gấp (7.4) | 6.6, 7.4, BF-08 | 004 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 

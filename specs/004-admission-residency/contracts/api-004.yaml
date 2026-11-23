@@ -455,7 +455,8 @@ paths:
         Gửi duyệt, duyệt, từ chối, hủy qua api-000; khi duyệt, kiểm FR-041, FR-046 và tạo phụ lục (FR-042).
         minorChange do hệ thống tính (FR-043): Quản lý viện duyệt mọi yêu cầu, Hành chính chỉ duyệt yêu cầu là thay đổi nhỏ; kiểm lại lúc duyệt.
         Loại thay đổi Dịch vụ chỉ thêm được REHABILITATION, ACTIVITY, MEDICAL_ESCORT, INJECTION (FR-043k, Q-426): thêm loại khác 422 SERVICE_TYPE_NOT_REGISTRABLE, mô tả chỉ đúng luồng cần dùng; bớt được mọi dòng đang có; gửi duyệt, duyệt kiểm lại (409 cùng mã).
-      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043, FR-043k]
+        Loại thay đổi BED hiển thị là "Loại phòng" (FR-043l, Q-438): giường mới cùng loại phòng với hợp đồng hiện hành thì 422 BED_CHANGE_SAME_ROOM_TYPE (dùng Chuyển giường trực tiếp, api-003); không xét khi kèm bán trú sang nội trú hoặc sau chuyển giường gấp; gửi duyệt, duyệt kiểm lại (409 cùng mã).
+      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043, FR-043k, FR-043l]
       x-br: [BR-M01-03, BR-M02-16]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeRequestInput' } } } }

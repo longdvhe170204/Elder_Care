@@ -89,6 +89,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     static final String SUPERSEDE = "SUPERSEDE";
     static final String SUPERSEDED = "SUPERSEDED";
     static final String CONFIRMATION_REQUIRED = "REPRESENTATIVE_CONFIRMATION_REQUIRED";
+    static final String SAME_ROOM_TYPE = "BED_CHANGE_SAME_ROOM_TYPE";
     static final String CARE_LEVEL_NOT_FROM_ASSESSMENT = "CARE_LEVEL_NOT_FROM_ASSESSMENT";
     static final String RESIDENT_DISAGREE_REASON_REQUIRED = "RESIDENT_DISAGREE_REASON_REQUIRED";
     static final String RESIDENT_OPINION_MISSING = "RESIDENT_OPINION_MISSING";
@@ -204,6 +205,44 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (!careLevel.isEmpty()) {
             throw new ConditionNotMetException(careLevel);
         }
+        List<UnmetCondition> roomType = roomTypeConditions(change);
+        if (!roomType.isEmpty()) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    SAME_ROOM_TYPE,
+                    roomType.stream().map(UnmetCondition::description).collect(Collectors.joining("; ")));
+        }
+    }
+
+    /**
+     * FR-043l (Q-438, R22): loại thay đổi "Loại phòng" (mã {@code BED}) chỉ dùng khi giường mới thuộc loại phòng khác loại
+     * phòng của hợp đồng hiện hành; cùng loại phòng thì không đổi điều khoản, dùng Chuyển giường trực tiếp (7.4). Không xét
+     * khi đổi giường đi kèm bán trú sang nội trú (giường đầu tiên), khi yêu cầu lập sau chuyển giường gấp, hoặc khi hợp đồng
+     * chưa ghi loại phòng. Lập, sửa: 422 qua {@link #validateContent}; gửi duyệt, duyệt: 409 cùng các điều kiện khác.
+     */
+    List<UnmetCondition> roomTypeConditions(ResidencyChangeContent change) {
+        if (!change.has(ChangeType.BED) || change.newBedId() == null || change.afterUrgentTransfer()) {
+            return List.of();
+        }
+        Optional<ContractVersion> base = base(change.contractId());
+        if (base.isEmpty() || change.firstBed(baseType(base.get()))) {
+            return List.of();
+        }
+        JsonNode current = base.get().content().get("roomTypeId");
+        if (current == null || current.isNull()) {
+            return List.of();
+        }
+        boolean same = structure.getObject()
+                .roomTypeOfBed(change.newBedId())
+                .map(RoomTypeRef::id)
+                .filter(id -> id == current.asLong())
+                .isPresent();
+        return same
+                ? List.of(new UnmetCondition(
+                        SAME_ROOM_TYPE,
+                        "Giường mới cùng loại phòng với hợp đồng hiện hành: dùng Chuyển giường trực tiếp, không cần lập"
+                                + " yêu cầu điều chỉnh hợp đồng và không ký phụ lục"))
+                : List.of();
     }
 
     /**
@@ -358,6 +397,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         ResidencyChangeContent change = ResidencyChangeContent.parse(request.content());
         List<UnmetCondition> content = new ArrayList<>(serviceTypeConditions(change));
         content.addAll(careLevelConditions(change));
+        content.addAll(roomTypeConditions(change));
         if (!content.isEmpty()) {
             return content;
         }
@@ -595,7 +635,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             ChangeType.CARE_LEVEL, "Mức chăm sóc",
             ChangeType.SERVICE, "Dịch vụ",
             ChangeType.DURATION, "Thời hạn",
-            ChangeType.BED, "Giường",
+            ChangeType.BED, "Loại phòng",
             ChangeType.ARRIVAL_SCHEDULE, "Lịch đến");
 
     /**
