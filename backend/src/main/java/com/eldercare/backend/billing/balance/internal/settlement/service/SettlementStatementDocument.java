@@ -3,6 +3,7 @@ package com.eldercare.backend.billing.balance.internal.settlement.service;
 import static com.eldercare.backend.billing.balance.internal.document.domain.DocumentFormat.date;
 import static com.eldercare.backend.billing.balance.internal.document.domain.DocumentFormat.dateTime;
 import static com.eldercare.backend.billing.balance.internal.document.domain.DocumentFormat.money;
+import static com.eldercare.backend.billing.balance.internal.document.domain.DocumentFormat.transactionType;
 
 import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementStatementData;
 import com.eldercare.backend.common.document.FacilityInfo;
@@ -43,7 +44,8 @@ public final class SettlementStatementDocument {
         pdf.table(
                 List.of("Thời điểm", "Loại giao dịch", "Số tiền"),
                 data.transactions().stream()
-                        .map(entry -> List.of(dateTime(entry.at()), entry.type().name(), money(entry.amount())))
+                        .map(entry ->
+                                List.of(dateTime(entry.at()), transactionType(entry.type()), money(entry.amount())))
                         .toList());
         if (data.remaining() < 0) {
             pdf.paragraph("Còn nợ: " + money(-data.remaining()) + " đ");

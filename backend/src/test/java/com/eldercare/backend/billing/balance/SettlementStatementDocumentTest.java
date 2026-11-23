@@ -72,6 +72,14 @@ class SettlementStatementDocumentTest {
     }
 
     @Test
+    void FR_034_transactionTypesArePrintedInVietnamese() {
+        String pdf = pdfText(SettlementStatementDocument.pdf(FACILITY, null, data(false, 0)));
+
+        assertThat(pdf).contains("Nộp tiền mặt").contains("Hoàn tiền cọc");
+        assertThat(pdf).doesNotContain("CASH_PAYMENT").doesNotContain("DEPOSIT_REFUND");
+    }
+
+    @Test
     void BR_63_remainingAndExceptionAreShownOnlyWhenPresent() {
         String clean = pdfText(SettlementStatementDocument.pdf(FACILITY, null, data(false, 0)));
         String debt = pdfText(SettlementStatementDocument.pdf(FACILITY, null, data(true, -1_500_000)));

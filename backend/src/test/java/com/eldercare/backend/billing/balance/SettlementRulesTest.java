@@ -125,6 +125,51 @@ class SettlementRulesTest {
         assertThat(SettlementLedger.of(List.of()).hasNonZeroTransaction()).isFalse();
     }
 
+    @Test
+    void FR_034_supplementaryStatementPaidAfterTheFinalPeriod_isNotTakenAsTheFinalPeriod() {
+        // BF-10: bảng kỳ cuối 99 chốt rồi trừ, sau đó bảng bổ sung 100 (phí ngày bị thiếu) chốt và trừ tiếp
+        var rows = List.of(
+                row(1, Ledger.BALANCE, TransactionType.CASH_PAYMENT, 8_000_000, TransactionStatus.CONFIRMED),
+                statementPayment(2, 99, -933_341),
+                statementPayment(3, 100, -133_333),
+                row(4, Ledger.BALANCE, TransactionType.REFUND, -6_933_326, TransactionStatus.CONFIRMED));
+
+        SettlementLedger ledger = SettlementLedger.of(rows, statementId -> statementId == 99);
+
+        assertThat(ledger.finalPeriodStatementId()).isEqualTo(99L);
+        assertThat(ledger.finalPeriodTotal()).isEqualTo(933_341);
+        assertThat(ledger.balanceBeforeSettlement()).isEqualTo(8_000_000);
+        assertThat(ledger.sinceFinalPeriod()).extracting(e -> e.amount()).containsExactly(-133_333L, -6_933_326L);
+        // không biết bảng nào là kỳ cuối (chưa có 010): giữ cách cũ, lấy lần thanh toán bảng mới nhất
+        assertThat(SettlementLedger.of(rows).finalPeriodStatementId()).isEqualTo(100L);
+    }
+
+    private static BalanceTransactionRow statementPayment(long id, long statementId, long amount) {
+        BalanceTransactionRow r =
+                row(id, Ledger.BALANCE, TransactionType.STATEMENT_PAYMENT, amount, TransactionStatus.CONFIRMED);
+        return new BalanceTransactionRow(
+                r.id(),
+                r.residentId(),
+                r.ledger(),
+                r.type(),
+                r.amount(),
+                r.at(),
+                r.method(),
+                r.bankTransactionCode(),
+                statementId,
+                r.originalTransactionId(),
+                r.linkedTransactionId(),
+                r.payerName(),
+                r.note(),
+                r.reason(),
+                r.status(),
+                r.approvalRequestId(),
+                r.approvedBy(),
+                r.confirmedAt(),
+                r.adjusted(),
+                r.createdBy());
+    }
+
     private static BalanceTransactionRow row(
             long id, Ledger ledger, TransactionType type, long amount, TransactionStatus status) {
         boolean confirmed = status == TransactionStatus.CONFIRMED;
