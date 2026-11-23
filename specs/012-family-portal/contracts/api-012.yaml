@@ -268,6 +268,16 @@ paths:
       x-family-member: true
       parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
+  /family-portal/residents/{residentId}/daily-care-schedule:
+    get:
+      tags: [family-portal]
+      summary: "Lịch chăm sóc hằng ngày (bổ sung 2026-11-22, Q-440): giờ bữa, hoạt động, mốc sinh hoạt, công việc chăm sóc và trạng thái; giá trị đo chỉ khi quyền xem sức khỏe có tác dụng; mặc định hôm nay"
+      x-fr: [FR-076]
+      x-family-member: true
+      parameters:
+        - { $ref: '#/components/parameters/ResidentId' }
+        - { name: date, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
   /family-portal/residents/{residentId}/health/{section}:
     get:
       tags: [family-portal]
@@ -390,6 +400,13 @@ paths:
       summary: Lịch sinh hoạt hôm nay của chính người cao tuổi (hoạt động, lượt thăm, lịch đến/về bán trú)
       x-fr: [FR-083]
       x-br: [BR-M10-11]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
+  /resident-channel/daily-care-schedule:
+    get:
+      tags: [resident-channel]
+      summary: "Lịch chăm sóc hằng ngày của chính mình (bổ sung 2026-11-22, Q-440): không có giá trị đo, liều thuốc; mặc định hôm nay"
+      x-fr: [FR-083]
+      parameters: [ { name: date, in: query, schema: { type: string, format: date } } ]
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
   /resident-channel/menu:
     get:

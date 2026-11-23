@@ -2,6 +2,8 @@ package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -93,12 +95,59 @@ class FR_029_AlertLifecycleTest {
 
     @Test
     void BR_19_overdueMandatoryTaskAlertNeedsReason() {
+        when(user.roles()).thenReturn(Set.of(Role.FLOOR_MANAGER));
         lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "QUA_HAN:44");
 
         assertThatThrownBy(() -> service.close(ID, "Đã làm", null, user)).isInstanceOf(BusinessException.class);
 
         service.close(ID, "Đã làm", REASON, user);
         verify(alerts).close(ID, "Đã làm", REASON.value(), 900L, NOW, 3);
+    }
+
+    @Test
+    void Q_442_onlyFloorManagerAndDoctorClose() {
+        lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
+
+        assertThatThrownBy(() -> service.close(ID, "Huyết áp ổn định", null, user))
+                .isInstanceOf(PermissionDeniedException.class);
+        when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
+        assertThatThrownBy(() -> service.close(ID, "Huyết áp ổn định", null, user))
+                .isInstanceOf(PermissionDeniedException.class);
+
+        when(user.roles()).thenReturn(Set.of(Role.DOCTOR));
+        service.close(ID, "Huyết áp ổn định", null, user);
+        verify(alerts).close(ID, "Huyết áp ổn định", null, 900L, NOW, 3);
+    }
+
+    @Test
+    void Q_442_floorManagerClosesWithoutTimeLimit() {
+        when(user.roles()).thenReturn(Set.of(Role.FLOOR_MANAGER));
+        lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
+
+        service.close(ID, "Huyết áp ổn định sau 2 lần đo", null, user);
+        verify(alerts).close(ID, "Huyết áp ổn định sau 2 lần đo", null, 900L, NOW, 3);
+    }
+
+    @Test
+    void FR_087_followUpKeepsStatusAndNeedsContent() {
+        when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
+        lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
+
+        assertThatThrownBy(() -> service.recordFollowUp(ID, " ", user)).isInstanceOf(BusinessException.class);
+        service.recordFollowUp(ID, "Đo lại 150/95", user);
+        verify(audit).write(any());
+        verify(alerts, org.mockito.Mockito.never()).close(anyLong(), any(), any(), anyLong(), any(), anyInt());
+    }
+
+    @Test
+    void FR_087_followUpBlockedForManagerAndClosedAlert() {
+        when(user.roles()).thenReturn(Set.of(Role.NURSING_HOME_MANAGER));
+        lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
+        assertThatThrownBy(() -> service.recordFollowUp(ID, "Ghi", user)).isInstanceOf(PermissionDeniedException.class);
+
+        when(user.roles()).thenReturn(Set.of(Role.NURSING_STAFF));
+        lock(AlertStatus.CLOSED, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
+        assertThatThrownBy(() -> service.recordFollowUp(ID, "Ghi", user)).isInstanceOf(BusinessException.class);
     }
 
     private static AccountView account(long accountId, long staffId) {

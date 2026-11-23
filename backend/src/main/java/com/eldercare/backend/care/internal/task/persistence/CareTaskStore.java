@@ -168,6 +168,72 @@ public class CareTaskStore {
                 "SELECT overdue_at FROM care_task WHERE id=?", (r, i) -> instant(r, "overdue_at"), id);
     }
 
+    /** Điều kiện WHERE của lịch sử theo bộ lọc và phạm vi; null khi phạm vi không có tầng, người cao tuổi nào. */
+    private String historyWhere(
+            CareTaskHistoryFilter filter,
+            com.eldercare.backend.administration.account.api.dto.ScopeFilter scope,
+            List<Object> args) {
+        var terms = new ArrayList<String>();
+        if (filter.floor() != null) {
+            terms.add("floor_area_id=?");
+            args.add(filter.floor());
+        }
+        if (filter.resident() != null) {
+            terms.add("resident_id=?");
+            args.add(filter.resident());
+        }
+        if (filter.taskType() != null) {
+            terms.add("task_type_id=?");
+            args.add(filter.taskType());
+        }
+        if (filter.performer() != null) {
+            terms.add("performer_id=?");
+            args.add(filter.performer());
+        }
+        if (!scope.facilityWide()) {
+            var any = new ArrayList<String>();
+            if (!scope.floorAreaIds().isEmpty()) {
+                any.add("floor_area_id IN ("
+                        + String.join(
+                                ",", Collections.nCopies(scope.floorAreaIds().size(), "?")) + ")");
+                args.addAll(scope.floorAreaIds());
+            }
+            if (!scope.residentIds().isEmpty()) {
+                any.add("resident_id IN ("
+                        + String.join(
+                                ",", Collections.nCopies(scope.residentIds().size(), "?")) + ")");
+                args.addAll(scope.residentIds());
+            }
+            if (any.isEmpty()) return null;
+            terms.add("(" + String.join(" OR ", any) + ")");
+        }
+        return terms.isEmpty() ? "" : " WHERE " + String.join(" AND ", terms);
+    }
+
+    /** Lịch sử công việc đã lập, không theo ca: việc lập gần nhất trước, phân trang. */
+    public List<CareTask> history(
+            CareTaskHistoryFilter filter,
+            com.eldercare.backend.administration.account.api.dto.ScopeFilter scope,
+            int offset,
+            int limit) {
+        var args = new ArrayList<Object>();
+        var where = historyWhere(filter, scope, args);
+        if (where == null) return List.of();
+        args.add(limit);
+        args.add(offset);
+        return jdbc.query(
+                "SELECT * FROM care_task" + where + " ORDER BY id DESC LIMIT ? OFFSET ?", this::row, args.toArray());
+    }
+
+    public long historyCount(
+            CareTaskHistoryFilter filter, com.eldercare.backend.administration.account.api.dto.ScopeFilter scope) {
+        var args = new ArrayList<Object>();
+        var where = historyWhere(filter, scope, args);
+        if (where == null) return 0;
+        Long count = jdbc.queryForObject("SELECT COUNT(*) FROM care_task" + where, Long.class, args.toArray());
+        return count == null ? 0 : count;
+    }
+
     public List<CareTask> overdue(Long floor, com.eldercare.backend.administration.account.api.dto.ScopeFilter scope) {
         var args = new ArrayList<Object>();
         String sql = "SELECT * FROM care_task WHERE status='OVERDUE'";

@@ -102,7 +102,19 @@ public class AlertQueryService {
                 assigneeName(alert),
                 sources,
                 allowedCommands(alert, user),
-                press(alert, sources).withLocation(locations.latest(alert).orElse(null)));
+                press(alert, sources).withLocation(locations.latest(alert).orElse(null)),
+                followUps(alertId));
+    }
+
+    /** Kết quả theo dõi kèm họ tên người ghi (FR-087). */
+    private List<AlertDetails.FollowUp> followUps(long alertId) {
+        return new AlertFollowUps(records.orElse(null))
+                .list(alertId).stream()
+                        .map(row -> new AlertDetails.FollowUp(
+                                row.content(),
+                                row.at(),
+                                accounts.fullName(row.recordedBy()).orElse(null)))
+                        .toList();
     }
 
     /** Người bấm, loại sự việc, nơi đã chọn (nút hỗ trợ: dòng M05.ASSIST_DETAIL; SOS: nơi của lần bấm mới nhất). */
@@ -153,7 +165,15 @@ public class AlertQueryService {
                 && (alert.level() != IncidentLevel.CRITICAL || user.roles().contains(Role.DOCTOR))) {
             commands.add("change-level");
         }
-        if (status == AlertStatus.IN_PROGRESS && handler) commands.add("close");
+        if (status == AlertStatus.IN_PROGRESS && handler && AlertHandlingService.mayClose(alert, user)) {
+            commands.add("close");
+        }
+        if (open
+                && !manager
+                && user.roles().stream().anyMatch(AlertHandlingService.FOLLOWERS::contains)
+                && permissions.hasPermission(user, VIEW, target(alert)).allowed()) {
+            commands.add("follow-up");
+        }
         boolean pressed =
                 SosService.ALERT_TYPE.equals(alert.type()) || EmergencyAssistService.ALERT_TYPE.equals(alert.type());
         if (pressed

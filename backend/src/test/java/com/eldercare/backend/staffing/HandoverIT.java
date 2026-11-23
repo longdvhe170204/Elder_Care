@@ -275,6 +275,22 @@ class HandoverIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void Q_441_floorManagerConfirmsInsteadAfterConfirmDelay() {
+        long id = draft();
+        assessment(id);
+        service.complete(id);
+        var manager = receivingFloorManager();
+        current.set(manager);
+        clock.setTo(ends.plus(parameters
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M09_05)
+                .asDuration()));
+        assertThat(service.allowedCommands(id)).contains("confirm", "comment");
+        service.confirm(id);
+        assertThat(service.record(id).status()).isEqualTo("CONFIRMED");
+    }
+
+    /** Q-441: trước CFG-M09-05 và khi người phụ trách ca sau có mặt, Trưởng tầng chưa xác nhận thay. */
+    @Test
     void FR_038_floorManagerMustBePresentInTheScheduledNextShift() {
         com.eldercare.backend.support.TableRows.each(
                 java.util.stream.Stream.of("NOT_LISTED", "ABSENT", "WITHDRAWN", "LEAVE"), this::nextShiftRequired);

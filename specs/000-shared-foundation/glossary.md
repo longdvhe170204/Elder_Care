@@ -1729,7 +1729,7 @@ Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID 
 | bản cài `CongViecVangMatApi` | `CareAbsenceTasks` (`internal/task/service`) |
 | ThoiKhoaBieuService | `CareTimetable` (`internal/timetable/service`) |
 | quy tắc đóng `HUY_VANG_MAT`, `FR_010_TRANG_THAI_CUOI` | `ABSENCE_CANCELLED`, `FR_010_FINAL_STATE` (cột `care_task.closure_rule`) |
-| lý do `CanLapCongViec` `TRO_VE`, `HOAN_TAT_TIEP_NHAN`, tính lại sau đính chính chuyến đi | `RETURN`, `ADMISSION_COMPLETED`, `ABSENCE_RECALCULATED` (`TaskPlanningNeeded.reason`) |
+| lý do `CanLapCongViec` `TRO_VE`, `HOAN_TAT_TIEP_NHAN`, tính lại sau đính chính chuyến đi, chuyển giường sang tầng khác (thêm 2026-11-23) | `RETURN`, `ADMISSION_COMPLETED`, `ABSENCE_RECALCULATED`, `FLOOR_TRANSFER` (`TaskPlanningNeeded.reason`) |
 | lý do `YeuCauDongCanhBao` `TRANG_THAI_CUOI` | `FINAL_STATE` (`AlertClosureRequested.reason`) |
 | lệnh lịch sử công việc | `SHARED_ON_ABSENCE`, `SHARED_ON_LEAVE`, `SHARED_ON_RESIGNATION`, `REASSIGNED_BY_ASSIGNMENT`, `REASSIGNED_AFTER_BED_TRANSFER`, `REASSIGNED`, `CANCELLED_ON_ABSENCE`, `CLOSED_ON_FINAL_STATE` (nhật ký `CARE_TASK_<lệnh>`) |
 | nhật ký kế hoạch khi trạng thái cuối | `CARE_PLAN_ENDED_ON_FINAL_STATE`; `care_plan.end_reason` `FINAL_STATUS` |

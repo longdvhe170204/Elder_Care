@@ -65,6 +65,15 @@ public class CareTaskValidator {
         return required == actual || (required == Role.CAREGIVER && actual == Role.NURSING_STAFF);
     }
 
+    /**
+     * Thứ tự chọn người khi hệ thống tự giao lại (sau bàn giao, đổi phân công): người đúng vai trò trước, Điều dưỡng làm
+     * thay việc của Nhân viên chăm sóc (Q-214) chỉ khi không còn ai đúng vai trò; cùng nhóm thì phân công chính trước.
+     */
+    public static Comparator<ShiftStaffPort.CareAssignmentView> assigneeOrder(Role required) {
+        return Comparator.<ShiftStaffPort.CareAssignmentView, Boolean>comparing(a -> a.role() != required)
+                .thenComparing(a -> !a.primary());
+    }
+
     public CareTaskValidation validate(
             CareTaskDraft d, ShiftStaffPort.ShiftView shift, Instant now, long actor, Long originalTaskId) {
         var errors = new LinkedHashSet<String>();

@@ -70,6 +70,15 @@ public class AlertHandlingService {
     private static final PermissionKey HANDLING = new PermissionKey(Function.ALERT_HANDLING, Operation.UPDATE);
     /** Khóa loại của cảnh báo công việc Bắt buộc quá hạn (research S-08): đóng phải có lý do (BR-M04-06). */
     private static final String OVERDUE_TASK_PREFIX = "QUA_HAN:";
+    /** Q-442: chỉ Trưởng tầng (trong phạm vi tầng) và Bác sĩ đóng cảnh báo. */
+    static final Set<Role> CLOSERS = Set.of(Role.FLOOR_MANAGER, Role.DOCTOR);
+    /** Cảnh báo từ nút SOS, nút hỗ trợ khẩn cấp: luồng khẩn cấp gác lại, giữ người đóng như FR-036 (2026-11-22). */
+    static final Set<String> PRESSED_TYPES = Set.of("RESIDENT_HELP_REQUEST", "STAFF_ASSIST_REQUEST");
+    /** FR-087: người ghi kết quả theo dõi. */
+    static final Set<Role> FOLLOWERS = Set.of(Role.NURSING_STAFF, Role.CAREGIVER, Role.FLOOR_MANAGER, Role.DOCTOR);
+
+    private static final PermissionKey VIEW = new PermissionKey(Function.ALERT_HANDLING, Operation.VIEW);
+    private static final AuditAction FOLLOW_UP_RECORDED = new AuditAction("ALERT_FOLLOW_UP_RECORDED", false);
 
     private final AlertStore alerts;
     private final PermissionApi permissions;
@@ -81,6 +90,7 @@ public class AlertHandlingService {
     private final BusinessTime time;
     private final Optional<AlertStaffPort> staff;
     private final AlertHistory history;
+    private final AlertFollowUps followUps;
     private final Optional<RecordEventApi> records;
 
     public AlertHandlingService(
@@ -104,6 +114,7 @@ public class AlertHandlingService {
         this.time = time;
         this.staff = Optional.ofNullable(staff);
         this.history = new AlertHistory(records);
+        this.followUps = new AlertFollowUps(records);
         this.records = Optional.ofNullable(records);
     }
 
@@ -181,6 +192,10 @@ public class AlertHandlingService {
     @Transactional
     public void close(long alertId, String resolution, Reason reason, CurrentUser user) {
         var alert = lockForHandler(alertId, user);
+        if (!mayClose(alert, user)) {
+            throw new PermissionDeniedException(
+                    "Chỉ Trưởng tầng của tầng người cao tuổi và Bác sĩ đóng cảnh báo (Q-442)");
+        }
         requireStatus(alert, AlertStatus.IN_PROGRESS);
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
         if (reason == null && alert.typeLock().startsWith(OVERDUE_TASK_PREFIX)) throw new ReasonRequiredException();
@@ -191,6 +206,34 @@ public class AlertHandlingService {
         history.add(alertId, "CLOSED", Map.of("by", user.accountId()), now);
         write(CLOSED, alert, Map.of("status", AlertStatus.CLOSED.name()), reason);
         if (alert.residentId() != null) events.publishEvent(new ResidentItemClosed(alert.residentId()));
+    }
+
+    /** Q-442: Trưởng tầng, Bác sĩ; cảnh báo nút SOS, nút hỗ trợ giữ người đóng của FR-036 (gác lại). */
+    static boolean mayClose(AlertRecord alert, CurrentUser user) {
+        return PRESSED_TYPES.contains(alert.type()) || user.roles().stream().anyMatch(CLOSERS::contains);
+    }
+
+    /**
+     * Ghi kết quả theo dõi vào cảnh báo đang mở (FR-087, Q-443): Điều dưỡng, Nhân viên chăm sóc có người cao tuổi trong
+     * phạm vi, Trưởng tầng, Bác sĩ; không đổi trạng thái, mức hay cấp leo thang.
+     */
+    @Transactional
+    public void recordFollowUp(long alertId, String content, CurrentUser user) {
+        if (content == null || content.isBlank()) throw new InvalidValueException("Thiếu nội dung theo dõi");
+        var alert = alerts.lock(alertId).orElseThrow(NotFoundException::new);
+        if (user.roles().stream().noneMatch(FOLLOWERS::contains)) {
+            throw new PermissionDeniedException("Chỉ nhân viên chăm sóc người cao tuổi ghi theo dõi cảnh báo");
+        }
+        var permission = permissions.hasPermission(user, VIEW, target(alert));
+        if (!permission.allowed()) {
+            if (permission.failedLayer().orElse(null) == FailedLayer.SCOPE) throw new NotFoundException();
+            throw new PermissionDeniedException("Không có quyền xem cảnh báo");
+        }
+        if (!OPEN.contains(alert.status())) throw blocked("FR-087", "Chỉ ghi theo dõi khi cảnh báo đang mở");
+        var now = time.now();
+        followUps.add(alertId, content.strip(), user.accountId(), now);
+        history.add(alertId, "FOLLOW_UP", Map.of("by", user.accountId()), now);
+        write(FOLLOW_UP_RECORDED, alert, Map.of("followUp", content.strip()), null);
     }
 
     private void requireCriticalOutcome(long alertId) {

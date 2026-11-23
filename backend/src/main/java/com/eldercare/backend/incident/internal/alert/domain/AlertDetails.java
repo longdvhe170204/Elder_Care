@@ -6,15 +6,29 @@ import java.util.Set;
 
 /** Cảnh báo kèm phần đọc cho màn hình (api-007 {@code Alert}): họ tên người phụ trách, nguồn, lệnh được phép. */
 public record AlertDetails(
-        AlertRecord alert, String assigneeName, List<Source> sources, Set<String> allowedCommands, Press press) {
+        AlertRecord alert,
+        String assigneeName,
+        List<Source> sources,
+        Set<String> allowedCommands,
+        Press press,
+        List<FollowUp> followUps) {
     public AlertDetails {
         sources = List.copyOf(sources);
         allowedCommands = Set.copyOf(allowedCommands);
+        followUps = List.copyOf(followUps);
+    }
+
+    public AlertDetails(
+            AlertRecord alert, String assigneeName, List<Source> sources, Set<String> allowedCommands, Press press) {
+        this(alert, assigneeName, sources, allowedCommands, press, List.of());
     }
 
     public AlertDetails(AlertRecord alert, String assigneeName, List<Source> sources, Set<String> allowedCommands) {
-        this(alert, assigneeName, sources, allowedCommands, Press.NONE);
+        this(alert, assigneeName, sources, allowedCommands, Press.NONE, List.of());
     }
+
+    /** Một lần ghi kết quả theo dõi (FR-087, Q-443): nội dung, thời điểm, người ghi. */
+    public record FollowUp(String content, Instant at, String recordedBy) {}
 
     /** Người bấm (nút hỗ trợ), loại sự việc và nơi đã chọn của cảnh báo từ nút SOS, nút hỗ trợ (FR-047f, FR-047i). */
     public record Press(String pressedBy, String eventType, String chosenPlace, AlertLocationView latestLocation) {

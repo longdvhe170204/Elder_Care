@@ -37,6 +37,7 @@ public class SharedCareTasks {
     private final CareCatalogStore catalogs;
     private final ReminderMarkers markers;
     private final BusinessTime time;
+    private final CareAbsenceTasks planning;
 
     public SharedCareTasks(
             CareTaskStore tasks,
@@ -45,7 +46,8 @@ public class SharedCareTasks {
             CareLockStore locks,
             CareCatalogStore catalogs,
             ReminderMarkers markers,
-            BusinessTime time) {
+            BusinessTime time,
+            CareAbsenceTasks planning) {
         this.tasks = tasks;
         this.commands = commands;
         this.notices = notices;
@@ -53,6 +55,7 @@ public class SharedCareTasks {
         this.catalogs = catalogs;
         this.markers = markers;
         this.time = time;
+        this.planning = planning;
     }
 
     /** Vắng ca, nghỉ có duyệt (Q-91): chỉ công việc chưa đóng của người đó trong các ca nêu. */
@@ -98,7 +101,10 @@ public class SharedCareTasks {
         onBedTransferred(event);
     }
 
-    /** Chuyển giường sang khu khác (FR-032 câu cuối): theo phân công của ca khu mới; chạy lại không đổi thêm. */
+    /**
+     * Chuyển giường sang khu khác (FR-032 câu cuối): theo phân công của ca khu mới; chạy lại không đổi thêm. Báo Trưởng
+     * tầng của tầng mới cần lập công việc cho người vừa chuyển đến (BF-01 bước 15 nối BF-02 bước 1).
+     */
     @Transactional
     public void onBedTransferred(BedTransferred event) {
         if (event.previousFloorId() == event.nextFloorId()) return;
@@ -109,6 +115,12 @@ public class SharedCareTasks {
                 "REASSIGNED",
                 Map.of("at", event.at().toString()))) return;
         locks.lock(List.of(event.residentId()));
+        planning.planningNeeded(
+                event.residentId(),
+                event.nextFloorId(),
+                "FLOOR_TRANSFER",
+                event.at(),
+                "FLOOR_TRANSFER:" + event.nextAllocationId());
         for (var candidate : tasks.openOfResident(event.residentId())) {
             var before = tasks.get(candidate.id(), true);
             if (!OPEN.contains(before.status()) || before.floorAreaId() != event.previousFloorId()) continue;
@@ -173,14 +185,17 @@ public class SharedCareTasks {
         }
     }
 
-    /** Người được phân công khớp vai trò, đủ chứng chỉ; giữ người hiện tại nếu vẫn hợp lệ, phân công chính trước. */
+    /**
+     * Người được phân công khớp vai trò, đủ chứng chỉ; giữ người hiện tại nếu vẫn hợp lệ, còn lại theo
+     * {@link CareTaskValidator#assigneeOrder} (đúng vai trò trước, phân công chính trước).
+     */
     private Long assignee(CareTask task, long shiftId, Long current) {
         var certificates = certificates(task);
         var today = time.today();
         var valid = commands.staff().assignments(task.residentId(), shiftId).stream()
                 .filter(a -> CareTaskValidator.roleMatches(task.performerRole(), a.role()))
                 .filter(a -> commands.staff().qualified(a.staffId(), certificates, today))
-                .sorted(Comparator.comparing(a -> !a.primary()))
+                .sorted(CareTaskValidator.assigneeOrder(task.performerRole()))
                 .map(a -> a.staffId())
                 .toList();
         if (current != null && valid.contains(current)) return current;
