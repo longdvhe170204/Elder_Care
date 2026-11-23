@@ -391,7 +391,7 @@ components:
     IncidentOption:
       type: object
       required: [method]
-      properties: { method: { type: string, enum: [NEW, LINK, NONE] }, incidentId: { type: integer, format: int64 }, level: { type: string, enum: [LOW, MEDIUM, CRITICAL] }, description: { type: string }, place: { type: string } }
+      properties: { method: { type: string, enum: [NEW, LINK, NONE] }, incidentId: { type: integer, format: int64 }, level: { type: string, enum: [LOW, MEDIUM, CRITICAL] }, description: { type: string }, place: { type: string }, lowerLevelReason: { type: string, description: 'Bắt buộc khi NEW chọn mức thấp hơn mức mặc định của loại sự cố (007 FR-042; đồ gửi mặc định MEDIUM); chuyển nguyên sang lệnh ghi sự cố của 007' } }
     ReturnCommand:
       type: object
       required: [items, recipient]

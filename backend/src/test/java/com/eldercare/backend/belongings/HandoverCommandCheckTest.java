@@ -95,4 +95,29 @@ class HandoverCommandCheckTest {
         assertThat(result.effectiveType()).isEqualTo(HandoverType.RECORD_DAMAGE);
         assertThat(result.target()).isEqualTo(BelongingStatus.DAMAGED);
     }
+
+    // BF-14 test web 2026-11-22: thông báo lỗi hiện cho người dùng bằng lời, không lộ mã vi phạm
+    @Test
+    void violationsAreDescribedInWords_withoutRawCodes() {
+        var codes = java.util.List.of(
+                "STATE_CHANGED",
+                "INVALID_STATE",
+                "RESIDENT_FINAL_STATE",
+                "HOLDER_NOT_ABSENT",
+                "GIVER_NOT_HOLDER",
+                "REASON_REQUIRED",
+                "STORAGE_LOCATION_REQUIRED",
+                "PHOTO_REQUIRED",
+                "SELF_CUSTODY_CONSENT_REQUIRED",
+                "UNUSABLE_LEVEL_ONLY_VIA_RECORD_DAMAGE",
+                "CONDITION_HANDLING_REQUIRED");
+        for (String code : codes) {
+            assertThat(HandoverCommandCheck.describe(java.util.List.of(code)))
+                    .isNotBlank()
+                    .doesNotContain(code);
+        }
+        assertThat(HandoverCommandCheck.describe(java.util.List.of("SELF_CUSTODY_CONSENT_REQUIRED", "PHOTO_REQUIRED")))
+                .contains("đồng ý cho tự giữ")
+                .contains("ảnh");
+    }
 }

@@ -112,4 +112,26 @@ class BR_57_LostDamageIncidentIT extends HandoverTestBase {
         assertThat(recorded.getFirst().description()).isEqualTo("Mất điện thoại");
         assertThat(recorded.getFirst().location()).isEqualTo("Phòng sinh hoạt");
     }
+
+    // BF-14 test web 2026-11-22: loại sự cố đồ gửi mặc định Trung bình; chọn Nhẹ phải ghi lý do (007 FR-042, 013
+    // FR-023)
+    @Test
+    void FR_023_newIncidentBelowDefaultLevel_passesLowerLevelReasonTo007() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
+        newIncidentId();
+
+        reportLost(
+                        phone,
+                        ", \"incident\": {\"method\": \"NEW\", \"level\": \"LOW\","
+                                + " \"lowerLevelReason\": \"Đồ giá trị thấp, gia đình đã biết\"}")
+                .andExpect(status().isOk());
+
+        var recorded = commands.recorded().stream()
+                .filter(c -> resident == c.residentId())
+                .toList();
+        assertThat(recorded).hasSize(1);
+        assertThat(recorded.getFirst().level()).isEqualTo("LOW");
+        assertThat(recorded.getFirst().lowerLevelReason()).isEqualTo("Đồ giá trị thấp, gia đình đã biết");
+    }
 }

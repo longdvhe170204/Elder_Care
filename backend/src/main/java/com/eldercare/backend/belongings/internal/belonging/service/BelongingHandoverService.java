@@ -911,7 +911,7 @@ public class BelongingHandoverService {
         return new BusinessException(
                 INVALID_CODES.contains(code) ? HttpStatus.UNPROCESSABLE_CONTENT : HttpStatus.CONFLICT,
                 code,
-                "Lệnh bàn giao không đạt điều kiện: " + String.join(", ", violations),
+                HandoverCommandCheck.describe(violations),
                 Map.of("belongingId", belongingId, "violations", violations));
     }
 
