@@ -135,6 +135,25 @@ public class Prescription {
     @Column(name = "expiration_warned_at")
     private Instant expirationWarnedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "time_criticality", nullable = false)
+    private TimeCriticality timeCriticality = TimeCriticality.NORMAL;
+
+    @Column(name = "pre_dose_measurements", columnDefinition = "json")
+    private String preDoseMeasurements;
+
+    @Column(name = "indication", length = 500)
+    private String indication;
+
+    @Column(name = "temp_resumed_at")
+    private Instant tempResumedAt;
+
+    @Column(name = "temp_resumed_by_id")
+    private Long tempResumedById;
+
+    @Column(name = "temp_resume_basis", length = 2000)
+    private String tempResumeBasis;
+
     @Column(name = "creator_id")
     private Long creatorId;
 
@@ -371,6 +390,54 @@ public class Prescription {
 
     public Long getCreatorId() {
         return creatorId;
+    }
+
+    /** Mức quan trọng, chỉ số cần đo, chỉ định PRN (BR-M07-26, 27); không nằm trong danh sách khóa của trigger. */
+    public void applyBf07(TimeCriticality timeCriticality, String preDoseMeasurementsJson, String indication) {
+        this.timeCriticality = timeCriticality == null ? TimeCriticality.NORMAL : timeCriticality;
+        this.preDoseMeasurements = preDoseMeasurementsJson;
+        this.indication = indication;
+    }
+
+    public void changeTimeCriticality(TimeCriticality timeCriticality) {
+        this.timeCriticality = timeCriticality == null ? TimeCriticality.NORMAL : timeCriticality;
+    }
+
+    public void changePreDoseMeasurements(String json) {
+        this.preDoseMeasurements = json;
+    }
+
+    public void changeIndication(String indication) {
+        this.indication = indication;
+    }
+
+    /** Tiếp tục tạm theo giấy ra viện khi đang chờ đối chiếu (BR-M07-28). */
+    public void resumeTemporarily(Long byId, String basis, Instant now) {
+        this.status = PrescriptionStatus.ACTIVE;
+        this.suspensionReason = null;
+        this.tempResumedAt = now;
+        this.tempResumedById = byId;
+        this.tempResumeBasis = basis;
+    }
+
+    public TimeCriticality getTimeCriticality() {
+        return timeCriticality;
+    }
+
+    public String getPreDoseMeasurements() {
+        return preDoseMeasurements;
+    }
+
+    public String getIndication() {
+        return indication;
+    }
+
+    public Instant getTempResumedAt() {
+        return tempResumedAt;
+    }
+
+    public String getTempResumeBasis() {
+        return tempResumeBasis;
     }
 
     public Instant getCreatedAt() {

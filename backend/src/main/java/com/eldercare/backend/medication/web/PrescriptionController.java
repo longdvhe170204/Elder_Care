@@ -125,8 +125,14 @@ public class PrescriptionController {
             @RequestHeader("If-Match") String ifMatch,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody InstructionNoteRequest body) {
-        PrescriptionResponse updated = prescriptionService.updateInstructionNote(
-                prescriptionService.targetOf(id), id, ifMatch, body.instructionNote());
+        PrescriptionResponse updated = prescriptionService.updateEditableFields(
+                prescriptionService.targetOf(id),
+                id,
+                ifMatch,
+                body.instructionNote(),
+                body.timeCriticality() == null ? null : body.timeCriticality().name(),
+                body.requiredMeasurements(),
+                body.indication());
         return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).build();
     }
 
@@ -168,6 +174,29 @@ public class PrescriptionController {
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody PrescriptionCommandRequest body) {
         PrescriptionResponse response = prescriptionService.resume(
+                prescriptionService.targetOf(id),
+                id,
+                M07RequestMapper.order(body),
+                currentUser.accountId(),
+                isDoctor());
+        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).build();
+    }
+
+    @PostMapping("/api/v1/prescriptions/{id}/resume-temporarily")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> resumeTemporarily(
+            @PathVariable("id") Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody PrescriptionCommandRequest body) {
+        PrescriptionResponse response = prescriptionService.resumeTemporarily(
                 prescriptionService.targetOf(id),
                 id,
                 M07RequestMapper.order(body),

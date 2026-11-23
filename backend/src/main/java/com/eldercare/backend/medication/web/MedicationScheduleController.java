@@ -30,6 +30,7 @@ public class MedicationScheduleController {
     private final MedicationScheduleService scheduleService;
     private final DoseAdministrationService doseAdministrationService;
     private final DoseViewService doseViews;
+    private final com.eldercare.backend.medication.internal.dose.service.DoseExtrasService doseExtras;
     private final BusinessTime businessTime;
     private final MedicationScheduleCalculator scheduleCalculator;
 
@@ -37,11 +38,13 @@ public class MedicationScheduleController {
             MedicationScheduleService scheduleService,
             DoseAdministrationService doseAdministrationService,
             DoseViewService doseViews,
+            com.eldercare.backend.medication.internal.dose.service.DoseExtrasService doseExtras,
             BusinessTime businessTime,
             MedicationScheduleCalculator scheduleCalculator) {
         this.scheduleService = scheduleService;
         this.doseAdministrationService = doseAdministrationService;
         this.doseViews = doseViews;
+        this.doseExtras = doseExtras;
         this.businessTime = businessTime;
         this.scheduleCalculator = scheduleCalculator;
     }
@@ -84,7 +87,7 @@ public class MedicationScheduleController {
         return doseViews
                 .views(scheduleService.getMedicationRound(floorAreaId, effectiveFrom, effectiveTo, now))
                 .stream()
-                .map(DoseBody::of)
+                .map(v -> DoseBody.of(v, doseExtras.of(v)))
                 .toList();
     }
 
@@ -102,6 +105,7 @@ public class MedicationScheduleController {
                                 schema = @Schema(implementation = ProblemBody.class)))
     })
     public DoseBody getDoseDetail(@PathVariable("doseKey") String doseKey) {
-        return DoseBody.of(doseViews.view(doseAdministrationService.getDoseDetail(doseKey, businessTime.now())));
+        var view = doseViews.view(doseAdministrationService.getDoseDetail(doseKey, businessTime.now()));
+        return DoseBody.of(view, doseExtras.of(view));
     }
 }

@@ -51,6 +51,10 @@ final class M07RequestMapper {
         p.setPrescriptionFileId(r.prescriber().prescriptionFileId());
         b.setPrescriber(p);
         b.setInstructionNote(r.instructionNote());
+        b.setTimeCriticality(
+                r.timeCriticality() == null ? null : r.timeCriticality().name());
+        b.setRequiredMeasurements(r.requiredMeasurements());
+        b.setIndication(r.indication());
         if (r.issueConfirmations() != null) {
             b.setConfirmedIssues(r.issueConfirmations().stream()
                     .map(c -> new ConfirmedIssueBody(c.issueCode(), c.reason()))

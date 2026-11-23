@@ -20,6 +20,7 @@ Giao diện Java công khai ở `belongings.api` và bản cài các SPI do modu
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model; bản ghi bàn giao thuộc danh sách bảo vệ BR-M15-03 | 000 |
 | `GanPhamViProvider` (002) | `M12.DO_GUI`, `M12.XAC_NHAN_NGUOI_NHAN`, `M12.DONG_Y_TU_GIU`: người cao tuổi; `M12.PHIEU_KIEM_KE`: toàn viện | 002 FR-034 |
 | `QuyenTepProvider` (`common.tep`) | `M12.ANH_DO_GUI`: Hành chính, Điều dưỡng (phạm vi), Quản lý viện, Trưởng tầng (phạm vi), người thân có `xemDoGui`; `M12.BAN_KY`, `M12.BIEN_BAN`: Hành chính, Quản lý viện | NFR-08, BR-M12-09 |
+| `SourceRecordAccessPort` (`notification.api.spi`) *(bổ sung 2026-11-23, chủ dự án duyệt khi test luồng BF-14)* | Mở bản ghi nguồn từ thông báo: `M12.RECIPIENT_CONFIRMATION` (người đại diện; Hành chính, Quản lý viện), `M12.BELONGING_HANDOVER`, `M12.BELONGING`, `M12.BELONGING_RESIDENT` (mã người cao tuổi; thông báo FR-028), `M12.INVENTORY_CHECK`, `M12.INVENTORY_PERIOD`, `M12.STORAGE_LOCATION`; mở được theo quyền của API xem tương ứng | 009 FR-033, FR-034 |
 | `DoGuiKenhNctPort` (`family.api`) *(bổ sung 2026-10-18)* | `dangGiu(nctId)`: Đang giữ, Đang được sử dụng; tên, trạng thái, ảnh (K-16); `M12.ANH_DO_GUI` thêm người cao tuổi chủ đồ | 012 FR-083 (e) |
 
 ### 1.2. `belongings.api.DoGuiApi` (đọc; 004 hiển thị căn cứ, 016)
@@ -51,14 +52,14 @@ Stream<PhieuKiemKeView> kiemKe(String maKy);
 
 | Giao diện | Module | Dùng cho | Kiểm thử thay thế |
 | --- | --- | --- | --- |
-| `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi` | 001 | FR-006, FR-027, FR-027a | Bản giả |
+| `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi`; `nhanDang` (họ tên, mã hồ sơ; bổ sung 2026-11-23) | 001 | FR-006, FR-027, FR-027a; FR-011, FR-020, FR-032 (tên trong lịch sử bàn giao, thông báo cho nhân viên) | Bản giả |
 | `QuyenApi`, `PhamViApi`; `TaiKhoanApi.theoNhanVien` | 002 | FR-007, FR-014, FR-029 | Bản thật |
 | `ViTriApi.hienTai`, `tangTaiNgay` | 003 | FR-028 | Bản giả |
 | `DanhSachViecSauQuaDoiApi.capNhat` | 004 | FR-026 | Bản giả |
 | `SuCoLenhApi.ghiNhan`, `themDienBien` (MANDATORY); `SuCoApi.xem` | 007 | FR-021, FR-024, FR-025, bảng (Tìm thấy) | Bản giả ghi lại lệnh |
-| `CaTrucApi.dangTrongCa`, `nguoiPhuTrachCa` | 008 | FR-014, FR-014a | Bản giả |
+| `CaTrucApi.dangTrongCa`, `nguoiPhuTrachCa`; `nhanVien` (họ tên nhân viên; bổ sung 2026-11-23) | 008 | FR-014, FR-014a; FR-011, FR-020 (tên trong lịch sử bàn giao) | Bản giả |
 | `ThongBaoTraCuuApi` (người đã nhận thông báo gốc) | 009 | FR-011a | Bản giả |
-| `QuyenNguoiThanApi.laNguoiDaiDien`, `duocPhepDonTai`, `giayTo`, `xemDoGui`, `nguoiDaiDien`, `nguoiLienHeChinh`; `NguoiDaiDienPort` | 012 | FR-005, FR-015a, FR-016, FR-017, FR-030, FR-032 | Bản giả |
+| `QuyenNguoiThanApi.laNguoiDaiDien`, `duocPhepDonTai`, `giayTo`, `xemDoGui`, `nguoiDaiDien`, `nguoiLienHeChinh`, `hoTen` (bổ sung 2026-11-23); `NguoiDaiDienPort` | 012 | FR-005, FR-011, FR-015a, FR-016, FR-017, FR-020, FR-030, FR-032 | Bản giả |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `YeuCauPheDuyetApi`, `NhacQuaHan` | 000 | Chung | Bản thật |
 
 ### 2.1. Sự kiện 013 nghe

@@ -35,7 +35,22 @@ public final class DoseRequests {
             String adverseReaction,
             @Size(min = 1, max = 2000) String reason,
             String note,
-            Boolean recordedAfterDisconnect) {}
+            Boolean recordedAfterDisconnect,
+            java.util.List<@Valid MeasurementInput> measurements,
+
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Đã dùng muộn (BR-M07-26); chỉ ở phản hồi")
+            Boolean late,
+
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Mã kết quả liều; chỉ ở phản hồi")
+            Long id) {}
+
+    /** Chỉ số đo trước khi dùng (BR-M07-26): mã trong danh mục chỉ số và giá trị. */
+    public record MeasurementInput(
+            @Schema(requiredMode = RequiredMode.REQUIRED) @jakarta.validation.constraints.NotBlank
+            String code,
+
+            @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
+            java.math.BigDecimal value) {}
 
     public enum ReviewResult {
         ACCEPTED,

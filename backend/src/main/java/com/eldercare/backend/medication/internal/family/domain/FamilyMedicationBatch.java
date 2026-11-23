@@ -110,6 +110,28 @@ public class FamilyMedicationBatch {
     @Column(name = "witness")
     private String witness;
 
+    @Column(name = "label_ok")
+    private Boolean labelOk;
+
+    @Column(name = "expiry_ok")
+    private Boolean expiryOk;
+
+    @Column(name = "packaging_ok")
+    private Boolean packagingOk;
+
+    @Column(name = "name_ok")
+    private Boolean nameOk;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dispose_kind")
+    private DisposeKind disposeKind;
+
+    /** Hủy theo yêu cầu gia đình hoặc do hết hạn dùng (BR-M07-30). */
+    public enum DisposeKind {
+        FAMILY_REQUEST,
+        EXPIRED
+    }
+
     public FamilyMedicationBatch() {}
 
     public FamilyMedicationBatch(
@@ -177,11 +199,28 @@ public class FamilyMedicationBatch {
         close(actorId, now);
     }
 
+    /** Kết quả kiểm tra khi tiếp nhận (BR-M07-30); trống cả bốn là lô cũ chưa kiểm. */
+    public void recordIntakeChecks(Boolean labelOk, Boolean expiryOk, Boolean packagingOk, Boolean nameOk) {
+        this.labelOk = labelOk;
+        this.expiryOk = expiryOk;
+        this.packagingOk = packagingOk;
+        this.nameOk = nameOk;
+    }
+
+    /** Có mục kiểm tra tiếp nhận Không đạt thì không chọn được "Được sử dụng" (BR-M07-30). */
+    public boolean intakeChecksFailed() {
+        return Boolean.FALSE.equals(labelOk)
+                || Boolean.FALSE.equals(expiryOk)
+                || Boolean.FALSE.equals(packagingOk)
+                || Boolean.FALSE.equals(nameOk);
+    }
+
     public void markReturned(
             String reason,
             BigDecimal countedQuantity,
             String recipientName,
             String relationship,
+            String witness,
             Long actorId,
             Instant now) {
         this.status = FamilyMedicationBatchStatus.RETURNED;
@@ -189,11 +228,14 @@ public class FamilyMedicationBatch {
         this.finalQuantity = countedQuantity;
         this.returnRecipientName = recipientName;
         this.returnRelationship = relationship;
+        this.witness = witness;
         close(actorId, now);
     }
 
-    public void markDisposed(String reason, BigDecimal countedQuantity, String witness, Long actorId, Instant now) {
+    public void markDisposed(
+            String reason, BigDecimal countedQuantity, String witness, DisposeKind kind, Long actorId, Instant now) {
         this.status = FamilyMedicationBatchStatus.DISPOSED;
+        this.disposeKind = kind;
         this.statusReason = reason;
         this.finalQuantity = countedQuantity;
         this.witness = witness;
@@ -317,6 +359,26 @@ public class FamilyMedicationBatch {
 
     public String getReturnRelationship() {
         return returnRelationship;
+    }
+
+    public Boolean getLabelOk() {
+        return labelOk;
+    }
+
+    public Boolean getExpiryOk() {
+        return expiryOk;
+    }
+
+    public Boolean getPackagingOk() {
+        return packagingOk;
+    }
+
+    public Boolean getNameOk() {
+        return nameOk;
+    }
+
+    public DisposeKind getDisposeKind() {
+        return disposeKind;
     }
 
     public String getWitness() {

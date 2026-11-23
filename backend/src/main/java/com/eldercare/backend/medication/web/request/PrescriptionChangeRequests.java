@@ -43,8 +43,10 @@ public final class PrescriptionChangeRequests {
 
             @Valid ExternalBasisRequest externalBasis) {}
 
-    /** Ghi chú hướng dẫn, trường duy nhất sửa được của đơn (FR-014). */
+    /** Ghi chú hướng dẫn, mức quan trọng, chỉ số cần đo, chỉ định: các trường sửa được của đơn (FR-014, BR-M07-26, 27). */
     public record InstructionNoteRequest(
-            @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull @Size(max = 2000)
-            String instructionNote) {}
+            @Size(max = 2000) String instructionNote,
+            NewPrescriptionRequest.TimeCriticality timeCriticality,
+            java.util.List<String> requiredMeasurements,
+            @Size(max = 500) String indication) {}
 }

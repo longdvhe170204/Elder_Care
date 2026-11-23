@@ -10,6 +10,7 @@ import com.eldercare.backend.administration.approval.api.dto.ResultRef;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogPermissions;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterPermissions;
+import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.UnmetCondition;
@@ -50,6 +51,16 @@ public class ApprovalFixtures {
         volatile Set<Role> roleRestriction;
         /** Vai trò được sửa, gửi duyệt Nháp của người khác (plan 004 FR-039); null là chỉ người yêu cầu. */
         volatile Set<Role> draftActorRoles;
+        /** Loại cho phép Trả về nháp (Q-419). */
+        volatile boolean allowReturnToDraft;
+        /** Yêu cầu Đã duyệt chưa sẵn sàng áp dụng (Q-420, ví dụ phụ lục chưa ký). */
+        volatile boolean notReadyToApply;
+        /** Vai trò được hủy Nháp, Chờ duyệt của người khác (Q-421); null là chỉ người yêu cầu. */
+        volatile Set<Role> cancelRoles;
+        /** Gửi duyệt bắt buộc lý do (Q-417, ví dụ người cao tuổi không đồng ý). */
+        volatile boolean submitReasonRequired;
+        /** Yêu cầu đã được báo Trả về nháp. */
+        final List<Long> returnedToDraft = new java.util.concurrent.CopyOnWriteArrayList<>();
 
         /** Đặt cả bốn công tắc một lần (chạy tay quickstart ở profile demo, T103). */
         public void configure(
@@ -66,6 +77,11 @@ public class ApprovalFixtures {
             allowSelfApproval = true;
             roleRestriction = null;
             draftActorRoles = null;
+            allowReturnToDraft = false;
+            notReadyToApply = false;
+            cancelRoles = null;
+            submitReasonRequired = false;
+            returnedToDraft.clear();
         }
     }
 
@@ -143,6 +159,35 @@ public class ApprovalFixtures {
             Set<Role> roles = control.draftActorRoles;
             return RequestTypeHandler.super.mayActOnDraft(user, request)
                     || (roles != null && user.roles().stream().anyMatch(roles::contains));
+        }
+
+        @Override
+        public boolean readyToApply(ApprovalRequestView request) {
+            return !control.notReadyToApply;
+        }
+
+        @Override
+        public boolean allowReturnToDraft() {
+            return control.allowReturnToDraft;
+        }
+
+        @Override
+        public void onReturnToDraft(ApprovalRequestView request, Reason reason) {
+            control.returnedToDraft.add(request.id());
+        }
+
+        @Override
+        public boolean mayCancel(CurrentUser user, ApprovalRequestView request) {
+            Set<Role> roles = control.cancelRoles;
+            return RequestTypeHandler.super.mayCancel(user, request)
+                    || (roles != null && user.roles().stream().anyMatch(roles::contains));
+        }
+
+        @Override
+        public List<UnmetCondition> checkOnSubmit(ApprovalRequestView request, Optional<Reason> reason) {
+            return control.submitReasonRequired && reason.isEmpty()
+                    ? List.of(new UnmetCondition("SUBMIT_REASON_REQUIRED", "Cần lý do khi gửi duyệt"))
+                    : List.of();
         }
 
         static String effectName(ApprovalRequestView request) {

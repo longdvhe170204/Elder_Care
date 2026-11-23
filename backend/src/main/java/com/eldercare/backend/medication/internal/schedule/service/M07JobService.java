@@ -62,6 +62,12 @@ public class M07JobService {
 
     private final ReconciliationDeadlines deadlines;
 
+    /** BR-M07-31: Điều dưỡng tầng khác được chỉ định phụ trách tạm thì tầng không còn "không có Điều dưỡng". */
+    private final com.eldercare.backend.medication.internal.dose.service.TemporaryNurseAssignmentService tempNurses;
+
+    /** BR-M07-04: nhắc ghi hiệu quả thuốc khi cần sau CFG-M07-11. */
+    private final com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService prnEffectiveness;
+
     public M07JobService(
             M07JobRunStore jobRunStore,
             PrescriptionRepository prescriptionRepository,
@@ -76,7 +82,11 @@ public class M07JobService {
             ResidentLocationApi locations,
             NursingShiftPort shifts,
             AbsenceScheduleContexts absenceContexts,
-            ReconciliationDeadlines deadlines) {
+            ReconciliationDeadlines deadlines,
+            com.eldercare.backend.medication.internal.dose.service.TemporaryNurseAssignmentService tempNurses,
+            com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService prnEffectiveness) {
+        this.tempNurses = tempNurses;
+        this.prnEffectiveness = prnEffectiveness;
         this.deadlines = deadlines;
         this.absenceContexts = absenceContexts;
         this.jobRunStore = jobRunStore;
@@ -127,6 +137,11 @@ public class M07JobService {
 
         // (6) Close SUSPENDED doses past window end
         expireSuspendedDoses(now);
+
+        // BR-M07-04: nhắc ghi hiệu quả thuốc khi cần
+        if (prnEffectiveness != null) {
+            prnEffectiveness.remind(now);
+        }
     }
 
     private void notifyFloorsWithoutNurse(Instant now) {
@@ -143,7 +158,9 @@ public class M07JobService {
                 continue;
             }
             NursingShiftView shift = shifts.shiftAt(floorId, now).orElse(null);
-            if (shift == null || !shifts.nursesWithShift(floorId, now).isEmpty()) {
+            if (shift == null
+                    || !shifts.nursesWithShift(floorId, now).isEmpty()
+                    || (tempNurses != null && tempNurses.hasActive(floorId, now))) {
                 continue;
             }
             Instant from = now.isAfter(shift.startsAt()) ? now : shift.startsAt();
@@ -247,12 +264,24 @@ public class M07JobService {
     }
 
     private void transitionLateToMissed(Instant now) {
-        Instant missedThreshold =
-                now.minus(parameters.read(ParameterCode.CFG_M07_02).asDuration());
+        java.time.Duration normalGrace =
+                parameters.read(ParameterCode.CFG_M07_02).asDuration();
+        java.time.Duration criticalGrace =
+                parameters.read(ParameterCode.CFG_M07_09).asDuration();
+        // Lấy theo mốc sớm hơn rồi lọc theo mức quan trọng của đơn (BR-M07-02, BR-M07-27)
+        Instant missedThreshold = now.minus(criticalGrace.compareTo(normalGrace) < 0 ? criticalGrace : normalGrace);
         List<MedicationDose> lateDoses =
                 doseRepository.findByStatusAndLateAtLessThanEqual(DoseStatus.LATE, missedThreshold);
 
         for (MedicationDose d : lateDoses) {
+            boolean critical = prescriptionRepository
+                    .findById(d.getPrescriptionId())
+                    .map(p -> p.getTimeCriticality()
+                            == com.eldercare.backend.medication.internal.prescription.domain.TimeCriticality.CRITICAL)
+                    .orElse(false);
+            if (d.getLateAt() != null && d.getLateAt().isAfter(now.minus(critical ? criticalGrace : normalGrace))) {
+                continue;
+            }
             d.closeMissedBySystem(now);
             doseRepository.save(d);
 
@@ -288,6 +317,17 @@ public class M07JobService {
                     "missed:" + d.getId(),
                     now,
                     List.of()));
+            if (critical) {
+                // BR-M07-27: đơn Quan trọng báo ngay Trưởng tầng, Bác sĩ trực cùng Điều dưỡng phụ trách
+                Long floorId = d.getFloorAreaId() != null
+                        ? d.getFloorAreaId()
+                        : locations
+                                .at(d.getResidentId(), now)
+                                .map(location -> location.floorId())
+                                .orElse(null);
+                eventPublisher.publishEvent(new com.eldercare.backend.medication.api.events.CriticalDoseMissed(
+                        d.getId(), d.getResidentId(), floorId, now));
+            }
             log.warn("Dose {} marked MISSED by SYSTEM after grace period", d.getId());
         }
     }

@@ -19,6 +19,11 @@ public interface PrnAdministrationRepository extends JpaRepository<PrnAdministra
     List<PrnAdministration> findInWindow(
             @Param("prescriptionIds") Collection<Long> prescriptionIds, @Param("fromTime") Instant fromTime);
 
+    /** Lần dùng đã quá cutoff mà chưa ghi hiệu quả (BR-M07-04); since giới hạn phạm vi quét. */
+    @Query("SELECT p FROM PrnAdministration p WHERE p.administeredAt <= :cutoff AND p.administeredAt >= :since "
+            + "AND NOT EXISTS (SELECT 1 FROM PrnEffectiveness e WHERE e.doseResultId = p.id) ORDER BY p.id")
+    List<PrnAdministration> findAwaitingEffectiveness(@Param("cutoff") Instant cutoff, @Param("since") Instant since);
+
     @Query("SELECT p FROM PrnAdministration p WHERE p.residentId = :residentId "
             + "AND p.administeredAt >= :fromTime ORDER BY p.administeredAt DESC")
     List<PrnAdministration> findByResidentIdInWindow(

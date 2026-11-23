@@ -44,6 +44,7 @@ public class HeldBelongingReminders {
     private final ReminderMarkers markers;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
+    private final StaffNoticeDetails details;
 
     HeldBelongingReminders(
             BelongingStore belongings,
@@ -52,7 +53,9 @@ public class HeldBelongingReminders {
             ShiftApi shifts,
             ReminderMarkers markers,
             ApplicationEventPublisher events,
-            BusinessTime time) {
+            BusinessTime time,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.belongings = belongings;
         this.valuableTypes = valuableTypes;
         this.catalogs = catalogs;
@@ -127,17 +130,22 @@ public class HeldBelongingReminders {
         if (held.isEmpty()) {
             return;
         }
-        events.publishEvent(BelongingNotices.notice(
-                "BELONGINGS_AT_PREVIOUS_FLOOR",
-                "M03.ALLOCATION",
-                event.nextAllocationId(),
-                NotificationLevel.LOW,
-                event.residentId(),
-                List.of(
-                        new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
-                        new RecipientGroup.AssignedNurse(event.residentId(), new Substitution.Default())),
-                held.size() + " đồ gửi Đang giữ ở vị trí tầng cũ: cần Chuyển giữ",
-                null,
-                time.now()));
+        events.publishEvent(details.forStaff(
+                BelongingNotices.notice(
+                        "BELONGINGS_AT_PREVIOUS_FLOOR",
+                        // Nguồn là đồ gửi của người cao tuổi để nhân viên mở được (test luồng BF-14 2026-11-23)
+                        ResidentBelongingsSourceAccess.SOURCE_TYPE,
+                        event.residentId(),
+                        "BELONGINGS_AT_PREVIOUS_FLOOR:" + event.nextAllocationId(),
+                        NotificationLevel.LOW,
+                        event.residentId(),
+                        List.of(
+                                new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
+                                new RecipientGroup.AssignedNurse(event.residentId(), new Substitution.Default())),
+                        held.size() + " đồ gửi Đang giữ ở vị trí tầng cũ: cần Chuyển giữ",
+                        null,
+                        time.now(),
+                        false),
+                details.belongings(held)));
     }
 }

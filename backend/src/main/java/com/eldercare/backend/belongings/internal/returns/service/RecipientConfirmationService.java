@@ -30,6 +30,7 @@ import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingResidentLock;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
+import com.eldercare.backend.belongings.internal.belonging.service.StaffNoticeDetails;
 import com.eldercare.backend.belongings.internal.returns.domain.ContactAttempt;
 import com.eldercare.backend.belongings.internal.returns.domain.ContactChannel;
 import com.eldercare.backend.belongings.internal.returns.domain.ContactEvidence;
@@ -48,6 +49,7 @@ import com.eldercare.backend.family.api.FamilyRightsApi;
 import com.eldercare.backend.family.api.dto.FamilyMemberView;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -110,7 +112,8 @@ public class RecipientConfirmationService {
             String method,
             Instant expiresAt,
             Long signedRepresentativeId,
-            Long signedFormFileId) {}
+            Long signedFormFileId,
+            List<ContactCommand> contactAttempts) {}
 
     private enum Ground {
         A,
@@ -129,6 +132,7 @@ public class RecipientConfirmationService {
     private final ApplicationEventPublisher publisher;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
+    private final StaffNoticeDetails details;
 
     RecipientConfirmationService(
             SimpleRecordApi records,
@@ -141,7 +145,9 @@ public class RecipientConfirmationService {
             AuditLogApi audit,
             ApplicationEventPublisher publisher,
             BusinessTime time,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.records = records;
         this.recordEvents = recordEvents;
         this.belongings = belongings;
@@ -165,8 +171,26 @@ public class RecipientConfirmationService {
     @RequiresPermission(function = Function.BELONGINGS, operation = Operation.VIEW)
     public List<View> list(Target resident, Set<String> statuses) {
         return records.listByResident(RecipientConfirmation.KIND, resident.residentId(), statuses).stream()
-                .map(this::view)
+                .map(this::staffView)
                 .toList();
+    }
+
+    /**
+     * Nhân viên mở được yêu cầu từ thông báo (test luồng BF-14 2026-11-23): Hành chính, Quản lý viện như {@link #listAll},
+     * và yêu cầu có tồn tại.
+     */
+    @Transactional(readOnly = true)
+    public boolean staffCanOpen(long id) {
+        Set<Role> roles = users.getObject().roles();
+        if (!roles.contains(Role.OFFICE_STAFF) && !roles.contains(Role.NURSING_HOME_MANAGER)) {
+            return false;
+        }
+        try {
+            records.require(RecipientConfirmation.KIND, id);
+            return true;
+        } catch (NotFoundException e) {
+            return false;
+        }
     }
 
     /** Không lọc người cao tuổi: chỉ Hành chính, Quản lý viện (FR-029). */
@@ -177,7 +201,7 @@ public class RecipientConfirmationService {
                     "Chỉ Hành chính, Quản lý viện xem mọi yêu cầu xác nhận người nhận khác");
         }
         return records.listByStatus(RecipientConfirmation.KIND, statuses.isEmpty() ? OPEN : statuses).stream()
-                .map(this::view)
+                .map(this::staffView)
                 .toList();
     }
 
@@ -435,9 +459,7 @@ public class RecipientConfirmationService {
         Ground ground = ground(confirmation, now);
         boolean eligible = basis == Basis.REPRESENTATIVE_UNREACHABLE ? ground == Ground.A : ground == Ground.B;
         if (!eligible) {
-            throw blocked(
-                    "ON_BEHALF_APPROVAL_NOT_ELIGIBLE",
-                    "Chưa đủ điều kiện duyệt thay theo căn cứ đã chọn (FR-017a, CFG-M12-05, CFG-M12-06)");
+            throw blocked("ON_BEHALF_APPROVAL_NOT_ELIGIBLE", notEligibleMessage(confirmation, basis, ground, now));
         }
         records.change(
                 RecipientConfirmation.KIND,
@@ -694,6 +716,36 @@ public class RecipientConfirmationService {
                 : Ground.NONE;
     }
 
+    /**
+     * Lời báo khi chưa duyệt thay được (FR-017a; test luồng BF-14 2026-11-23): nói căn cứ nào dùng được và lúc nào được
+     * duyệt, không hiện mã FR, CFG.
+     */
+    private String notEligibleMessage(
+            SimpleRecord<RecipientConfirmation> confirmation, Basis basis, Ground ground, Instant now) {
+        if (basis == Basis.NO_REPRESENTATIVE) {
+            return "Người cao tuổi đang có người đại diện Hiệu lực: căn cứ \"Không có người đại diện\" chỉ dùng khi"
+                    + " không còn người đại diện nào";
+        }
+        if (ground == Ground.B) {
+            return "Người cao tuổi không có người đại diện Hiệu lực: chọn căn cứ \"Không có người đại diện\"";
+        }
+        ContactEvidenceRule rule = parameters.read(ParameterCode.CFG_M12_06).asTable(ContactEvidenceRule.class);
+        String evidence = "mỗi người đại diện cần ít nhất " + rule.attemptsPerRepresentative()
+                + " lần liên hệ có kết quả qua ít nhất " + rule.channels() + " kênh khác nhau";
+        Instant allowedFrom = confirmation
+                .content()
+                .createdAt()
+                .plus(parameters.read(ParameterCode.CFG_M12_05).asDuration());
+        if (now.isBefore(allowedFrom)) {
+            return "Được duyệt thay từ "
+                    + DISPLAY_TIME.format(allowedFrom.atZone(BusinessTime.ZONE))
+                    + " nếu đến lúc đó người đại diện vẫn chưa trả lời và đã ghi đủ bằng chứng: " + evidence;
+        }
+        return "Chưa đủ bằng chứng liên hệ: " + evidence;
+    }
+
+    private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+
     /** Báo Quản lý viện một lần khi yêu cầu Chờ xác nhận đủ điều kiện duyệt thay (FR-032). */
     private void notifyManagerIfEligible(long id, long residentId, Instant now) {
         SimpleRecord<RecipientConfirmation> confirmation = records.lockForUpdate(RecipientConfirmation.KIND, id);
@@ -747,8 +799,8 @@ public class RecipientConfirmationService {
             String text,
             Long causedBy,
             Instant now) {
-        publisher.publishEvent(BelongingNotices.notice(
-                eventType, RecipientConfirmation.KIND.code(), id, level, residentId, recipients, text, causedBy, now));
+        publisher.publishEvent(details.forStaff(BelongingNotices.notice(
+                eventType, RecipientConfirmation.KIND.code(), id, level, residentId, recipients, text, causedBy, now)));
     }
 
     private View view(SimpleRecord<RecipientConfirmation> record) {
@@ -764,7 +816,37 @@ public class RecipientConfirmationService {
                 content.method(),
                 content.expiresAt(),
                 content.signedRepresentativeId(),
-                content.signedFormFileId());
+                content.signedFormFileId(),
+                List.of());
+    }
+
+    /** Như {@link #view}, kèm các lần liên hệ đã ghi để Quản lý viện xem trước khi duyệt thay (FR-017a). */
+    private View staffView(SimpleRecord<RecipientConfirmation> record) {
+        View view = view(record);
+        List<ContactCommand> contacts = contactAttempts(record.id()).stream()
+                .map(a -> new ContactCommand(a.familyMemberId(), a.channel(), a.at(), a.result()))
+                .toList();
+        return new View(
+                view.id(),
+                view.residentId(),
+                view.recipientName(),
+                view.recipientIdDocument(),
+                view.recipientIsResident(),
+                view.belongingIds(),
+                view.status(),
+                view.method(),
+                view.expiresAt(),
+                view.signedRepresentativeId(),
+                view.signedFormFileId(),
+                contacts);
+    }
+
+    private List<ContactAttempt> contactAttempts(long confirmationId) {
+        return recordEvents
+                .list(ContactAttempt.KIND, new EntityRef(RecipientConfirmation.KIND.code(), confirmationId))
+                .stream()
+                .map(e -> e.content())
+                .toList();
     }
 
     private Duration validity() {

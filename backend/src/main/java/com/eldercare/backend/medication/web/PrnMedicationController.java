@@ -32,11 +32,17 @@ public class PrnMedicationController {
     private static final String PROBLEM = "application/problem+json";
 
     private final PrnMedicationService prnService;
+    private final com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService effectiveness;
     private final ActorNames names;
     private final CurrentUser currentUser;
 
-    public PrnMedicationController(PrnMedicationService prnService, ActorNames names, CurrentUser currentUser) {
+    public PrnMedicationController(
+            PrnMedicationService prnService,
+            com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService effectiveness,
+            ActorNames names,
+            CurrentUser currentUser) {
         this.prnService = prnService;
+        this.effectiveness = effectiveness;
         this.names = names;
         this.currentUser = currentUser;
     }
@@ -44,7 +50,36 @@ public class PrnMedicationController {
     @GetMapping("/api/v1/prescriptions/{id}/prn-administrations")
     @ApiResponse(responseCode = "200", description = "OK")
     public PrnHistoryBody getPrnHistory(@PathVariable("id") Long prescriptionId) {
-        return PrnHistoryBody.of(prnService.getPrnHistory(prescriptionId), names::of);
+        var history = prnService.getPrnHistory(prescriptionId);
+        var recorded = effectiveness.byAdministration(
+                history.getAdministrations().stream().map(a -> a.getId()).toList());
+        return PrnHistoryBody.of(history, names::of, recorded, effectiveness.indicationOf(prescriptionId));
+    }
+
+    /** api-006 {@code PrnEffectivenessRequest}. */
+    public record PrnEffectivenessRequest(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            @jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Size(max = 2000)
+            String effectiveness) {}
+
+    @PostMapping("/api/v1/prescriptions/{id}/prn-administrations/{prnId}/effectiveness")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Đã ghi hiệu quả", content = @Content),
+        @ApiResponse(
+                responseCode = "404",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> recordEffectiveness(
+            @PathVariable("id") Long prescriptionId,
+            @PathVariable("prnId") Long prnId,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody PrnEffectivenessRequest body) {
+        effectiveness.record(prescriptionId, prnId, body.effectiveness(), currentUser.accountId());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/api/v1/prescriptions/{id}/prn-administrations")

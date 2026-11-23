@@ -2,6 +2,7 @@ package com.eldercare.backend.belongings.internal.inventorycheck.service;
 
 import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices;
+import com.eldercare.backend.belongings.internal.belonging.service.StaffNoticeDetails;
 import com.eldercare.backend.belongings.internal.belonging.service.ValuableTypes;
 import com.eldercare.backend.belongings.internal.inventorycheck.domain.InventoryCheck;
 import com.eldercare.backend.belongings.internal.inventorycheck.domain.InventoryPeriod;
@@ -37,6 +38,7 @@ public class InventoryCheckReminders {
     private final ReminderMarkers markers;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
+    private final StaffNoticeDetails details;
 
     InventoryCheckReminders(
             InventoryCheckService checks,
@@ -44,7 +46,9 @@ public class InventoryCheckReminders {
             ValuableTypes valuableTypes,
             ReminderMarkers markers,
             ApplicationEventPublisher events,
-            BusinessTime time) {
+            BusinessTime time,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.checks = checks;
         this.store = store;
         this.valuableTypes = valuableTypes;
@@ -86,32 +90,36 @@ public class InventoryCheckReminders {
             return;
         }
         for (long location : missing) {
-            events.publishEvent(BelongingNotices.notice(
-                    "INVENTORY_OVERDUE",
-                    "M12.STORAGE_LOCATION",
-                    location,
-                    "INVENTORY_OVERDUE:" + location + ":" + period.code() + ":" + today,
-                    NotificationLevel.MEDIUM,
-                    null,
-                    List.of(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)),
-                    "Quá hạn kiểm kê kỳ " + period.code() + ": vị trí chưa có phiếu",
-                    null,
-                    now,
-                    false));
+            events.publishEvent(details.forStaff(
+                    BelongingNotices.notice(
+                            "INVENTORY_OVERDUE",
+                            "M12.STORAGE_LOCATION",
+                            location,
+                            "INVENTORY_OVERDUE:" + location + ":" + period.code() + ":" + today,
+                            NotificationLevel.MEDIUM,
+                            null,
+                            List.of(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)),
+                            "Quá hạn kiểm kê kỳ " + period.code() + ": vị trí chưa có phiếu",
+                            null,
+                            now,
+                            false),
+                    details.location(location)));
         }
         for (SimpleRecord<InventoryCheck> check : waiting) {
-            events.publishEvent(BelongingNotices.notice(
-                    "INVENTORY_OVERDUE",
-                    InventoryCheckService.RECORD_TYPE,
-                    check.id(),
-                    "INVENTORY_OVERDUE:" + check.id() + ":" + today,
-                    NotificationLevel.MEDIUM,
-                    null,
-                    List.of(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)),
-                    "Quá hạn kiểm kê kỳ " + period.code() + ": phiếu chưa hoàn thành",
-                    null,
-                    now,
-                    false));
+            events.publishEvent(details.forStaff(
+                    BelongingNotices.notice(
+                            "INVENTORY_OVERDUE",
+                            InventoryCheckService.RECORD_TYPE,
+                            check.id(),
+                            "INVENTORY_OVERDUE:" + check.id() + ":" + today,
+                            NotificationLevel.MEDIUM,
+                            null,
+                            List.of(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)),
+                            "Quá hạn kiểm kê kỳ " + period.code() + ": phiếu chưa hoàn thành",
+                            null,
+                            now,
+                            false),
+                    details.location(check.content().storageLocationId())));
         }
         if ((!missing.isEmpty() || !waiting.isEmpty())
                 && markers.mark(MANAGER_MARKER, "M12.INVENTORY_PERIOD", periodKey, "OVERDUE", null)) {

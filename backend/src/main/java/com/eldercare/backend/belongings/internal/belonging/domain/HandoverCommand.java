@@ -46,7 +46,9 @@ public record HandoverCommand(
 
     /**
      * {@code IncidentOption} (FR-021, Q-307): {@code NEW} ghi sự cố mới ({@code level} bắt buộc), {@code LINK} liên kết
-     * sự cố {@code incidentId}, {@code NONE} không ghi sự cố.
+     * sự cố {@code incidentId}, {@code NONE} không ghi sự cố. {@code lowerLevelReason}: lý do chọn mức thấp hơn mặc định
+     * của loại sự cố, chuyển nguyên sang 007 (FR-042).
      */
-    public record IncidentChoice(String method, Long incidentId, String level, String description, String place) {}
+    public record IncidentChoice(
+            String method, Long incidentId, String level, String description, String place, String lowerLevelReason) {}
 }

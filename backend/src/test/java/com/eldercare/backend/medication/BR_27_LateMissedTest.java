@@ -74,7 +74,9 @@ class BR_27_LateMissedTest {
                 mock(com.eldercare.backend.roombedallocation.api.ResidentLocationApi.class),
                 mock(com.eldercare.backend.medication.api.spi.NursingShiftPort.class),
                 mock(com.eldercare.backend.medication.internal.schedule.service.AbsenceScheduleContexts.class),
-                mock(com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines.class));
+                mock(com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines.class),
+                mock(com.eldercare.backend.medication.internal.dose.service.TemporaryNurseAssignmentService.class),
+                mock(com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService.class));
 
         jobs.runMinuteTasks(now);
 

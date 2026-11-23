@@ -79,6 +79,23 @@ class BR_68_EndingConditionIT extends HandoverTestBase {
                 .noneMatch(x -> "END_B_BELONGINGS".equals(x.code()));
     }
 
+    /**
+     * FR-026 (test luồng BF-14 2026-11-23): mục "xử lý đồ gửi" chỉ của người đã qua đời; Hủy tiếp nhận còn đồ thì màn điều
+     * kiện không có mục này và mục cho 004 là Không áp dụng.
+     */
+    @Test
+    void FR_026_postDeathItemOnlyForDeceased() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        intake(resident, "CLOTHING", "\"quantity\": 1", location());
+        setStatus(resident, "ADMISSION_CANCELLED", 1);
+
+        getJson(tokenA, "/api/v1/residents/" + resident + "/belongings/ending-condition")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.postDeathItem").doesNotExist());
+        assertThat(postDeathItem.status(resident).status())
+                .isEqualTo(com.eldercare.backend.admission.api.dto.PostDeathItemStatus.NOT_APPLICABLE);
+    }
+
     private long remindersFor(long resident) {
         return notices().stream()
                 .filter(n -> "BELONGING_UNRETURNED_AFTER_FINAL".equals(n.eventType())

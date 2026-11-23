@@ -19,6 +19,7 @@ import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.spi.ResidencyType;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -53,6 +54,7 @@ class ResidencyChangeRules {
     private final ResidentApi residents;
     private final DayCareCapacityCheck capacity;
     private final ObjectProvider<BedAllocationCommandApi> beds;
+    private final ObjectProvider<LocationStructureApi> structure;
 
     ResidencyChangeRules(
             ContractStore contracts,
@@ -60,9 +62,11 @@ class ResidencyChangeRules {
             UnitPriceApi prices,
             ResidentApi residents,
             DayCareCapacityCheck capacity,
-            ObjectProvider<BedAllocationCommandApi> beds) {
+            ObjectProvider<BedAllocationCommandApi> beds,
+            ObjectProvider<LocationStructureApi> structure) {
         this.capacity = capacity;
         this.beds = beds;
+        this.structure = structure;
         this.contracts = contracts;
         this.addenda = addenda;
         this.prices = prices;
@@ -106,7 +110,7 @@ class ResidencyChangeRules {
         if (residents.isFinalStatus(contract.residentId())) {
             unmet.add(new UnmetCondition(
                     "RESIDENT_IN_FINAL_STATUS",
-                    "Người cao tuổi đã ở trạng thái cuối, không thay đổi lưu trú (FR-045)"));
+                    "Người cao tuổi đã ở trạng thái cuối, không điều chỉnh hợp đồng (FR-045)"));
         }
         if (effective.isBefore(contract.content().startDate())) {
             unmet.add(new UnmetCondition(
@@ -238,10 +242,10 @@ class ResidencyChangeRules {
             } else if (!kind.get().active()) {
                 unmet.add(new UnmetCondition(
                         "SERVICE_NOT_EFFECTIVE", "Dịch vụ " + line.serviceId() + " không Hiệu lực (FR-041)"));
-            } else if ("CARE".equals(kind.get().type())) {
-                unmet.add(new UnmetCondition(
-                        "CARE_SERVICE_NOT_ALLOWED", "Dịch vụ chăm sóc chỉ đổi qua loại đổi mức chăm sóc (Q-297)"));
             }
+            // Loại dịch vụ không thêm được (gồm dịch vụ chăm sóc, Q-297) kiểm ở
+            // ResidencyChangeHandler.serviceTypeConditions
+            // (FR-043k), chạy khi lập, sửa, gửi duyệt và duyệt
             if (inContract) {
                 unmet.add(new UnmetCondition(
                         "SERVICE_ALREADY_IN_CONTRACT", "Dịch vụ " + line.serviceId() + " đã có trong hợp đồng"));
@@ -367,7 +371,8 @@ class ResidencyChangeRules {
         if (change.has(ChangeType.SERVICE)) {
             for (ServiceChange line : change.services()) {
                 if (line.action() == ServiceChange.Action.ADD) {
-                    BigDecimal price = line.inPackage()
+                    // R19: dấu thuộc gói theo hợp đồng hiện hành, bỏ qua dấu người lập gửi
+                    BigDecimal price = IsMinorChange.inPackage(base, line.serviceId())
                             ? BigDecimal.ZERO
                             : line.customUnitPrice() != null
                                     ? BigDecimal.valueOf(line.customUnitPrice())
@@ -385,7 +390,25 @@ class ResidencyChangeRules {
                 }
             }
         }
+        if (change.newBedId() != null) {
+            // Phí lưu trú theo loại phòng của giường mới, như billing tính theo roomTypeId
+            BigDecimal previous = base.path("roomTypeId").isNumber()
+                    ? residencyFeeAt(base.path("roomTypeId").asLong(), effective)
+                    : BigDecimal.ZERO;
+            BigDecimal next = structure
+                    .getObject()
+                    .roomTypeOfBed(change.newBedId())
+                    .map(type -> residencyFeeAt(type.id(), effective))
+                    .orElse(BigDecimal.ZERO);
+            items.add(item("RESIDENCY_FEE", previous, next));
+        }
         return items;
+    }
+
+    private BigDecimal residencyFeeAt(long roomTypeId, LocalDate date) {
+        return prices.residencyFeeServiceOf(roomTypeId)
+                .flatMap(fee -> priceAt(fee.id(), date))
+                .orElse(BigDecimal.ZERO);
     }
 
     private static ObjectNode item(String name, BigDecimal previous, BigDecimal next) {

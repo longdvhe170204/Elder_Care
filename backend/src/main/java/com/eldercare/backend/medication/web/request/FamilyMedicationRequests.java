@@ -50,7 +50,23 @@ public final class FamilyMedicationRequests {
             Long purchaseAssistanceId,
 
             @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
-            Instant receivedAt) {}
+            Instant receivedAt,
+
+            @Valid IntakeChecks intakeChecks) {}
+
+    /** Kết quả kiểm tra khi tiếp nhận: mỗi mục Đạt (true) hoặc Không đạt (false); BR-M07-30. */
+    public record IntakeChecks(
+            @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
+            Boolean labelOk,
+
+            @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
+            Boolean expiryOk,
+
+            @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
+            Boolean packagingOk,
+
+            @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
+            Boolean nameOk) {}
 
     public enum UseBasis {
         FAMILY_PRESCRIPTION,
@@ -81,17 +97,26 @@ public final class FamilyMedicationRequests {
             ExternalPersonRequest recipient,
 
             @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
-            Instant returnedAt) {}
+            Instant returnedAt,
 
-    /** Hủy theo yêu cầu gia đình, có người chứng kiến (BR-M07-19). */
+            @Schema(requiredMode = RequiredMode.REQUIRED) @NotBlank
+            String witness) {}
+
+    public enum DisposeKind {
+        FAMILY_REQUEST,
+        EXPIRED
+    }
+
+    /**
+     * Hủy cả lô, có người chứng kiến (BR-M07-19, BR-M07-30): theo yêu cầu gia đình (mặc định; cần người đại diện, hình thức) hoặc
+     * do hết hạn dùng.
+     */
     public record DisposeRequest(
             @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
             BigDecimal quantity,
 
-            @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
+            DisposeKind kind,
             Long representativeId,
-
-            @Schema(requiredMode = RequiredMode.REQUIRED) @NotBlank
             String requestMethod,
 
             @Schema(requiredMode = RequiredMode.REQUIRED) @NotBlank

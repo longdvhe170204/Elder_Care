@@ -49,6 +49,9 @@ public class MedicationReconciliation {
     @Column(name = "overdue_at")
     private Instant overdueAt;
 
+    @Column(name = "escalated_at")
+    private Instant escalatedAt;
+
     @Column(name = "created_by_id", nullable = false)
     private Long createdById;
 
@@ -134,6 +137,15 @@ public class MedicationReconciliation {
 
     public void markOverdue(Instant overdueAt) {
         this.overdueAt = overdueAt;
+    }
+
+    /** Đã báo thêm Trưởng tầng, Quản lý viện khi quá CFG-M07-10 (BR-M07-29). */
+    public void markEscalated(Instant escalatedAt) {
+        this.escalatedAt = escalatedAt;
+    }
+
+    public Instant getEscalatedAt() {
+        return escalatedAt;
     }
 
     // --- Getters & Setters ---

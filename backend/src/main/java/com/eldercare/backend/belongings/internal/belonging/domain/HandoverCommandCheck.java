@@ -266,6 +266,36 @@ public final class HandoverCommandCheck {
         };
     }
 
+    private static final Map<String, String> DESCRIPTIONS = Map.ofEntries(
+            Map.entry("STATE_CHANGED", "Đồ gửi vừa được người khác cập nhật, tải lại rồi thực hiện lại (FR-011b)"),
+            Map.entry("INVALID_STATE", "Trạng thái hiện tại của đồ gửi không cho phép lệnh này"),
+            Map.entry("RESIDENT_FINAL_STATE", "Người cao tuổi đã ở trạng thái cuối, không giao sử dụng được (FR-027)"),
+            Map.entry(
+                    "HOLDER_NOT_ABSENT",
+                    "Chỉ Hành chính bàn giao thay khi người giữ không có ca đang diễn ra (FR-014)"),
+            Map.entry("GIVER_NOT_HOLDER", "Người giao không phải người đang giữ đồ (FR-014)"),
+            Map.entry("REASON_REQUIRED", "Cần nhập lý do"),
+            Map.entry("STORAGE_LOCATION_REQUIRED", "Cần chọn vị trí lưu giữ"),
+            Map.entry("PHOTO_REQUIRED", "Cần ít nhất một ảnh (FR-008)"),
+            Map.entry(
+                    "SELF_CUSTODY_CONSENT_REQUIRED",
+                    "Loại đồ này cần đồng ý cho tự giữ của người đại diện còn hiệu lực (FR-015a)"),
+            Map.entry(
+                    "UNUSABLE_LEVEL_ONLY_VIA_RECORD_DAMAGE",
+                    "Mức \"không dùng được\" chỉ ghi bằng lệnh Ghi hư hỏng (FR-015)"),
+            Map.entry(
+                    "CONDITION_HANDLING_REQUIRED",
+                    "Tình trạng xấu hơn lần bàn giao trước: chọn ghi nhận chênh lệch hoặc Ghi hư hỏng (FR-015)"));
+
+    /** Lời mô tả các vi phạm cho thông báo lỗi; mã vẫn trả ở {@code errorCode}, {@code violations}. */
+    public static String describe(List<String> violations) {
+        return String.join(
+                "; ",
+                violations.stream()
+                        .map(code -> DESCRIPTIONS.getOrDefault(code, "Lệnh bàn giao không đạt điều kiện"))
+                        .toList());
+    }
+
     private static HandoverCheckResult blocked(HandoverType type, String code) {
         return new HandoverCheckResult(type, null, List.of(code));
     }

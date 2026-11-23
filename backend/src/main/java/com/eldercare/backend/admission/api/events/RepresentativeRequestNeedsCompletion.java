@@ -21,7 +21,7 @@ public record RepresentativeRequestNeedsCompletion(long requestId, long resident
                 residentId,
                 Notices.OFFICE,
                 "Yêu cầu của người đại diện cần hoàn thiện",
-                "Người đại diện gửi yêu cầu thay đổi lưu trú, Hành chính cần hoàn thiện rồi gửi duyệt.",
+                "Người đại diện gửi yêu cầu điều chỉnh hợp đồng, Hành chính cần hoàn thiện rồi gửi duyệt.",
                 at));
     }
 }

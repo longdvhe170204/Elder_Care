@@ -81,6 +81,11 @@ class FamilyRightsLookup implements FamilyRightsApi {
                 .map(m -> new IdDocumentView(m.idDocumentType(), m.idDocumentNumber()));
     }
 
+    @Override
+    public Optional<String> fullName(long familyMemberId) {
+        return queries.familyMember(familyMemberId).map(m -> m.fullName());
+    }
+
     private List<FamilyMemberView> views(List<FamilyRelationship> relationships) {
         return relationships.stream()
                 .flatMap(r -> queries.familyMember(r.familyMemberId()).stream()

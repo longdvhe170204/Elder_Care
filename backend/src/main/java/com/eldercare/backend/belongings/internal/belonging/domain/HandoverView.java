@@ -23,4 +23,28 @@ public record HandoverView(
         String reason,
         List<Long> photoFileIds,
         Long incidentId,
-        Instant recordedAt) {}
+        Instant recordedAt) {
+
+    /** Bản sao với tên người giao, người nhận đã tra (bản ghi chỉ lưu mã khi không phải người ngoài). */
+    public HandoverView withNames(String giver, String recipient) {
+        return new HandoverView(
+                id,
+                belongingId,
+                kind,
+                targetStatus,
+                giverType,
+                giver,
+                recipientType,
+                recipient,
+                occurredAt,
+                quantity,
+                cashAmount,
+                conditionLevelId,
+                conditionDescription,
+                storageLocationId,
+                reason,
+                photoFileIds,
+                incidentId,
+                recordedAt);
+    }
+}
