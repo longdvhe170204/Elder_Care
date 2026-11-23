@@ -73,6 +73,10 @@ class T002_BelongingNoticeTest {
                 null,
                 Instant.parse("2026-11-05T03:00:00Z"));
 
+        // Tiêu đề theo sự kiện, không chứa tên người hay sức khỏe (009 FR-034)
+        assertThat(staff.notificationRequests().getFirst().title()).contains("Đồ gửi còn ở tủ tầng cũ");
+        assertThat(family.notificationRequests().getFirst().title()).contains("Đồ gửi thất lạc");
+
         var detailed = com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices.withStaffDetail(
                 staff, "Người cao tuổi: Bà A (HS-1)");
         var request = detailed.notificationRequests().getFirst();

@@ -3,6 +3,7 @@ package com.eldercare.backend.belongings;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.support.TestUsers;
@@ -106,5 +107,26 @@ class BR_57_DisposalIT extends HandoverTestBase {
                 .containsEntry("kind", "DISPOSAL")
                 .containsEntry("approval_request_id", request)
                 .containsEntry("receiving_unit", "UBND phường");
+    }
+
+    /**
+     * FR-027a (test luồng BF-14 2026-11-23): lập trước CFG-M12-03 bị chặn với lời báo nói ngày được lập, không hiện mã
+     * thô; mã lỗi và danh sách vi phạm giữ nguyên.
+     */
+    @Test
+    void FR_027a_tooEarly_messageSaysWhenAllowed() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
+        endResident(resident, 10);
+        long member = representative(resident);
+
+        String body = create(office, resident, String.valueOf(clothes), "DESTROY", attempts(member, 9, 1), true)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("DISPOSAL_TOO_EARLY"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        String detail = JsonPath.read(body, "$.detail");
+        assertThat(detail).contains("lập được từ").doesNotContain("DISPOSAL_TOO_EARLY");
     }
 }

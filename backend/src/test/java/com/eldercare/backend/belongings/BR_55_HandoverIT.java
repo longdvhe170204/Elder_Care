@@ -68,4 +68,20 @@ class BR_55_HandoverIT extends HandoverTestBase {
                 .andExpect(jsonPath("$.handovers[0].recipientType").value("STAFF"))
                 .andExpect(jsonPath("$.handovers[0].recipientName").value("Hành chính thử A"));
     }
+
+    /** Mở đồ từ thông báo có nguồn là bản ghi bàn giao (test luồng BF-14 2026-11-23): đọc đồ, người cao tuổi của bản ghi. */
+    @Test
+    void FR_032_handoverRef_givesBelongingAndResident_unknownIs404() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
+        long handover = latestHandover(clothes);
+
+        getJson(tokenA, "/api/v1/belongings/handovers/" + handover)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(handover))
+                .andExpect(jsonPath("$.belongingId").value(clothes))
+                .andExpect(jsonPath("$.residentId").value(resident))
+                .andExpect(jsonPath("$.kind").value("INTAKE"));
+        getJson(tokenA, "/api/v1/belongings/handovers/" + Long.MAX_VALUE).andExpect(status().isNotFound());
+    }
 }
