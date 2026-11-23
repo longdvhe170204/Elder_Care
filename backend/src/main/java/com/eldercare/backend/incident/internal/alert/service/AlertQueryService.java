@@ -95,12 +95,14 @@ public class AlertQueryService {
                         alert,
                         assigneeName(alert),
                         List.of(),
-                        allowedCommands(alert, user),
+                        allowedCommands(alert, user, null),
                         AlertDetails.Press.NONE,
                         alert.floorAreaId() == null
                                 ? null
                                 : floors.computeIfAbsent(alert.floorAreaId(), this::floorName),
-                        List.of()))
+                        List.of(),
+                        mineOnly(alert, user),
+                        null))
                 .toList();
     }
 
@@ -108,20 +110,78 @@ public class AlertQueryService {
     @Transactional(readOnly = true)
     public AlertDetails detail(long alertId, CurrentUser user) {
         var alert = alerts.findById(alertId).orElseThrow(NotFoundException::new);
+        // Người gửi yêu cầu hỗ trợ luôn xem được yêu cầu của mình, kể cả khi tầng đã đổi ra ngoài phạm vi (đề xuất
+        // 2026-11-23)
+        boolean mine = Long.valueOf(user.accountId()).equals(alert.requesterId())
+                && EmergencyAssistService.ALERT_TYPE.equals(alert.type());
         var view = permissions.hasPermission(user, VIEW, target(alert));
-        if (!view.allowed()) {
+        if (!view.allowed() && !mine) {
             if (view.failedLayer().orElse(null) == FailedLayer.SCOPE) throw new NotFoundException();
             throw new PermissionDeniedException("Không có quyền xem cảnh báo");
         }
         var sources = sources(alertId);
+        var rows = history.list(alertId);
+        var helpers = helpers(alert);
         return new AlertDetails(
                 alert,
                 assigneeName(alert),
                 sources,
-                allowedCommands(alert, user),
+                allowedCommands(alert, user, helpers),
                 press(alert, sources).withLocation(locations.latest(alert).orElse(null)),
                 alert.floorAreaId() == null ? null : floorName(alert.floorAreaId()),
-                reports(alertId));
+                reports(alertId),
+                assist(alert, mine, helpers, rows),
+                alert.closedById() == null
+                        ? null
+                        : accounts.fullName(alert.closedById()).orElse(null));
+    }
+
+    /** Danh sách chỉ cần biết yêu cầu hỗ trợ là của người xem, không đọc người đến giúp, tin nhắn (đề xuất 2026-11-23). */
+    private static AlertDetails.Assist mineOnly(AlertRecord alert, CurrentUser user) {
+        boolean mine = EmergencyAssistService.ALERT_TYPE.equals(alert.type())
+                && Long.valueOf(user.accountId()).equals(alert.requesterId());
+        return mine ? new AlertDetails.Assist(true, false, List.of(), List.of()) : AlertDetails.Assist.NONE;
+    }
+
+    private List<Long> helpers(AlertRecord alert) {
+        boolean pressed =
+                SosService.ALERT_TYPE.equals(alert.type()) || EmergencyAssistService.ALERT_TYPE.equals(alert.type());
+        if (!pressed) return List.of();
+        return history.helpers(alert.id());
+    }
+
+    /** Phần yêu cầu hỗ trợ (đề xuất 2026-11-23): người gửi, dấu ngoài ca, người đến giúp, tin nhắn thêm. */
+    @SuppressWarnings("unchecked")
+    private AlertDetails.Assist assist(
+            AlertRecord alert, boolean mine, List<Long> helpers, List<Map<String, Object>> rows) {
+        boolean pressed =
+                SosService.ALERT_TYPE.equals(alert.type()) || EmergencyAssistService.ALERT_TYPE.equals(alert.type());
+        if (!pressed) return AlertDetails.Assist.NONE;
+        var names = helpers.stream()
+                .map(id -> accounts.fullName(id).orElse(null))
+                .filter(Objects::nonNull)
+                .toList();
+        var messages = rows.stream()
+                .filter(row -> AlertHistory.SENDER_MESSAGE.equals(row.get("action")))
+                .map(row -> {
+                    var detail = (Map<String, Object>) row.get("detail");
+                    Long by = detail.get("by") instanceof Number number ? number.longValue() : null;
+                    return new AlertDetails.Message(
+                            by == null ? null : accounts.fullName(by).orElse(null),
+                            (String) detail.get("text"),
+                            Instant.parse((String) detail.get("at")));
+                })
+                .toList();
+        return new AlertDetails.Assist(mine, senderOffShift(alert), names, messages);
+    }
+
+    /** Lần bấm mới nhất của yêu cầu hỗ trợ mang dấu ngoài ca (dòng cũ không có trường này). */
+    private boolean senderOffShift(AlertRecord alert) {
+        if (!EmergencyAssistService.ALERT_TYPE.equals(alert.type()) || records.isEmpty()) return false;
+        return records.get().list(EmergencyAssistService.PRESS, new EntityRef("M05.ALERT", alert.id())).stream()
+                .max(java.util.Comparator.comparingLong(row -> row.id()))
+                .map(row -> Boolean.TRUE.equals(row.content().offShift()))
+                .orElse(false);
     }
 
     /** Người bấm, loại sự việc, nơi đã chọn (nút hỗ trợ: dòng M05.ASSIST_DETAIL; SOS: nơi của lần bấm mới nhất). */
@@ -155,8 +215,11 @@ public class AlertQueryService {
         return AlertDetails.Press.NONE;
     }
 
-    /** Tên lệnh trong đường dẫn (glossary {@code allowedCommands}); chỉ các lệnh của US3 đã có route. */
-    private Set<String> allowedCommands(AlertRecord alert, CurrentUser user) {
+    /**
+     * Tên lệnh trong đường dẫn (glossary {@code allowedCommands}); chỉ các lệnh của US3 đã có route. {@code helpers} rỗng
+     * (danh sách) thì không tính "Tôi đến giúp".
+     */
+    private Set<String> allowedCommands(AlertRecord alert, CurrentUser user, List<Long> helpers) {
         boolean manager = user.roles().contains(Role.NURSING_HOME_MANAGER);
         boolean handler = !manager
                 && permissions.hasPermission(user, HANDLING, target(alert)).allowed();
@@ -164,9 +227,30 @@ public class AlertQueryService {
         boolean open = Set.of(AlertStatus.NEW, AlertStatus.ESCALATED, AlertStatus.RECEIVED, AlertStatus.IN_PROGRESS)
                 .contains(status);
         var commands = new LinkedHashSet<String>();
+        long me = user.accountId();
+        boolean assist = EmergencyAssistService.ALERT_TYPE.equals(alert.type());
+        boolean sender = assist && Long.valueOf(me).equals(alert.requesterId());
+        boolean responsible =
+                Long.valueOf(me).equals(alert.assigneeId()) || Long.valueOf(me).equals(alert.receiverId());
+        // Người gửi không thấy Tiếp nhận riêng: tiếp nhận làm dừng leo thang khi đang chờ người tới (đề xuất
+        // 2026-11-23)
         if ((status == AlertStatus.NEW || status == AlertStatus.ESCALATED)
+                && !sender
                 && (handler || (manager && status == AlertStatus.ESCALATED && alert.escalationLevel() >= 2))) {
             commands.add("receive");
+        }
+        if (sender && open) {
+            commands.add("assist-details");
+            commands.add("send-message");
+        }
+        if (assist && open && (sender || responsible)) commands.add("change-floor");
+        if (sender && alert.receiverId() == null && (status == AlertStatus.NEW || status == AlertStatus.ESCALATED)) {
+            commands.add("withdraw");
+        }
+        boolean pressedAlert =
+                SosService.ALERT_TYPE.equals(alert.type()) || EmergencyAssistService.ALERT_TYPE.equals(alert.type());
+        if (pressedAlert && open && helpers != null && !sender && !responsible && !helpers.contains(me)) {
+            commands.add("join-help");
         }
         if (status == AlertStatus.RECEIVED && handler) commands.add("start-handling");
         if (status == AlertStatus.RECEIVED && manager && Objects.equals(alert.assigneeId(), user.accountId())) {
@@ -177,7 +261,8 @@ public class AlertQueryService {
                 && (alert.level() != IncidentLevel.CRITICAL || user.roles().contains(Role.DOCTOR))) {
             commands.add("change-level");
         }
-        if (status == AlertStatus.IN_PROGRESS && handler) commands.add("close");
+        boolean shortcut = handler && AlertHandlingService.senderShortcut(alert, user);
+        if ((status == AlertStatus.IN_PROGRESS || shortcut) && handler) commands.add("close");
         boolean pressed =
                 SosService.ALERT_TYPE.equals(alert.type()) || EmergencyAssistService.ALERT_TYPE.equals(alert.type());
         if (pressed
@@ -193,7 +278,7 @@ public class AlertQueryService {
                 && (user.roles().contains(Role.NURSING_STAFF)
                         || user.roles().contains(Role.FLOOR_MANAGER)
                         || user.roles().contains(Role.DOCTOR));
-        if (converter && status == AlertStatus.IN_PROGRESS) commands.add("convert-to-incident");
+        if (converter && (status == AlertStatus.IN_PROGRESS || shortcut)) commands.add("convert-to-incident");
         if (converter
                 && (status == AlertStatus.NEW || status == AlertStatus.ESCALATED || status == AlertStatus.RECEIVED)) {
             commands.add("activate-emergency");

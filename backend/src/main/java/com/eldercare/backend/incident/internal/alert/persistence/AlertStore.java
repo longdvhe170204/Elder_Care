@@ -317,15 +317,41 @@ public class AlertStore {
 
     /**
      * Đang xử lý → Đã đóng do người (bảng FR-029). Cảnh báo từ nút SOS, nút hỗ trợ đóng mà chưa ghi đã tới nơi mang dấu
-     * "không ghi mốc tới nơi" (FR-047j).
+     * "không ghi mốc tới nơi" (FR-047j), trừ khi người bấm nút hỗ trợ chính là người tiếp nhận vì họ có mặt từ đầu (đề
+     * xuất 2026-11-23).
      */
     public void close(long id, String resolution, String reason, long closedById, Instant at, int expectedVersion) {
         requireOne(jdbc.update("""
                 UPDATE alert SET status = 'CLOSED', resolution = ?, close_reason = ?, closed_by_id = ?, closed_at = ?,
-                  skip_arrival_time = (type IN ('RESIDENT_HELP_REQUEST', 'STAFF_ASSIST_REQUEST') AND arrived_at IS NULL),
+                  skip_arrival_time = (type IN ('RESIDENT_HELP_REQUEST', 'STAFF_ASSIST_REQUEST') AND arrived_at IS NULL
+                    AND NOT (requester_id IS NOT NULL AND receiver_id <=> requester_id)),
                   escalation_stopped = TRUE, version = version + 1
                 WHERE id = ? AND status = 'IN_PROGRESS' AND version = ?
                 """, resolution, reason, closedById, Timestamp.from(at), id, expectedVersion));
+    }
+
+    /**
+     * Người bấm nút hỗ trợ rút yêu cầu khi chưa ai tiếp nhận (đề xuất 2026-11-23): Mới, Leo thang → Đã đóng, người đóng
+     * là người bấm, không mang dấu "không ghi mốc tới nơi".
+     */
+    public void withdraw(long id, String resolution, long closedById, Instant at, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'CLOSED', resolution = ?, closed_by_id = ?, closed_at = ?,
+                  skip_arrival_time = FALSE, escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED') AND receiver_id IS NULL AND version = ?
+                """, resolution, closedById, Timestamp.from(at), id, expectedVersion));
+    }
+
+    /**
+     * Đổi tầng của cảnh báo nút hỗ trợ (đề xuất 2026-11-23); {@code floorAreaId} rỗng là khu vực chung. Chưa ai tiếp nhận
+     * thì người phụ trách theo tầng mới ({@code assigneeId}, có thể rỗng); đã có người tiếp nhận thì giữ nguyên.
+     */
+    public void changeFloor(long id, Long floorAreaId, Long assigneeId, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET floor_area_id = ?,
+                  assignee_id = IF(receiver_id IS NULL, ?, assignee_id), version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') AND version = ?
+                """, floorAreaId, assigneeId, id, expectedVersion));
     }
 
     /** Nguồn đã được xử lý: cảnh báo đang mở → Đã đóng, người đóng Hệ thống (FR-032, research S-09). */

@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AlertConversionService {
     private static final Set<Role> ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
+    private static final int LOCATION_MAX = 500;
     private static final Set<AlertStatus> ACTIVATABLE =
             Set.of(AlertStatus.NEW, AlertStatus.ESCALATED, AlertStatus.RECEIVED);
 
@@ -77,11 +78,15 @@ public class AlertConversionService {
         if (ROLES.stream().noneMatch(user.roles()::contains)) {
             throw new PermissionDeniedException("Vai trò không được chuyển cảnh báo thành sự cố");
         }
-        if (alert.status() != AlertStatus.IN_PROGRESS) {
+        // Người bấm nút hỗ trợ có quyền xử lý chuyển bằng một lệnh từ Mới, Leo thang, Đã tiếp nhận (đề xuất 2026-11-23)
+        boolean shortcut = AlertHandlingService.senderShortcut(alert, user);
+        if (alert.status() != AlertStatus.IN_PROGRESS && !shortcut) {
             throw blocked("FR-029", "Chỉ chuyển sự cố từ cảnh báo Đang xử lý");
         }
         long incidentId = target(alert, request, alert.level(), "Mức theo cảnh báo gốc " + alertId, user);
-        finish(alert, incidentId, attach(alert, request, incidentId, alert.version()), request, false, user);
+        int version = attach(alert, request, incidentId, alert.version());
+        version = handling.startAsSender(alert, user, time.now(), version);
+        finish(alert, incidentId, version, request, false, user);
         return incidentId;
     }
 
@@ -152,6 +157,9 @@ public class AlertConversionService {
                     "Cảnh báo chưa gắn người cao tuổi, hãy chọn");
         }
         if (request.incidentTypeId() == null) throw new InvalidValueException("Thiếu loại sự cố");
+        if (request.location() != null && request.location().length() > LOCATION_MAX) {
+            throw new InvalidValueException("Nơi xảy ra dài quá " + LOCATION_MAX + " ký tự");
+        }
         String text = request.description() != null && !request.description().isBlank()
                 ? request.description()
                 : alert.description();
@@ -164,7 +172,7 @@ public class AlertConversionService {
                                 alert.firstAt(),
                                 alert.firstAt(),
                                 alert.floorAreaId(),
-                                null,
+                                request.location(),
                                 null,
                                 text,
                                 level.name(),
@@ -195,6 +203,12 @@ public class AlertConversionService {
         boolean linked = request.existingIncidentId() != null;
         calls.copyToIncident(alert.id(), incidentId);
         alerts.convert(alert.id(), incidentId, version);
+        if (request.addHelpers()) {
+            var helpers = history.helpers(alert.id()).stream()
+                    .filter(id -> id != user.accountId())
+                    .toList();
+            incidentHandling.addHelpers(incidentId, helpers);
+        }
         history.add(
                 alert.id(),
                 linked ? "LINKED_TO_INCIDENT" : "CONVERTED_TO_INCIDENT",

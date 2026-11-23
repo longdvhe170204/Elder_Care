@@ -20,7 +20,18 @@ public record ConvertToIncidentRequest(
         @Schema(
                 types = {"integer", "null"},
                 description = "Cảnh báo cùng vụ: gắn vào sự cố đang mở này, không tạo sự cố mới (FR-029)")
-        Long existingIncidentId) {
+        Long existingIncidentId,
+
+        @Schema(
+                types = {"string", "null"},
+                description = "Nơi xảy ra của sự cố mới; màn điền sẵn từ yêu cầu hỗ trợ (đề xuất 2026-11-23)")
+        String location,
+
+        @Schema(
+                types = {"boolean", "null"},
+                description =
+                        "Người đã bấm Tôi đến giúp thành người tham gia xử lý; mặc định true (đề xuất 2026-11-23)")
+        Boolean addHelpers) {
     public ConversionRequest toConversion() {
         return new ConversionRequest(
                 incidentTypeId,
@@ -28,6 +39,8 @@ public record ConvertToIncidentRequest(
                 initialResponse,
                 residentId,
                 Boolean.TRUE.equals(createDespiteOpen),
-                existingIncidentId);
+                existingIncidentId,
+                location == null || location.isBlank() ? null : location.trim(),
+                !Boolean.FALSE.equals(addHelpers));
     }
 }

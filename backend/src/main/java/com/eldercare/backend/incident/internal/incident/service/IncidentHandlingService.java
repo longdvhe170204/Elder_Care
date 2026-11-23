@@ -37,6 +37,7 @@ import com.eldercare.backend.incident.internal.incident.persistence.IncidentProg
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
 import com.eldercare.backend.incident.internal.infection.service.ContactListService;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -213,6 +214,21 @@ public class IncidentHandlingService {
         if (!incidents.assignee(incidentId).filter(id -> id == user.accountId()).isPresent()) {
             progressions.join(incidentId, user.accountId(), time.now(), incident.floorAreaId());
         }
+    }
+
+    /**
+     * Người đã bấm "Tôi đến giúp" ở cảnh báo thành người tham gia xử lý của sự cố mà cảnh báo chuyển thành hoặc gắn vào
+     * (đề xuất 2026-11-23): kèm lệnh Chuyển sự cố của người xử lý, không bỏ người phụ trách, gọi lại không ghi thêm.
+     */
+    @Transactional
+    public void addHelpers(long incidentId, Collection<Long> accountIds) {
+        if (accountIds.isEmpty()) return;
+        var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
+        Long assignee = incidents.assignee(incidentId).orElse(null);
+        var now = time.now();
+        accountIds.stream()
+                .filter(id -> !id.equals(assignee))
+                .forEach(id -> progressions.join(incidentId, id, now, incident.floorAreaId()));
     }
 
     /** Người cao tuổi của sự cố (null với sự cố cơ sở vật chất). */

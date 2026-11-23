@@ -70,12 +70,41 @@ public record AlertResponse(
 
         Boolean skipArrivalTime,
         List<AlertSource> sources,
-        List<String> allowedCommands) {
+        List<String> allowedCommands,
+
+        @Schema(
+                types = {"integer", "null"},
+                description = "Tầng của cảnh báo; rỗng là khu vực chung hoặc không theo tầng (đề xuất 2026-11-23)")
+        Long floorAreaId,
+
+        @Schema(
+                types = {"string", "null"},
+                description = "Họ tên người đóng (đề xuất 2026-11-23)")
+        String closedBy,
+
+        @Schema(
+                types = {"string", "null"},
+                description = "Kết quả xử lý khi đóng (đề xuất 2026-11-23)")
+        String resolution,
+
+        @Schema(description = "Người xem là người gửi yêu cầu hỗ trợ này (đề xuất 2026-11-23)")
+        Boolean pressedByMe,
+
+        @Schema(description = "Người gửi yêu cầu hỗ trợ không trong ca lúc bấm (đề xuất 2026-11-23)")
+        Boolean senderOffShift,
+
+        @Schema(description = "Người đã bấm Tôi đến giúp (đề xuất 2026-11-23)")
+        List<String> helpers,
+
+        @Schema(description = "Tin người gửi nhắn thêm (đề xuất 2026-11-23)")
+        List<SenderMessage> senderMessages) {
 
     private static final String STAFF_ASSIST = "STAFF_ASSIST_REQUEST";
     private static final String RESIDENT_HELP = "RESIDENT_HELP_REQUEST";
 
     public record AlertReport(String reportedBy, String description, Instant at) {}
+
+    public record SenderMessage(String by, String text, Instant at) {}
 
     public record AlertSource(
             String sourceType, Long sourceId, IncidentLevel level, Instant occurredAt, Instant resolvedAt) {}
@@ -122,7 +151,16 @@ public record AlertResponse(
                                 source.occurredAt(),
                                 source.resolvedAt()))
                         .toList(),
-                details.allowedCommands().stream().sorted().toList());
+                details.allowedCommands().stream().sorted().toList(),
+                alert.floorAreaId(),
+                details.closedByName(),
+                alert.resolution(),
+                details.assist().mine(),
+                details.assist().senderOffShift(),
+                details.assist().helpers(),
+                details.assist().messages().stream()
+                        .map(message -> new SenderMessage(message.by(), message.text(), message.at()))
+                        .toList());
     }
 
     /** Nguồn tạo (FR-026): (d) nút SOS, (e) nút hỗ trợ khẩn cấp, còn lại thủ công hoặc hệ thống. */

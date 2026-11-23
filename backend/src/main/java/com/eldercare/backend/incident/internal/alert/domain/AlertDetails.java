@@ -12,16 +12,46 @@ public record AlertDetails(
         Set<String> allowedCommands,
         Press press,
         String floorName,
-        List<Report> reports) {
+        List<Report> reports,
+        Assist assist,
+        String closedByName) {
     public AlertDetails {
         sources = List.copyOf(sources);
         allowedCommands = Set.copyOf(allowedCommands);
         reports = List.copyOf(reports);
+        if (assist == null) assist = Assist.NONE;
     }
 
     public AlertDetails(AlertRecord alert, String assigneeName, List<Source> sources, Set<String> allowedCommands) {
         this(alert, assigneeName, sources, allowedCommands, Press.NONE, null, List.of());
     }
+
+    public AlertDetails(
+            AlertRecord alert,
+            String assigneeName,
+            List<Source> sources,
+            Set<String> allowedCommands,
+            Press press,
+            String floorName,
+            List<Report> reports) {
+        this(alert, assigneeName, sources, allowedCommands, press, floorName, reports, Assist.NONE, null);
+    }
+
+    /**
+     * Phần của yêu cầu hỗ trợ (đề xuất 2026-11-23): người xem có phải người gửi, người gửi ngoài ca, người đã bấm "Tôi đến
+     * giúp" (cả với SOS), tin người gửi nhắn thêm.
+     */
+    public record Assist(boolean mine, boolean senderOffShift, List<String> helpers, List<Message> messages) {
+        public static final Assist NONE = new Assist(false, false, List.of(), List.of());
+
+        public Assist {
+            helpers = List.copyOf(helpers);
+            messages = List.copyOf(messages);
+        }
+    }
+
+    /** Một tin người gửi nhắn thêm. */
+    public record Message(String by, String text, Instant at) {}
 
     /** Một lần báo của nhân viên gộp vào cảnh báo thủ công đang mở (FR-030): người báo, mô tả, thời điểm. */
     public record Report(String reportedBy, String description, Instant at) {}
