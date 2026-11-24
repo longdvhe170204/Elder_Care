@@ -386,6 +386,19 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [assigneeId, note], properties: { assigneeId: { type: integer, format: int64 }, note: { type: string, minLength: 1 } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /incidents/{id}/family-notice:
+    get:
+      tags: [incidents]
+      summary: Tình trạng báo người nhà của sự cố (đề xuất BF-06, 2026-11-24)
+      description: 'recordedLater, state (NONE, INFORMED, NOT_YET), notifiedAt, method, note, notifiedByName, dueAt (Khẩn cấp 15 phút, Trung bình 4 giờ, Nhẹ 24 giờ từ lúc ghi, cấu hình chờ nhóm A), overdue (sự cố còn mở, chưa báo, quá hạn)'
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FamilyNoticeStatus' } } } } }
+    post:
+      tags: [incidents]
+      summary: Ghi nhận đã báo người nhà (ai, lúc nào, cách nào); Bác sĩ, Điều dưỡng, Trưởng tầng hoặc người được giao thay (đề xuất BF-06, 2026-11-24)
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/FamilyNotice' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
   /incidents/{id}/join-handling:
     post:
       tags: [incidents]
@@ -1215,6 +1228,28 @@ components:
         lowerLevelReason: { type: string }
         initialResponse: { type: string }
         createDespiteOpen: { type: boolean, default: false }
+        recordedLater: { type: boolean, default: false, description: 'Đề xuất BF-06 (2026-11-24): ghi nhận sau, việc đã xảy ra và đã xử lý xong, chỉ lưu hồ sơ; không hạn tiếp nhận, không leo thang, không báo khẩn, chỉ báo thông tin cho Điều dưỡng phụ trách, Trưởng tầng. Bắt buộc có familyNotice khi gắn người cao tuổi' }
+        familyNotice: { $ref: '#/components/schemas/FamilyNotice' }
+    FamilyNoticeStatus:
+      type: object
+      properties:
+        recordedLater: { type: boolean }
+        state: { type: string, enum: [NONE, INFORMED, NOT_YET] }
+        notifiedAt: { type: [string, 'null'], format: date-time }
+        method: { type: [string, 'null'], enum: [PHONE, IN_PERSON, MESSAGE, null] }
+        note: { type: [string, 'null'] }
+        notifiedById: { type: [integer, 'null'], format: int64 }
+        notifiedByName: { type: [string, 'null'] }
+        dueAt: { type: [string, 'null'], format: date-time }
+        overdue: { type: boolean }
+    FamilyNotice:
+      type: object
+      description: 'Đề xuất BF-06 (2026-11-24): báo người nhà. INFORMED: đã báo (at mặc định là bây giờ, method bắt buộc). NOT_YET: chưa báo, hệ thống gửi thông báo thông tin cho người liên hệ chính'
+      properties:
+        state: { type: string, enum: [INFORMED, NOT_YET] }
+        at: { type: string, format: date-time }
+        method: { type: string, enum: [PHONE, IN_PERSON, MESSAGE] }
+        note: { type: string, maxLength: 500 }
     Incident:
       type: object
       properties:

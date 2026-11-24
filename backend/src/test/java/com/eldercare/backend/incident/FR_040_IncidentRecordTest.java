@@ -184,6 +184,96 @@ class FR_040_IncidentRecordTest {
         verify(incidents, never()).insert(any());
     }
 
+    /** BF-06: ghi nhận sau không có hạn tiếp nhận (không leo thang), không chạy quy trình khẩn cấp, chỉ báo thông tin. */
+    @Test
+    void BF_06_recordedLaterHasNoDeadlineNoEmergencyAndOnlyInformationNotice() {
+        var informed = new com.eldercare.backend.incident.api.dto.FamilyNotice(
+                "INFORMED", NOW.minusSeconds(600), "PHONE", "Đã gọi con gái");
+        service.record(recordedLater(RESIDENT, 1, "CRITICAL", informed), user);
+
+        var inserted = org.mockito.ArgumentCaptor.forClass(
+                com.eldercare.backend.incident.internal.incident.domain.NewIncident.class);
+        verify(incidents).insert(inserted.capture());
+        assertThat(inserted.getValue().acknowledgementDeadline()).isNull();
+        verify(incidents).saveFamilyNotice(41L, true, "INFORMED", 900L, NOW.minusSeconds(600), "PHONE", "Đã gọi con gái");
+        verify(events, never())
+                .publishEvent(org.mockito.ArgumentMatchers.any(
+                        com.eldercare.backend.incident.internal.incident.domain.EmergencyActivationRequested.class));
+        verify(events)
+                .publishEvent(org.mockito.ArgumentMatchers.argThat(
+                        (Object e) -> e instanceof com.eldercare.backend.incident.api.events.IncidentNotificationCreated n
+                                && n.level().equals("LOW")
+                                && n.eventKey().endsWith(":RECORDED_LATER")
+                                && n.notificationRequests().size() == 1));
+    }
+
+    /** Ghi nhận sau mà chưa báo người nhà: gửi thêm thông báo thông tin cho người liên hệ chính. */
+    @Test
+    void BF_06_recordedLaterNotYetInformedAlsoNotifiesPrimaryContact() {
+        var notYet = new com.eldercare.backend.incident.api.dto.FamilyNotice("NOT_YET", null, null, null);
+        service.record(recordedLater(RESIDENT, 2, "MEDIUM", notYet), user);
+
+        verify(incidents).saveFamilyNotice(41L, true, "NOT_YET", null, null, null, null);
+        verify(events)
+                .publishEvent(org.mockito.ArgumentMatchers.argThat(
+                        (Object e) -> e instanceof com.eldercare.backend.incident.api.events.IncidentNotificationCreated n
+                                && n.notificationRequests().size() == 2));
+    }
+
+    @Test
+    void BF_06_recordedLaterMustSayWhetherFamilyWasInformed() {
+        assertThatThrownBy(() -> service.record(recordedLater(RESIDENT, 2, "MEDIUM", null), user))
+                .isInstanceOf(com.eldercare.backend.common.error.InvalidValueException.class);
+        verify(incidents, never()).insert(any());
+    }
+
+    @Test
+    void BF_06_informedNeedsAValidMethod() {
+        var bad = new com.eldercare.backend.incident.api.dto.FamilyNotice("INFORMED", NOW, "EMAIL", null);
+        assertThatThrownBy(() -> service.record(recordedLater(RESIDENT, 2, "MEDIUM", bad), user))
+                .isInstanceOf(com.eldercare.backend.common.error.InvalidValueException.class);
+    }
+
+    /** Ghi thường (mọi nơi gọi cũ): vẫn có hạn tiếp nhận và quy trình khẩn cấp như trước, không ghi cột mới. */
+    @Test
+    void BF_06_normalRecordKeepsAcknowledgementDeadline() {
+        service.record(command(RESIDENT, 2, "MEDIUM", null, false), user);
+
+        var inserted = org.mockito.ArgumentCaptor.forClass(
+                com.eldercare.backend.incident.internal.incident.domain.NewIncident.class);
+        verify(incidents).insert(inserted.capture());
+        assertThat(inserted.getValue().acknowledgementDeadline()).isNotNull();
+        verify(incidents, never())
+                .saveFamilyNotice(
+                        org.mockito.ArgumentMatchers.anyLong(),
+                        org.mockito.ArgumentMatchers.anyBoolean(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any());
+    }
+
+    private static RecordIncidentCommand recordedLater(
+            Long residentId, long typeId, String level, com.eldercare.backend.incident.api.dto.FamilyNotice notice) {
+        return new RecordIncidentCommand(
+                residentId,
+                typeId,
+                null,
+                NOW.minusSeconds(3600),
+                NOW,
+                null,
+                "Phòng 101",
+                null,
+                "Đã xử lý xong, ghi nhận sau",
+                level,
+                null,
+                null,
+                false,
+                true,
+                notice);
+    }
+
     private void allow(PermissionBasis basis) {
         when(permissions.hasPermission(eq(user), any(), any())).thenReturn(PermissionResult.allowed(basis));
     }

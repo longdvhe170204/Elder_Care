@@ -67,7 +67,15 @@ public class IncidentRecordController {
                         request.level() == null ? null : request.level().name(),
                         request.lowerLevelReason(),
                         request.initialResponse(),
-                        Boolean.TRUE.equals(request.createDespiteOpen())),
+                        Boolean.TRUE.equals(request.createDespiteOpen()),
+                        Boolean.TRUE.equals(request.recordedLater()),
+                        request.familyNotice() == null
+                                ? null
+                                : new com.eldercare.backend.incident.api.dto.FamilyNotice(
+                                        request.familyNotice().state(),
+                                        request.familyNotice().at(),
+                                        request.familyNotice().method(),
+                                        request.familyNotice().note())),
                 currentUser);
         // Ngoài phạm vi chỉ trả nhận dạng và "đã thông báo người xử lý" (FR-041, FR-048).
         var incident = result.identificationOnly()

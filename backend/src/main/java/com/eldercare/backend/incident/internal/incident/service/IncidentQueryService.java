@@ -126,6 +126,8 @@ public class IncidentQueryService {
         boolean assigner = ASSIGNER_ROLES.stream().anyMatch(roles::contains) || current;
         if (assigner && (manager || handler)) commands.add("assign-handler");
         if (handler || incident.recordedBy() == user.accountId()) commands.add("progressions");
+        // BF-06: ghi nhận đã báo người nhà (người có chuyên môn phụ trách: Bác sĩ, Điều dưỡng, Trưởng tầng)
+        if (handler && incident.residentId() != null) commands.add("family-notice");
         if (handler) commands.add("change-level");
         if (status.equals("IN_PROGRESS") && handler) commands.add("move-to-monitoring");
         if (status.equals("MONITORING") && handler) commands.add("reopen");

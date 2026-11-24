@@ -33,4 +33,46 @@ public record RecordIncidentRequest(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) IncidentLevel level,
         String lowerLevelReason,
         String initialResponse,
-        @Schema(defaultValue = "false") Boolean createDespiteOpen) {}
+        @Schema(defaultValue = "false") Boolean createDespiteOpen,
+        @Schema(
+                        defaultValue = "false",
+                        description =
+                                "Ghi nhận sau: việc đã xảy ra và đã xử lý xong, chỉ lưu hồ sơ; không báo khẩn, không leo thang")
+                Boolean recordedLater,
+        @Schema(description = "Báo người nhà: INFORMED (ai, lúc nào, cách nào) hoặc NOT_YET") FamilyNoticeBody familyNotice) {
+
+    public record FamilyNoticeBody(String state, Instant at, String method, String note) {}
+
+    /** Chữ ký cũ (trước BF-06 ghi nhận sau) cho các nơi dựng thân lệnh bằng mã. */
+    public RecordIncidentRequest(
+            Long residentId,
+            Long incidentTypeId,
+            String context,
+            Instant occurredAt,
+            Instant discoveredAt,
+            Long floorAreaId,
+            String location,
+            String ongoingActivity,
+            String description,
+            IncidentLevel level,
+            String lowerLevelReason,
+            String initialResponse,
+            Boolean createDespiteOpen) {
+        this(
+                residentId,
+                incidentTypeId,
+                context,
+                occurredAt,
+                discoveredAt,
+                floorAreaId,
+                location,
+                ongoingActivity,
+                description,
+                level,
+                lowerLevelReason,
+                initialResponse,
+                createDespiteOpen,
+                null,
+                null);
+    }
+}
