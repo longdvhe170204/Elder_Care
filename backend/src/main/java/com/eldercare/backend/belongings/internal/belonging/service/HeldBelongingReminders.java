@@ -95,8 +95,9 @@ public class HeldBelongingReminders {
         String eventType = "BELONGING_HELD_AT_SHIFT_END";
         events.publishEvent(BelongingNotices.notice(
                 eventType,
-                "M09.SHIFT",
-                event.shiftId(),
+                // Nguồn là đồ nhân viên đang giữ để mở được tab "Nhân viên đang giữ" (hoàn thiện BF-14, 2026-11-23)
+                StaffHeldSourceAccess.SOURCE_TYPE,
+                holder,
                 eventType + ":" + event.shiftId() + ":" + holder,
                 NotificationLevel.MEDIUM,
                 held.size() == 1 ? held.getFirst().residentId() : null,

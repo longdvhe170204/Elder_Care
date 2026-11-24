@@ -239,6 +239,23 @@ public final class IncidentNotices {
                 Optional.empty()));
     }
 
+    /** Người cao tuổi đã được Ghi nhận trở về sau lần chuyển viện của sự cố (đề xuất 2026-11-23 lượt 3). */
+    public static List<NotificationRequest> residentReturned(
+            long incidentId, Long residentId, Long floorAreaId, long staffId, Instant at) {
+        return List.of(request(
+                incidentId,
+                SOURCE_TYPE + ":" + incidentId + ":RESIDENT_RETURNED:" + at.toEpochMilli(),
+                IncidentLevel.LOW,
+                residentId,
+                floorAreaId,
+                List.of(new RecipientGroup.Staff(staffId, "INCIDENT_RESIDENT_RETURNED")),
+                "Người cao tuổi đã về viện sau chuyển viện. Mở hồ sơ sự cố để ghi diễn biến, chuyển theo dõi hoặc đóng.",
+                0L,
+                at,
+                Optional.empty(),
+                Optional.empty()));
+    }
+
     static List<NotificationRequest> assigned(
             long incidentId,
             Long residentId,

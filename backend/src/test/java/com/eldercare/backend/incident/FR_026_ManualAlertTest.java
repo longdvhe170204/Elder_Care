@@ -70,7 +70,7 @@ class FR_026_ManualAlertTest {
 
     @Test
     void FR_026_manualAlertUsesManualTypeLockAndDescription() {
-        var result = service.create(101, 30, "MEDIUM", "Đi lại liên tục, nói lẫn", user);
+        var result = service.create(101L, 30L, "MEDIUM", "Đi lại liên tục, nói lẫn", user);
 
         var command = ArgumentCaptor.forClass(CreateAlertCommand.class);
         verify(alerts).requestAlert(command.capture());
@@ -88,12 +88,22 @@ class FR_026_ManualAlertTest {
     void FR_030_secondManualAlertOfSameTypeIsMerged() {
         when(alerts.requestAlert(any())).thenReturn(Optional.of(alert(2)));
 
-        assertThat(service.create(101, 30, "MEDIUM", "Lần nữa", user).merged()).isTrue();
+        assertThat(service.create(101L, 30L, "MEDIUM", "Lần nữa", user).merged())
+                .isTrue();
     }
 
     @Test
     void FR_026_descriptionRequired() {
-        assertThatThrownBy(() -> service.create(101, 30, "MEDIUM", "  ", user))
+        assertThatThrownBy(() -> service.create(101L, 30L, "MEDIUM", "  ", user))
+                .isInstanceOf(InvalidValueException.class);
+        verify(alerts, never()).requestAlert(any());
+    }
+
+    @Test
+    void FR_026_missingResidentOrTypeIsRejectedWithInvalidValue() {
+        assertThatThrownBy(() -> service.create(null, 30L, "MEDIUM", "Mô tả", user))
+                .isInstanceOf(InvalidValueException.class);
+        assertThatThrownBy(() -> service.create(101L, null, "MEDIUM", "Mô tả", user))
                 .isInstanceOf(InvalidValueException.class);
         verify(alerts, never()).requestAlert(any());
     }

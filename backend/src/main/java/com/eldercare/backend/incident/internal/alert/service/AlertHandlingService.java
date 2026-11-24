@@ -5,6 +5,7 @@ import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.
 import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.CLOSED;
 import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.HANDLING_STARTED;
 import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.LEVEL_CHANGED;
+import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.RECEIVED;
 
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.ApproverApi;
@@ -192,17 +193,19 @@ public class AlertHandlingService {
     @Transactional
     public void close(long alertId, String resolution, Reason reason, CurrentUser user) {
         var alert = lockForHandler(alertId, user);
-        if (!mayClose(alert, user)) {
-            throw new PermissionDeniedException(
-                    "Chỉ Trưởng tầng của tầng người cao tuổi và Bác sĩ đóng cảnh báo (Q-442)");
+        if (!senderShortcut(alert, user)) {
+            if (!mayClose(alert, user)) {
+                throw new PermissionDeniedException(
+                        "Chỉ Trưởng tầng của tầng người cao tuổi và Bác sĩ đóng cảnh báo (Q-442)");
+            }
+            requireStatus(alert, AlertStatus.IN_PROGRESS);
         }
-        requireStatus(alert, AlertStatus.IN_PROGRESS);
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
         if (reason == null && alert.typeLock().startsWith(OVERDUE_TASK_PREFIX)) throw new ReasonRequiredException();
         if (alert.criticalFlagId() != null) requireCriticalOutcome(alertId);
         var now = time.now();
-        alerts.close(
-                alertId, resolution, reason == null ? null : reason.value(), user.accountId(), now, alert.version());
+        int version = startAsSender(alert, user, now, alert.version());
+        alerts.close(alertId, resolution, reason == null ? null : reason.value(), user.accountId(), now, version);
         history.add(alertId, "CLOSED", Map.of("by", user.accountId()), now);
         write(CLOSED, alert, Map.of("status", AlertStatus.CLOSED.name()), reason);
         if (alert.residentId() != null) events.publishEvent(new ResidentItemClosed(alert.residentId()));
@@ -291,6 +294,37 @@ public class AlertHandlingService {
     /** Đối tượng của cảnh báo cho lớp phạm vi của {@code @RequiresPermission} (lệnh {@code @BusinessCommand}). */
     public Target target(long alertId) {
         return target(alerts.findById(alertId).orElseThrow(NotFoundException::new));
+    }
+
+    /**
+     * Người bấm nút hỗ trợ có quyền xử lý ghi kết quả bằng một lệnh (đề xuất 2026-11-23): cảnh báo Mới, Leo thang, Đã
+     * tiếp nhận mà chưa ai khác tiếp nhận. Không áp cho người khác hay cảnh báo loại khác.
+     */
+    public static boolean senderShortcut(AlertRecord alert, CurrentUser user) {
+        long me = user.accountId();
+        return EmergencyAssistService.ALERT_TYPE.equals(alert.type())
+                && Long.valueOf(me).equals(alert.requesterId())
+                && Set.of(AlertStatus.NEW, AlertStatus.ESCALATED, AlertStatus.RECEIVED)
+                        .contains(alert.status())
+                && (alert.receiverId() == null || alert.receiverId() == me);
+    }
+
+    /**
+     * Đường tắt của người bấm ({@link #senderShortcut}): cùng lệnh ghi lần lượt Tiếp nhận, Bắt đầu xử lý với người thực
+     * hiện là người bấm, như lệnh Kích hoạt khẩn cấp từ cảnh báo. Không thuộc đường tắt thì không ghi gì.
+     *
+     * @return phiên bản kế tiếp của cảnh báo
+     */
+    int startAsSender(AlertRecord alert, CurrentUser user, Instant now, int version) {
+        if (!senderShortcut(alert, user)) return version;
+        if (alert.status() != AlertStatus.RECEIVED) {
+            alerts.receive(alert.id(), user.accountId(), now, alert.level(), version++);
+            history.add(alert.id(), "RECEIVED", Map.of("by", user.accountId()), now);
+            write(RECEIVED, alert, Map.of("status", AlertStatus.RECEIVED.name(), "bySender", true), null);
+        }
+        alerts.startHandling(alert.id(), user.accountId(), version++);
+        history.add(alert.id(), "HANDLING_STARTED", Map.of("by", user.accountId()), now);
+        return version;
     }
 
     AlertRecord lockForHandler(long alertId, CurrentUser user) {

@@ -4,6 +4,9 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.incident.internal.alert.service.AlertLocationService;
 import com.eldercare.backend.incident.internal.alert.service.EmergencyAssistService;
 import com.eldercare.backend.incident.web.request.AssistDetailsRequest;
+import com.eldercare.backend.incident.web.request.AssistFloorRequest;
+import com.eldercare.backend.incident.web.request.AssistMessageRequest;
+import com.eldercare.backend.incident.web.request.AssistWithdrawRequest;
 import com.eldercare.backend.incident.web.request.LocationReportRequest;
 import com.eldercare.backend.incident.web.response.M05ProblemBody;
 import com.eldercare.backend.incident.web.response.SosProblemBody;
@@ -50,8 +53,9 @@ public class EmergencyAssistController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = SosProblemBody.class)))
     })
     public ResponseEntity<SosStatusResponse> press(
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-        var status = assist.press(currentUser, idempotencyKey);
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @RequestBody(required = false) AssistFloorRequest request) {
+        var status = assist.press(currentUser, idempotencyKey, AssistFloorRequest.choiceOf(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(SosStatusResponse.of(status));
     }
 
@@ -75,6 +79,46 @@ public class EmergencyAssistController {
     })
     public ResponseEntity<Void> details(@PathVariable long id, @RequestBody AssistDetailsRequest request) {
         assist.details(id, request == null ? null : request.toDetails(), currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Đổi tầng xảy ra sau khi gửi: người bấm hoặc người phụ trách (đề xuất 2026-11-23). */
+    @PostMapping("/{id}/floor")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Đã đổi"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public ResponseEntity<Void> changeFloor(@PathVariable long id, @RequestBody AssistFloorRequest request) {
+        assist.changeFloor(id, AssistFloorRequest.choiceOf(request), currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Người bấm nhắn thêm tình hình (đề xuất 2026-11-23). */
+    @PostMapping("/{id}/messages")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Đã gửi"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public ResponseEntity<Void> message(@PathVariable long id, @RequestBody AssistMessageRequest request) {
+        assist.message(id, request == null ? null : request.text(), currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Người bấm rút yêu cầu khi chưa ai tiếp nhận (đề xuất 2026-11-23). */
+    @PostMapping("/{id}/withdraw")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Đã rút"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public ResponseEntity<Void> withdraw(
+            @PathVariable long id, @RequestBody(required = false) AssistWithdrawRequest request) {
+        assist.withdraw(id, request == null ? null : request.reason(), currentUser);
         return ResponseEntity.noContent().build();
     }
 

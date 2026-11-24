@@ -126,7 +126,7 @@ public class IncidentEscalationService {
     }
 
     private Instant deadline(IncidentEscalationState incident, Instant now) {
-        return AcknowledgementDeadlines.of(incident.level(), now, incident.floorAreaId(), parameters, staff);
+        return AcknowledgementDeadlines.forEscalation(incident.level(), now, incident.floorAreaId(), parameters, staff);
     }
 
     /** Như cảnh báo: Trung bình nhắc theo mốc cũ + k × CFG-M05-01 (không trôi); Nhẹ khi hết ca (FR-034, FR-084 d). */

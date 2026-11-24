@@ -115,7 +115,7 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM work_shift s JOIN shift_schedule h ON h.id=s.schedule_id"
                                 + " AND h.status='PUBLISHED' WHERE s.scope_type='FLOOR' AND s.scope_id=9002"
-                                + " AND s.status='PUBLISHED' AND s.lead_staff_id=9011",
+                                + " AND s.status='PUBLISHED' AND s.lead_staff_id=9011 AND s.template_id=9001",
                         Integer.class))
                 .isEqualTo(7);
         assertThat(jdbc.queryForList(
@@ -153,7 +153,7 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND t.code='NURSING_LICENSE' WHERE c.staff_id IN (9005, 9011) ORDER BY c.staff_id",
                         Long.class))
                 .containsExactly(9005L, 9011L);
-        // V900_11: A, B đi được BF-10 (kết thúc lưu trú): phiên bản nội dung mới nhất của hợp đồng có kỳ tính phí lưu
+        // V900_12: A, B đi được BF-10 (kết thúc lưu trú): phiên bản nội dung mới nhất của hợp đồng có kỳ tính phí lưu
         // trú
         // (010 chia phí theo ngày, trước báo 500) và không cần cọc; có sổ số dư với mã nộp tiền đúng ký tự kiểm tra
         // (017)

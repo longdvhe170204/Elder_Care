@@ -12,9 +12,24 @@ public record TransferOutCommand(
         String companion,
         Boolean requiredContactReached,
         String notAskedFirstReason,
-        List<Long> attachmentIds) {
+        List<Long> attachmentIds,
+        Boolean includeWishes) {
 
     public TransferOutCommand {
         attachmentIds = attachmentIds == null ? List.of() : List.copyOf(attachmentIds);
+    }
+
+    /** Cùng lệnh với thời điểm chuyển đã xác định (không gửi thì là giờ hệ thống lúc thực hiện). */
+    public TransferOutCommand withTransferAt(Instant at) {
+        return new TransferOutCommand(
+                transferUnit,
+                at,
+                expectedReturnAt,
+                handoverStaffId,
+                companion,
+                requiredContactReached,
+                notAskedFirstReason,
+                attachmentIds,
+                includeWishes);
     }
 }
