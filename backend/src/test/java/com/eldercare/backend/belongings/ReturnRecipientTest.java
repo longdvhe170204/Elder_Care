@@ -82,6 +82,27 @@ class ReturnRecipientTest {
     }
 
     @Test
+    void FR_017_familyChosenFromList_withoutTypedDocument_isAllowed() {
+        // Demo 2026-11-25: form trả bỏ ô loại, số giấy tờ; nhân viên chọn người thân trong danh sách và đối chiếu tại
+        // chỗ
+        var chosen = new Declared(GiverType.FAMILY_MEMBER, 7L, "Nguyễn Văn P", null, null);
+        var noDocOnFile = new FamilyFacts(true, false, "Nguyễn Văn P", Optional.empty());
+
+        var withRegistered = ReturnRecipient.check(chosen, List.of(PHONE), REPRESENTATIVE, Optional.empty(), true);
+        var withoutRegistered = ReturnRecipient.check(chosen, List.of(PHONE), noDocOnFile, Optional.empty(), true);
+        var typedWrong = ReturnRecipient.check(
+                new Declared(GiverType.FAMILY_MEMBER, 7L, "Nguyễn Văn P", "CCCD", "000"),
+                List.of(PHONE),
+                REPRESENTATIVE,
+                Optional.empty(),
+                true);
+
+        assertThat(withRegistered.basis()).isEqualTo(ReturnBasis.ENTITLED_RECIPIENT);
+        assertThat(withoutRegistered.basis()).isEqualTo(ReturnBasis.ENTITLED_RECIPIENT);
+        assertThat(typedWrong.blockReason()).isEqualTo(ReturnBlockReason.ID_DOCUMENT_MISMATCH);
+    }
+
+    @Test
     void FR_017_residentRecipientWithConfirmation_matchesByResidentFlag() {
         var resident = new Declared(GiverType.RESIDENT, null, null, null, null);
         var forResident = new Confirmation(true, true, "A", "1", List.of(3L));
