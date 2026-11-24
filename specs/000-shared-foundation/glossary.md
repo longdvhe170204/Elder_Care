@@ -1301,6 +1301,7 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | dấu nội dung thực chất (R12, R18); xác nhận lại yêu cầu qua cổng (FR-043i, Q-418) | `ResidencyChangeDigest`, bảng `residency_change_portal_digest` (`V004_96`) |
 | mức chăm sóc theo đánh giá (FR-043j, R20) | 409 `CARE_LEVEL_NOT_FROM_ASSESSMENT`; trường `assessedCareLevel` (`AssessedCareLevel`) |
 | loại dịch vụ thêm được qua yêu cầu điều chỉnh hợp đồng (FR-043k, Q-426, R21) | 422 `SERVICE_TYPE_NOT_REGISTRABLE` (409 cùng mã khi gửi duyệt, duyệt); `RegistrableServiceTypes.REGISTRABLE` (`REHABILITATION`, `ACTIVITY`, `MEDICAL_ESCORT`, `INJECTION`), `ResidencyChangeHandler.serviceTypeConditions` |
+| loại thay đổi "Loại phòng" của điều chỉnh hợp đồng, trước đây "Giường" (FR-043l, Q-445, R22) | mã `BED` giữ nguyên; 422 `BED_CHANGE_SAME_ROOM_TYPE` (409 cùng mã khi gửi duyệt, duyệt); `ResidencyChangeHandler.roomTypeConditions` |
 
 ### 10.14. Bổ sung khi cài Phase 8 (US6, T048 → T055, 2026-10-26)
 
