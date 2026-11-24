@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.support.TestUsers;
+import com.eldercare.backend.support.fake.file.FakeFileConfig;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -22,6 +23,7 @@ import org.springframework.mock.web.MockMultipartFile;
  * 011 T048, T051, T052 (Q-445; quickstart mục 7 Q1, Q2, Q5): món có mô tả, ảnh, Bếp đưa vào dùng; Bếp xem số suất dự kiến
  * và số người cao tuổi theo loại dị ứng không tên; mọi nhân viên xem thực đơn chung đã công bố.
  */
+@org.springframework.context.annotation.Import(FakeFileConfig.class)
 class Q445_SharedMenuIT extends ClosingTestBase {
 
     static final String DISHES = NutritionCatalogFixture.BASE + "/dishes";

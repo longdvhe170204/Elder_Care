@@ -100,14 +100,13 @@ class FR_006_MealCatalogIT extends MySqlIntegrationTestBase {
                 .getContentAsString();
         List<Integer> versions = JsonPath.read(list, "$[?(@.id == " + diet + ")].version");
         assertThat(versions).singleElement().isNotNull();
-        List<Object> safe = JsonPath.read(list, "$[?(@.id == " + diet + ")].safeDishId");
 
         f.asDoctor();
         f.send(
                         put(NutritionCatalogFixture.BASE + "/diets/" + diet)
                                 .header("If-Match", "\"" + versions.getFirst() + "\""),
-                        NutritionCatalogFixture.dietBody("Chế độ sửa " + TestUsers.nextId(), false, false, List.of(), 0)
-                                .replace("\"safeDishId\":0", "\"safeDishId\":" + safe.getFirst()))
+                        NutritionCatalogFixture.dietBody(
+                                "Chế độ sửa " + TestUsers.nextId(), false, false, List.of(), 0))
                 .andExpect(status().isOk());
     }
 }
