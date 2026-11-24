@@ -3421,6 +3421,7 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `/nguoi-cao-tuoi/{nctId}/phieu-dang-ky`, `…/danh-sach-don` (tham số `t`), `…/mong-muon` | `/residents/{residentId}/family-registration-forms`, `…/pickup-list` (`at`), `…/visit-pickup-wishes` |
 | `/yeu-cau-quyen`, `/yeu-cau-quyen/{id}/{lenh}` (`xac-nhan`, `duyet`, `tu-choi`, `huy`) | `/right-change-requests`, `/right-change-requests/{id}/{command}` (`confirm`, `approve`, `reject`, `cancel`) |
 | `/nguoi-cao-tuoi/{nctId}/don`, `…/ban-ghi-don`, `…/ngoai-le-don`; `/ngoai-le-don/{id}/{lenh}` | `/residents/{residentId}/pickups`, `…/pickup-records`, `…/pickup-exceptions`; `/pickup-exceptions/{id}/{command}` |
+| `/ngoai-le-don` (đọc danh sách, lọc `nctId`, `trangThai`; thêm 2026-11-24, test BF-12 C-2, C-5) | `/pickup-exceptions` (`residentId`, `status`) |
 | `/khung-tham` (`ngay`), `/luot-tham`, `/luot-tham/{id}/{lenh}` (`huy`, `vao`, `ra`) | `/visit-slots` (`date`), `/visits`, `/visits/{id}/{command}` (`cancel`, `check-in`, `check-out`) |
 | `/luot-o-lai`, `/luot-o-lai/{id}/{lenh}` (`xac-nhan`, `tu-choi`, `bat-dau`, `huy`, `gia-han`, `ket-thuc`) | `/family-stays`, `/family-stays/{id}/{command}` (`confirm`, `reject`, `start`, `cancel`, `extend`, `end`) |
 | `/cong/nguoi-cao-tuoi`, `…/{nctId}/chung`, `…/{nctId}/suc-khoe/{phan}`, `…/{nctId}/hop-dong` | `/family-portal/residents`, `…/{residentId}/general`, `…/{residentId}/health/{section}`, `…/{residentId}/contract` |
@@ -3446,6 +3447,7 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `GhiDon` (`loai`, `nguoiThanId`, `ngoaiLeId`, `giayToXuatTrinh` {`loai`, `so`}, `nhanVienBanGiaoId`) | `RecordPickup` (`type`, `familyMemberId`, `exceptionId`, `presentedIdDocument` {`type`, `number`}, `handoverStaffId`) |
 | `BanGhiDon` (`loai`, `nguoiThanId`, `canCu`, `thoiDiem`, `trangThai`, `hetHieuLucLuc`); `banGhiDonId` | `PickupRecord` (`type`, `familyMemberId`, `basis`, `at`, `status`, `expiresAt`); `pickupRecordId` |
 | thân ngoại lệ đón (`hoTen`, `soGiayTo`, `quanHe`, `lyDo`) | `fullName`, `idDocumentNumber`, `relationship`, `reason` |
+| `YeuCauNgoaiLeDon` (`nctId`, `hoTen`, `soGiayTo`, `quanHe`, `lyDo`, `trangThai`, `lapLuc`, `cachHieuLuc`, `lyDoQuyetDinh`, `hieuLucLuc`, `hetHanLuc`, `banGhiDonId`; thêm 2026-11-24, test BF-12 C-2, C-5) | `PickupException` (`residentId`, `fullName`, `idDocumentNumber`, `relationship`, `reason`, `status`, `createdAt`, `method`, `decisionReason`, `effectiveAt`, `expiresAt`, `pickupRecordId`) |
 | `NguoiDiCung` (`hoTen`, `quanHe`, `soDienThoai`) | `Companion` (`fullName`, `relationship`, `phoneNumber`) |
 | `DangKyTham` (`nctId`, `nguoiThanId`, `ngay`, `gioBatDau`, `gioKetThuc`, `diCung`) | `VisitRegistration` (`residentId`, `familyMemberId`, `date`, `startTime`, `endTime`, `companions`) |
 | `LuotTham` thêm `soNguoi`, `trangThai`, `vaoLuc`, `raLuc`, `lyDoHuy`; thân lệnh `nguoiThucTe`, `gioRa` | `Visit` thêm `visitorCount`, `status`, `checkedInAt`, `checkedOutAt`, `cancellationReason`; `actualVisitors`, `checkOutAt` |

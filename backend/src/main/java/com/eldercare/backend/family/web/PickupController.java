@@ -3,11 +3,13 @@ package com.eldercare.backend.family.web;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.web.ProblemBody;
+import com.eldercare.backend.family.internal.pickup.domain.PickupException;
 import com.eldercare.backend.family.internal.pickup.service.PickupService;
 import com.eldercare.backend.family.web.request.PickupExceptionCommandRequest;
 import com.eldercare.backend.family.web.request.PickupExceptionRequest;
 import com.eldercare.backend.family.web.request.RecordPickupRequest;
 import com.eldercare.backend.family.web.response.CreatedResponse;
+import com.eldercare.backend.family.web.response.PickupExceptionResponse;
 import com.eldercare.backend.family.web.response.PickupRecordResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -87,6 +90,15 @@ class PickupController {
                         residentId, body.fullName(), body.idDocumentNumber(), body.relationship(), body.reason())
                 .id();
         return ResponseEntity.status(HttpStatus.CREATED).body(new CreatedResponse(id));
+    }
+
+    @GetMapping("/pickup-exceptions")
+    List<PickupExceptionResponse> exceptions(
+            @RequestParam(name = "residentId", required = false) Long residentId,
+            @RequestParam(name = "status", required = false) PickupException.Status status) {
+        return pickups.listExceptions(residentId, status).stream()
+                .map(PickupExceptionResponse::of)
+                .toList();
     }
 
     @PostMapping("/pickup-exceptions/{id}/{command}")

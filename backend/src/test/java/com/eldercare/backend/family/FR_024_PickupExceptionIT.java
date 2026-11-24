@@ -27,4 +27,33 @@ class FR_024_PickupExceptionIT extends PickupTestBase {
             assertThat(n.representativeIds()).containsExactly(rMember);
         });
     }
+
+    /**
+     * Test BF-12 C-2, C-5 (2026-11-24): danh sách ngoại lệ đón cho nhân viên (thay nhập mã) và cho người đại diện trên
+     * cổng (FR-050); người thân không phải người đại diện không thấy; lọc trạng thái.
+     */
+    @Test
+    void FR_050_listExceptions_staffAndRepresentativeOnly() throws Exception {
+        long id = id(createException(office, "Ngô Hàng Xóm", OUTSIDER_DOC).andExpect(status().isCreated()));
+        String path = "/api/v1/pickup-exceptions?residentId=" + a;
+
+        JsonNode staff = getJsonAs(office, path);
+        assertThat(staff).singleElement().satisfies(e -> {
+            assertThat(e.get("id").asLong()).isEqualTo(id);
+            assertThat(e.get("residentId").asLong()).isEqualTo(a);
+            assertThat(e.get("fullName").asString()).isEqualTo("Ngô Hàng Xóm");
+            assertThat(e.get("idDocumentNumber").asString()).isEqualTo(OUTSIDER_DOC);
+            assertThat(e.get("status").asString()).isEqualTo("PENDING_CONFIRMATION");
+            assertThat(e.get("createdAt").isNull()).isFalse();
+        });
+        assertThat(getJsonAs(family(mMember), "/api/v1/pickup-exceptions")).isEmpty();
+
+        exceptionCommand(family(rMember), id, "confirm", "{}").andExpect(status().isOk());
+        JsonNode effective = getJsonAs(family(rMember), "/api/v1/pickup-exceptions?status=EFFECTIVE");
+        assertThat(effective).singleElement().satisfies(e -> {
+            assertThat(e.get("method").asString()).isEqualTo("PORTAL");
+            assertThat(e.get("expiresAt").isNull()).isFalse();
+        });
+        assertThat(getJsonAs(office, path + "&status=PENDING_CONFIRMATION")).isEmpty();
+    }
 }

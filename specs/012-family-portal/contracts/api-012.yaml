@@ -168,6 +168,19 @@ paths:
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [fullName, idDocumentNumber, relationship, reason], properties: { fullName: { type: string }, idDocumentNumber: { type: string }, relationship: { type: string }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /pickup-exceptions:
+    get:
+      tags: [pickups]
+      summary: Yêu cầu ngoại lệ đón (lọc người cao tuổi, trạng thái); người đại diện thấy ngoại lệ của người cao tuổi mình đại diện
+      description: |
+        Thêm 2026-11-24 (test BF-12 C-2, C-5): nhân viên theo quyền xem "Quy trình đón" trong phạm vi, thay nhập mã ngoại lệ;
+        người thân chỉ thấy khi là người đại diện (FR-050), người thân khác nhận danh sách rỗng. Số giấy tờ hiện đủ cho cả hai.
+      x-fr: [FR-024, FR-050]
+      x-family-member: true
+      parameters:
+        - { name: residentId, in: query, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, schema: { type: string, enum: [PENDING_CONFIRMATION, EFFECTIVE, USED, EXPIRED, REJECTED, CANCELLED] } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PickupException' } } } } } }
   /pickup-exceptions/{id}/{command}:
     post:
       tags: [pickups]
@@ -573,6 +586,10 @@ components:
     PickupRecord:
       type: object
       properties: { id: { type: integer, format: int64 }, type: { type: string }, familyMemberId: { type: integer, format: int64 }, basis: { type: string, enum: [PICKUP_LIST, REPRESENTATIVE_EXCEPTION, MANAGER_EXCEPTION, SELF_RETURN] }, at: { type: string, format: date-time }, status: { type: string, enum: [UNUSED, USED, NOT_USED] }, expiresAt: { type: string, format: date-time } }
+    PickupException:
+      type: object
+      description: Yêu cầu ngoại lệ đón (thêm 2026-11-24, test BF-12 C-2, C-5)
+      properties: { id: { type: integer, format: int64 }, residentId: { type: integer, format: int64 }, fullName: { type: string }, idDocumentNumber: { type: string }, relationship: { type: string }, reason: { type: string }, status: { type: string, enum: [PENDING_CONFIRMATION, EFFECTIVE, USED, EXPIRED, REJECTED, CANCELLED] }, createdAt: { type: string, format: date-time }, method: { type: [string, 'null'], enum: [PORTAL, MANAGER_APPROVAL, null] }, decisionReason: { type: [string, 'null'] }, effectiveAt: { type: [string, 'null'], format: date-time }, expiresAt: { type: [string, 'null'], format: date-time }, pickupRecordId: { type: [integer, 'null'], format: int64 } }
     Companion:
       type: object
       required: [fullName, relationship]
