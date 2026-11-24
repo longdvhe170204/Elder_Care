@@ -4,7 +4,23 @@ import com.eldercare.backend.common.notification.*;
 import java.util.*;
 
 final class CareEventNotifications {
+    private static final String GENERAL_TITLE = "Thông tin chăm sóc cần xem xét";
+
     private CareEventNotifications() {}
+
+    /** Tiêu đề riêng của sự kiện (không chứa thông tin sức khỏe, 009 FR-034); nội dung chung trùng tiêu đề. */
+    static NotificationRequest titled(
+            CareNotice event, NotificationLevel level, List<RecipientGroup> recipients, String key, String title) {
+        return create(
+                event,
+                level,
+                recipients,
+                key,
+                List.of(new ContentPart(InformationType.GENERAL, title)),
+                Map.of(),
+                Optional.empty(),
+                title);
+    }
 
     static NotificationRequest create(
             CareNotice event, NotificationLevel level, List<RecipientGroup> recipients, String key) {
@@ -17,7 +33,7 @@ final class CareEventNotifications {
             List<RecipientGroup> recipients,
             String key,
             Map<String, Object> displayParams) {
-        String title = "Thông tin chăm sóc cần xem xét";
+        String title = GENERAL_TITLE;
         return create(
                 event,
                 level,
@@ -25,7 +41,8 @@ final class CareEventNotifications {
                 key,
                 List.of(new ContentPart(InformationType.GENERAL, title)),
                 displayParams,
-                Optional.empty());
+                Optional.empty(),
+                GENERAL_TITLE);
     }
 
     static NotificationRequest create(
@@ -34,7 +51,7 @@ final class CareEventNotifications {
             List<RecipientGroup> recipients,
             String key,
             List<ContentPart> content) {
-        return create(event, level, recipients, key, content, Map.of(), Optional.empty());
+        return create(event, level, recipients, key, content, Map.of(), Optional.empty(), GENERAL_TITLE);
     }
 
     /** FR-071 (009 FR-001a): thông báo có nhóm người thân khai đối tượng thông tin; chỉ phần chung. */
@@ -45,7 +62,7 @@ final class CareEventNotifications {
             String key,
             Map<String, Object> displayParams,
             InformationSubject subject) {
-        String title = "Thông tin chăm sóc cần xem xét";
+        String title = GENERAL_TITLE;
         return create(
                 event,
                 level,
@@ -53,7 +70,8 @@ final class CareEventNotifications {
                 key,
                 List.of(new ContentPart(InformationType.GENERAL, title)),
                 displayParams,
-                Optional.of(subject));
+                Optional.of(subject),
+                GENERAL_TITLE);
     }
 
     private static NotificationRequest create(
@@ -63,9 +81,9 @@ final class CareEventNotifications {
             String key,
             List<ContentPart> content,
             Map<String, Object> displayParams,
-            Optional<InformationSubject> subject) {
+            Optional<InformationSubject> subject,
+            String title) {
         var context = event.context();
-        String title = "Thông tin chăm sóc cần xem xét";
         return new NotificationRequest(
                 "M04",
                 event.getClass().getSimpleName(),

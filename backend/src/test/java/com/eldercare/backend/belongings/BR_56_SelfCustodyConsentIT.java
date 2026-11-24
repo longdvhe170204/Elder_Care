@@ -67,5 +67,14 @@ class BR_56_SelfCustodyConsentIT extends IntakeTestBase {
         assertThat(notices())
                 .anySatisfy(n ->
                         assertThat(n.recipientGroups()).contains(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)));
+        // Hoàn thiện BF-14 (2026-11-23): nguồn là đồ gửi để nhân viên mở được; khóa sự kiện vẫn theo bản đồng ý
+        assertThat(notices())
+                .filteredOn(n -> "SELF_CUSTODY_CONSENT_RECORDED".equals(n.eventType()))
+                .singleElement()
+                .satisfies(n -> {
+                    assertThat(n.sourceRecord().type()).isEqualTo("M12.BELONGING");
+                    assertThat(n.sourceRecord().id()).isEqualTo(Long.toString(belonging));
+                    assertThat(n.eventKey()).isEqualTo("SELF_CUSTODY_CONSENT_RECORDED:" + consentOf(belonging));
+                });
     }
 }

@@ -180,7 +180,8 @@ public class SettlementService {
     /** Hai mã điều kiện tại lúc gọi (FR-022); chỉ đọc. */
     @Transactional(readOnly = true)
     public Evaluation evaluate(long residentId) {
-        SettlementLedger facts = SettlementLedger.of(transactions.list(residentId, null, null, null, null));
+        SettlementLedger facts =
+                SettlementLedger.of(transactions.list(residentId, null, null, null, null), this::finalPeriodStatement);
         Optional<LedgerState> state = ledgers.find(residentId);
         long balance = state.map(LedgerState::balance).orElse(0L);
         long deposit = state.map(LedgerState::depositBalance).orElse(0L);
@@ -419,6 +420,15 @@ public class SettlementService {
                         .map(t -> new TypeTotal(CostTypeLabels.of(t.type()), t.total()))
                         .toList())
                 .orElse(List.of());
+    }
+
+    /** Bảng chi phí mang cờ kỳ cuối của 010; chưa có 010 thì mọi bảng (SettlementLedger lấy thanh toán mới nhất). */
+    private boolean finalPeriodStatement(long statementId) {
+        CostForBalancePort port = costs.getIfAvailable();
+        return port == null
+                || port.finalizedStatement(statementId)
+                        .map(s -> s.statement().finalPeriod())
+                        .orElse(false);
     }
 
     private FacilityInfo facility() {

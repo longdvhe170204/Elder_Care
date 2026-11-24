@@ -8,11 +8,13 @@ import com.eldercare.backend.billing.balance.internal.transaction.domain.Transac
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.LongPredicate;
 
 /**
  * Số liệu quyết toán rút từ giao dịch của một hồ sơ (017 FR-022, FR-034; research E-09). Bảng kỳ cuối là giao dịch "Thanh
- * toán bảng chi phí" Đã xác nhận mới nhất (chưa có số liệu theo loại từ 010, plan "Ghi chú triển khai" Phase 8). Tiền theo
- * đồng.
+ * toán bảng chi phí" Đã xác nhận mới nhất của bảng mang cờ kỳ cuối của 010; bảng bổ sung chốt sau đó nằm trong
+ * {@code sinceFinalPeriod} (BF-10, sửa 2026-11-24: trước lấy thanh toán mới nhất nên bảng bổ sung bị in thành bảng kỳ
+ * cuối). Không biết cờ kỳ cuối thì lấy thanh toán mới nhất. Tiền theo đồng.
  *
  * @param lastConfirmedId giao dịch Đã xác nhận mới nhất, rỗng khi chưa có (tên logic {@code giao_dich_cuoi_id})
  * @param balanceBeforeSettlement số dư ngay trước giao dịch thanh toán bảng kỳ cuối
@@ -33,6 +35,11 @@ public record SettlementLedger(
         Long finalPeriodStatementId) {
 
     public static SettlementLedger of(List<BalanceTransactionRow> rows) {
+        return of(rows, statementId -> true);
+    }
+
+    /** @param finalPeriodStatement bảng chi phí có phải bảng kỳ cuối không (cờ kỳ cuối của 010) */
+    public static SettlementLedger of(List<BalanceTransactionRow> rows, LongPredicate finalPeriodStatement) {
         List<BalanceTransactionRow> confirmed = rows.stream()
                 .filter(r -> r.status() == TransactionStatus.CONFIRMED)
                 .sorted(Comparator.comparingLong(BalanceTransactionRow::id))
@@ -40,9 +47,13 @@ public record SettlementLedger(
         int pending = (int) rows.stream()
                 .filter(r -> r.status() == TransactionStatus.PENDING_APPROVAL)
                 .count();
-        Optional<BalanceTransactionRow> finalPayment = confirmed.stream()
+        List<BalanceTransactionRow> payments = confirmed.stream()
                 .filter(r -> r.type() == TransactionType.STATEMENT_PAYMENT)
-                .reduce((first, second) -> second);
+                .toList();
+        Optional<BalanceTransactionRow> finalPayment = payments.stream()
+                .filter(r -> r.costStatementId() != null && finalPeriodStatement.test(r.costStatementId()))
+                .reduce((first, second) -> second)
+                .or(() -> payments.stream().reduce((first, second) -> second));
         long finalPaymentId = finalPayment.map(BalanceTransactionRow::id).orElse(0L);
         return new SettlementLedger(
                 pending,

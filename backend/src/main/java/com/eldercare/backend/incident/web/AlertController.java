@@ -7,6 +7,7 @@ import com.eldercare.backend.incident.internal.alert.service.AlertCommandService
 import com.eldercare.backend.incident.internal.alert.service.AlertHandlingService;
 import com.eldercare.backend.incident.internal.alert.service.AlertQueryService;
 import com.eldercare.backend.incident.internal.alert.service.ManualAlertService;
+import com.eldercare.backend.incident.web.request.AlertFollowUpRequest;
 import com.eldercare.backend.incident.web.request.AssignAlertRequest;
 import com.eldercare.backend.incident.web.request.ChangeAlertLevelRequest;
 import com.eldercare.backend.incident.web.request.CloseAlertRequest;
@@ -197,5 +198,23 @@ public class AlertController {
             @RequestBody CloseAlertRequest request) {
         handling.close(id, request.resolution(), request.reason(), currentUser);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/follow-ups")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Đã ghi"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public ResponseEntity<Void> recordFollowUp(
+            @PathVariable long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @RequestBody AlertFollowUpRequest request) {
+        handling.recordFollowUp(id, request.content(), currentUser);
+        return ResponseEntity.status(201).build();
     }
 }

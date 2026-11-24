@@ -112,9 +112,21 @@ public class HandoverAccess {
         return sender(shift, user) || member && permitted(Operation.UPDATE, shift, true, user);
     }
 
+    /**
+     * Q-441: người phụ trách ca sau xác nhận; ca sau đã bắt đầu mà người đó vắng, hoặc đã quá CFG-M09-05, thì
+     * Trưởng tầng của phạm vi xác nhận thay, không cần có tên trong ca sau.
+     */
     public boolean receiver(WorkShift receivingShift, CurrentUser user) {
         boolean lead = lead(receivingShift, user);
-        boolean manager = floor(receivingShift, user) && present(receivingShift, user) && inWindow(receivingShift);
-        return (lead || manager) && permitted(Operation.CONFIRM, receivingShift, lead || manager, user);
+        boolean substitute = substitute(receivingShift, user);
+        return (lead || substitute) && permitted(Operation.CONFIRM, receivingShift, lead || substitute, user);
+    }
+
+    public boolean substitute(WorkShift receivingShift, CurrentUser user) {
+        if (!floor(receivingShift, user) || time.now().isBefore(receivingShift.startsAt())) return false;
+        var overdue = receivingShift
+                .startsAt()
+                .plus(parameters.read(ParameterCode.CFG_M09_05).asDuration());
+        return !leadAvailable(receivingShift) || !time.now().isBefore(overdue);
     }
 }

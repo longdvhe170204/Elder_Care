@@ -97,7 +97,8 @@ public record AlertResponse(
         List<String> helpers,
 
         @Schema(description = "Tin người gửi nhắn thêm (đề xuất 2026-11-23)")
-        List<SenderMessage> senderMessages) {
+        List<SenderMessage> senderMessages,
+        List<AlertFollowUp> followUps) {
 
     private static final String STAFF_ASSIST = "STAFF_ASSIST_REQUEST";
     private static final String RESIDENT_HELP = "RESIDENT_HELP_REQUEST";
@@ -108,6 +109,9 @@ public record AlertResponse(
 
     public record AlertSource(
             String sourceType, Long sourceId, IncidentLevel level, Instant occurredAt, Instant resolvedAt) {}
+
+    /** Kết quả theo dõi (FR-087, Q-443). */
+    public record AlertFollowUp(String content, Instant at, String recordedBy) {}
 
     public static AlertResponse of(AlertDetails details, boolean merged) {
         AlertRecord alert = details.alert();
@@ -160,6 +164,9 @@ public record AlertResponse(
                 details.assist().helpers(),
                 details.assist().messages().stream()
                         .map(message -> new SenderMessage(message.by(), message.text(), message.at()))
+                        .toList(),
+                details.followUps().stream()
+                        .map(f -> new AlertFollowUp(f.content(), f.at(), f.recordedBy()))
                         .toList());
     }
 

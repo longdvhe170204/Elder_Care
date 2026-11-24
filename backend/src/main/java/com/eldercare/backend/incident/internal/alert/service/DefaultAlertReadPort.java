@@ -28,7 +28,7 @@ public class DefaultAlertReadPort implements AlertReadPort {
     @Transactional(readOnly = true)
     public List<AlertView> open(Collection<Long> residentIds) {
         return alerts.openByResidents(residentIds).stream()
-                .map(alert -> new AlertView(alert.id(), alert.residentId()))
+                .map(alert -> new AlertView(alert.id(), alert.residentId(), alert.type()))
                 .toList();
     }
 

@@ -14,11 +14,13 @@ public record AlertDetails(
         String floorName,
         List<Report> reports,
         Assist assist,
-        String closedByName) {
+        String closedByName,
+        List<FollowUp> followUps) {
     public AlertDetails {
         sources = List.copyOf(sources);
         allowedCommands = Set.copyOf(allowedCommands);
         reports = List.copyOf(reports);
+        followUps = List.copyOf(followUps);
         if (assist == null) assist = Assist.NONE;
     }
 
@@ -34,7 +36,7 @@ public record AlertDetails(
             Press press,
             String floorName,
             List<Report> reports) {
-        this(alert, assigneeName, sources, allowedCommands, press, floorName, reports, Assist.NONE, null);
+        this(alert, assigneeName, sources, allowedCommands, press, floorName, reports, Assist.NONE, null, List.of());
     }
 
     /**
@@ -55,6 +57,14 @@ public record AlertDetails(
 
     /** Một lần báo của nhân viên gộp vào cảnh báo thủ công đang mở (FR-030): người báo, mô tả, thời điểm. */
     public record Report(String reportedBy, String description, Instant at) {}
+
+    public AlertDetails(
+            AlertRecord alert, String assigneeName, List<Source> sources, Set<String> allowedCommands, Press press) {
+        this(alert, assigneeName, sources, allowedCommands, press, null, List.of());
+    }
+
+    /** Một lần ghi kết quả theo dõi (FR-087, Q-443): nội dung, thời điểm, người ghi. */
+    public record FollowUp(String content, Instant at, String recordedBy) {}
 
     /** Người bấm (nút hỗ trợ), loại sự việc và nơi đã chọn của cảnh báo từ nút SOS, nút hỗ trợ (FR-047f, FR-047i). */
     public record Press(

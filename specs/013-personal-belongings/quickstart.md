@@ -33,7 +33,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q1 | HC tiếp nhận điện thoại của A không ảnh | 409 `THIEU_ANH` | US1, BR-M12-05 |
 | Q2 | Tiếp nhận điện thoại có ảnh, vị trí Tủ khóa HC | Đồ Đang giữ, một bản ghi Tiếp nhận; R nhận Nhẹ | US1, FR-004 |
 | Q3 | Tiếp nhận 2.000.000 đồng tiền mặt, giao ngay, người giao là P | Chặn: người giao không phải người đại diện; R giao kèm bản ký → hai bản ghi, đồng ý Hiệu lực | US1, FR-005, BR-M12-06 |
-| Q4 | DD tiếp nhận cho người ngoài phạm vi | 403 | FR-007 |
+| Q4 | DD tiếp nhận cho người ngoài phạm vi | 404, không lộ hồ sơ có tồn tại (002 FR-043; sửa 2026-11-23 khi test luồng BF-14, trước ghi 403) | FR-007 |
 | Q5 | Tiếp nhận 10 bộ quần áo; chuyển giữ 4 bộ sang Tủ tầng 2 | Tách: đồ mới 4 bộ Đang giữ tại tầng 2; đồ cũ 6 bộ; tổng bằng 10 | US2, FR-012, SC-001 |
 | Q6 | DD thu lại 6 bộ nhưng đếm được 5 | Tách 1 bộ và Báo thất lạc trong cùng lệnh | US2, FR-013 |
 | Q7 | DD chuyển giữ điện thoại khi người giữ là HC đang trong ca | 409 `NGUOI_GIAO_KHONG_PHAI_NGUOI_GIU` | US2, FR-014 |

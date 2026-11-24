@@ -102,7 +102,8 @@ public class AlertQueryService {
                                 : floors.computeIfAbsent(alert.floorAreaId(), this::floorName),
                         List.of(),
                         mineOnly(alert, user),
-                        null))
+                        null,
+                        List.of()))
                 .toList();
     }
 
@@ -133,7 +134,8 @@ public class AlertQueryService {
                 assist(alert, mine, helpers, rows),
                 alert.closedById() == null
                         ? null
-                        : accounts.fullName(alert.closedById()).orElse(null));
+                        : accounts.fullName(alert.closedById()).orElse(null),
+                followUps(alertId));
     }
 
     /** Danh sách chỉ cần biết yêu cầu hỗ trợ là của người xem, không đọc người đến giúp, tin nhắn (đề xuất 2026-11-23). */
@@ -182,6 +184,17 @@ public class AlertQueryService {
                 .max(java.util.Comparator.comparingLong(row -> row.id()))
                 .map(row -> Boolean.TRUE.equals(row.content().offShift()))
                 .orElse(false);
+    }
+
+    /** Kết quả theo dõi kèm họ tên người ghi (FR-087). */
+    private List<AlertDetails.FollowUp> followUps(long alertId) {
+        return new AlertFollowUps(records.orElse(null))
+                .list(alertId).stream()
+                        .map(row -> new AlertDetails.FollowUp(
+                                row.content(),
+                                row.at(),
+                                accounts.fullName(row.recordedBy()).orElse(null)))
+                        .toList();
     }
 
     /** Người bấm, loại sự việc, nơi đã chọn (nút hỗ trợ: dòng M05.ASSIST_DETAIL; SOS: nơi của lần bấm mới nhất). */
@@ -262,7 +275,17 @@ public class AlertQueryService {
             commands.add("change-level");
         }
         boolean shortcut = handler && AlertHandlingService.senderShortcut(alert, user);
-        if ((status == AlertStatus.IN_PROGRESS || shortcut) && handler) commands.add("close");
+        if (handler
+                && (shortcut
+                        || (status == AlertStatus.IN_PROGRESS && AlertHandlingService.mayClose(alert, user)))) {
+            commands.add("close");
+        }
+        if (open
+                && !manager
+                && user.roles().stream().anyMatch(AlertHandlingService.FOLLOWERS::contains)
+                && permissions.hasPermission(user, VIEW, target(alert)).allowed()) {
+            commands.add("follow-up");
+        }
         boolean pressed =
                 SosService.ALERT_TYPE.equals(alert.type()) || EmergencyAssistService.ALERT_TYPE.equals(alert.type());
         if (pressed

@@ -293,6 +293,14 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [resolution], properties: { resolution: { type: string, minLength: 1 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /alerts/{id}/follow-ups:
+    post:
+      tags: [alerts]
+      summary: Ghi kết quả theo dõi vào cảnh báo đang mở (bổ sung 2026-11-22, Q-443); không đổi trạng thái
+      x-fr: [FR-087]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [content], properties: { content: { type: string, minLength: 1 } } } } } }
+      responses: { '201': { description: Đã ghi }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
   /alerts/{id}/convert-to-incident:
     post:
       tags: [alerts]
@@ -1136,6 +1144,7 @@ components:
         senderOffShift: { type: boolean, description: 'Người gửi không trong ca lúc bấm; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
         helpers: { type: array, items: { type: string }, description: 'Người đã bấm Tôi đến giúp; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
         senderMessages: { type: array, description: 'Tin người gửi nhắn thêm; Đổi api 2026-11-23, A duyệt (qua Đức Anh)', items: { type: object, properties: { by: { type: string }, text: { type: string }, at: { type: string, format: date-time } } } }
+        followUps: { type: array, description: 'Bổ sung 2026-11-22 (FR-087, Q-443): kết quả theo dõi, cũ trước', items: { type: object, properties: { content: { type: string }, at: { type: string, format: date-time }, recordedBy: { type: string } } } }
     IncidentFromAlert:
       type: object
       properties: { incidentTypeId: { type: integer, format: int64 }, description: { type: string }, initialResponse: { type: string }, residentId: { type: integer, format: int64, description: "Bổ sung 2026-10-22 (FR-047i): bắt buộc khi cảnh báo STAFF_ASSIST_REQUEST chưa gắn người cao tuổi (422 RESIDENT_REQUIRED)" }, createDespiteOpen: { type: [boolean, 'null'], description: 'Khác vụ: tạo sự cố riêng dù đang có sự cố Khẩn cấp mở (FR-041); Đổi api 2026-11-23, chờ chủ dự án duyệt' }, existingIncidentId: { type: [integer, 'null'], format: int64, description: 'Cùng vụ: gắn cảnh báo vào sự cố đang mở này, không tạo sự cố mới (FR-029); Đổi api 2026-11-23, chờ chủ dự án duyệt' }, location: { type: [string, 'null'], maxLength: 500, description: 'Nơi xảy ra của sự cố mới, màn điền sẵn từ yêu cầu hỗ trợ; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }, addHelpers: { type: [boolean, 'null'], description: 'Người đã bấm Tôi đến giúp thành người tham gia xử lý; mặc định true; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' } }
