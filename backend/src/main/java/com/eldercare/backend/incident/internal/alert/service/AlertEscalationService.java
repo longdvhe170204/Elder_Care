@@ -150,7 +150,7 @@ public class AlertEscalationService {
 
     /** Hạn mới sau khi lên cấp: Trung bình là bây giờ + CFG-M05-01, Nhẹ là hết ca (FR-031, FR-033). */
     private Instant deadline(IncidentLevel level, AlertRecord alert, Instant now) {
-        return AcknowledgementDeadlines.of(level, now, alert.floorAreaId(), parameters, staff);
+        return AcknowledgementDeadlines.forEscalation(level, now, alert.floorAreaId(), parameters, staff);
     }
 
     /**

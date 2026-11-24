@@ -105,6 +105,14 @@ public class FakeFamilyRights implements FamilyRightsApi {
         return Optional.ofNullable(documents.get(familyMemberId));
     }
 
+    @Override
+    public Optional<String> fullName(long familyMemberId) {
+        return members.stream()
+                .filter(m -> m.familyMemberId == familyMemberId)
+                .findFirst()
+                .map(m -> m.view().fullName());
+    }
+
     private Optional<Member> find(long familyMemberId, long residentId) {
         return members.stream()
                 .filter(m -> m.familyMemberId == familyMemberId && m.residentId == residentId)

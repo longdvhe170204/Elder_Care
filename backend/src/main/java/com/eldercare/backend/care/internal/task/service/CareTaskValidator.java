@@ -65,6 +65,15 @@ public class CareTaskValidator {
         return required == actual || (required == Role.CAREGIVER && actual == Role.NURSING_STAFF);
     }
 
+    /**
+     * Thứ tự chọn người khi hệ thống tự giao lại (sau bàn giao, đổi phân công): người đúng vai trò trước, Điều dưỡng làm
+     * thay việc của Nhân viên chăm sóc (Q-214) chỉ khi không còn ai đúng vai trò; cùng nhóm thì phân công chính trước.
+     */
+    public static Comparator<ShiftStaffPort.CareAssignmentView> assigneeOrder(Role required) {
+        return Comparator.<ShiftStaffPort.CareAssignmentView, Boolean>comparing(a -> a.role() != required)
+                .thenComparing(a -> !a.primary());
+    }
+
     public CareTaskValidation validate(
             CareTaskDraft d, ShiftStaffPort.ShiftView shift, Instant now, long actor, Long originalTaskId) {
         var errors = new LinkedHashSet<String>();
@@ -294,8 +303,11 @@ public class CareTaskValidator {
                 .filter(a -> roleMatches(role, a.role()) && port.onShift(a.staffId(), d.plannedAt()))
                 .toList();
         if (d.shared()) {
-            if (d.performerId() != null || (d.basisType() != SourceType.REWORK && !matching.isEmpty()))
-                errors.add("INVALID_PERFORMER");
+            // Làm lại, việc tiếp theo của sự cố (007 FR-045b): giao cho ca sau khi chưa biết ai nhận nên được là việc
+            // chung
+            boolean sharedAllowed =
+                    d.basisType() == SourceType.REWORK || d.basisType() == SourceType.INCIDENT_FOLLOW_UP;
+            if (d.performerId() != null || (!sharedAllowed && !matching.isEmpty())) errors.add("INVALID_PERFORMER");
             return;
         }
         if (d.performerId() == null || matching.stream().noneMatch(a -> Objects.equals(a.staffId(), d.performerId())))

@@ -22,6 +22,7 @@ import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.resident.api.spi.ContractApi;
 import java.time.*;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -96,6 +97,24 @@ class FR_017_CareTaskValidatorTest {
     }
 
     @Test
+    void Q_214_autoAssignPrefersExactRoleBeforeNurseStandIn() {
+        var nurse = new ShiftStaffPort.CareAssignmentView(9005, Role.NURSING_STAFF, true);
+        var caregiver = new ShiftStaffPort.CareAssignmentView(9006, Role.CAREGIVER, false);
+        var caregiverPrimary = new ShiftStaffPort.CareAssignmentView(9007, Role.CAREGIVER, true);
+        // Việc của Nhân viên chăm sóc: người đúng vai trò trước (phân công chính trước), Điều dưỡng chỉ khi không còn
+        // ai.
+        assertThat(Stream.of(nurse, caregiver, caregiverPrimary)
+                        .sorted(CareTaskValidator.assigneeOrder(Role.CAREGIVER))
+                        .map(ShiftStaffPort.CareAssignmentView::staffId))
+                .containsExactly(9007L, 9006L, 9005L);
+        assertThat(Stream.of(caregiver, nurse)
+                        .sorted(CareTaskValidator.assigneeOrder(Role.NURSING_STAFF))
+                        .map(ShiftStaffPort.CareAssignmentView::staffId)
+                        .findFirst())
+                .contains(9005L);
+    }
+
+    @Test
     void FR_024_nurseMayPerformCaregiverWorkButNotTheReverse() {
         assertThat(CareTaskValidator.roleMatches(Role.CAREGIVER, Role.NURSING_STAFF))
                 .isTrue();
@@ -107,6 +126,24 @@ class FR_017_CareTaskValidatorTest {
                         .validate(row(SourceType.MEAL, at, Importance.NORMAL, 22L, false), shift, now, 1, null)
                         .codes())
                 .isEmpty();
+    }
+
+    @Test
+    void FR_025_incidentFollowUpMayBeSharedWhileOtherBasesKeepAssignedPerformerRule() {
+        when(source.managedTypes()).thenReturn(Set.of(SourceType.MEAL, SourceType.INCIDENT_FOLLOW_UP));
+        assertThat(validator
+                        .validate(
+                                row(SourceType.INCIDENT_FOLLOW_UP, at, Importance.MANDATORY, null, true),
+                                shift,
+                                now,
+                                1,
+                                null)
+                        .codes())
+                .isEmpty();
+        assertThat(validator
+                        .validate(row(SourceType.MEAL, at, Importance.NORMAL, null, true), shift, now, 1, null)
+                        .codes())
+                .contains("INVALID_PERFORMER");
     }
 
     @Test

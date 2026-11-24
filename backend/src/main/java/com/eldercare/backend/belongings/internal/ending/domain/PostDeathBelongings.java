@@ -32,15 +32,15 @@ public final class PostDeathBelongings {
                 .count();
         if (unreturnedAtDeath == 0) {
             return new PostDeathItemStatusView(
-                    PostDeathItemStatus.NOT_APPLICABLE, "Không có đồ gửi chưa trả tại thời điểm qua đời (FR-026)");
+                    PostDeathItemStatus.NOT_APPLICABLE, "Không có đồ gửi chưa trả tại thời điểm qua đời");
         }
         long open = entries.stream()
                 .filter(e -> !e.trackedSeparately() && !SETTLED.contains(e.now()))
                 .count();
         return open == 0
                 ? new PostDeathItemStatusView(
-                        PostDeathItemStatus.COMPLETED, "Mọi đồ gửi đã trả, thất lạc hoặc đã xử lý (FR-026)")
+                        PostDeathItemStatus.COMPLETED, "Mọi đồ gửi đã trả, thất lạc hoặc đã xử lý")
                 : new PostDeathItemStatusView(
-                        PostDeathItemStatus.NOT_COMPLETED, "Còn " + open + " đồ gửi chưa trả hoặc chưa xử lý (FR-026)");
+                        PostDeathItemStatus.NOT_COMPLETED, "Còn " + open + " đồ gửi chưa trả hoặc chưa xử lý");
     }
 }

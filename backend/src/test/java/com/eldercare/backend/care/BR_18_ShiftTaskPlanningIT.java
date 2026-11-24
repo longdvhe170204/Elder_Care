@@ -173,6 +173,26 @@ class BR_18_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void Q_444_shiftLeadNurseCannotPlanShiftTasks() throws Exception {
+        var nurse = new TestUsers(jdbc, time).staff(Role.NURSING_STAFF);
+        shifts.shiftLead(shiftId, nurse.staffId());
+        assignments.assign(
+                nurse.staffId(),
+                new AssignmentView(
+                        AssignmentKind.SHIFT_LEAD,
+                        floor,
+                        null,
+                        null,
+                        shiftId,
+                        time.now().minusSeconds(3600),
+                        time.now().plusSeconds(14400)));
+        user.set(nurse.user());
+        plan("[" + row(residentId, sourceId, planned) + "]").andExpect(status().isForbidden());
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_task WHERE shift_id=?", Integer.class, shiftId))
+                .isZero();
+    }
+
+    @Test
     void DBR_12_duplicateBasisRejectedAndCancelledTaskCanBeReplanned() throws Exception {
         long id = create();
         plan("[" + row(residentId, sourceId, planned) + "]").andExpect(status().isConflict());

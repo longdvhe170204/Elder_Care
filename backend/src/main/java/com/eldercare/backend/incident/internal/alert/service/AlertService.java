@@ -146,6 +146,16 @@ public class AlertService {
         alertStore.updateMerged(existing.id(), newCount, now, newLevel, newDeadline, existing.version());
 
         String sourceKey = recordSource(existing.id(), cmd, now);
+        if (cmd.createdById() != null
+                && cmd.description() != null
+                && !cmd.description().isBlank()) {
+            new AlertHistory(recordEvents.orElse(null))
+                    .add(
+                            existing.id(),
+                            AlertHistory.MERGED,
+                            Map.of("by", cmd.createdById(), "description", cmd.description(), "at", now.toString()),
+                            now);
+        }
 
         var updated = new AlertRecord(
                 existing.id(),

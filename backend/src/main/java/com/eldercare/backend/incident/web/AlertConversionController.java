@@ -58,13 +58,7 @@ public class AlertConversionController {
             @PathVariable long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody ConvertToIncidentRequest request) {
-        long incidentId = conversion.activateEmergency(
-                id,
-                request.incidentTypeId(),
-                request.description(),
-                request.initialResponse(),
-                request.residentId(),
-                currentUser);
+        long incidentId = conversion.activateEmergency(id, request.toConversion(), currentUser);
         var card = cards.forViewer(incidentId, currentUser)
                 .map(ActivationEmergencyCard::of)
                 .orElse(null);
@@ -84,13 +78,7 @@ public class AlertConversionController {
             @PathVariable long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody ConvertToIncidentRequest request) {
-        long incidentId = conversion.convert(
-                id,
-                request.incidentTypeId(),
-                request.description(),
-                request.initialResponse(),
-                request.residentId(),
-                currentUser);
+        long incidentId = conversion.convert(id, request.toConversion(), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(IncidentQueryController.toResponse(queries.detail(incidentId, currentUser)));
     }

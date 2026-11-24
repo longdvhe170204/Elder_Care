@@ -10,7 +10,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
- * FR-043l (Q-438, R22): loại thay đổi "Loại phòng" (mã {@code BED}) chỉ dùng khi giường mới thuộc loại phòng khác loại phòng
+ * FR-043l (Q-445, R22): loại thay đổi "Loại phòng" (mã {@code BED}) chỉ dùng khi giường mới thuộc loại phòng khác loại phòng
  * của hợp đồng hiện hành. Giường cùng loại phòng thì bị chặn 422 {@code BED_CHANGE_SAME_ROOM_TYPE}, hướng dẫn dùng Chuyển
  * giường trực tiếp (7.4), không lập yêu cầu, không ký phụ lục. Không chặn khi đổi giường đi kèm bán trú sang nội trú (giường
  * đầu tiên) hoặc yêu cầu lập sau chuyển giường gấp; yêu cầu lập trước khi có quy tắc bị chặn lại khi gửi duyệt.

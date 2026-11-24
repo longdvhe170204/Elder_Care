@@ -29,4 +29,9 @@ public record TransferSummaryContent(
         long preparedById,
         String preparedBy,
         Instant preparedAt,
-        long statusHistoryId) {}
+        long statusHistoryId,
+        // Thêm 2026-11-22: bản cũ không có ba mục này (null); includeWishes null hoặc false thì phiếu không in nguyện
+        // vọng.
+        Boolean includeWishes,
+        String handoverCondition,
+        List<Map<String, Object>> chronicConditions) {}

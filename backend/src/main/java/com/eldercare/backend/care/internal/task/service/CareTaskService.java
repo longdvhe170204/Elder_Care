@@ -6,8 +6,6 @@ import com.eldercare.backend.administration.account.api.spi.BedAllocationApi;
 import com.eldercare.backend.administration.auditlog.api.*;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
-import com.eldercare.backend.administration.parameter.api.*;
-import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.shared.api.StatusHistoryApi;
 import com.eldercare.backend.administration.shared.api.dto.*;
 import com.eldercare.backend.care.api.dto.*;
@@ -41,7 +39,6 @@ public class CareTaskService {
     private final CurrentUser user;
     private final PermissionApi permissions;
     private final BusinessTime time;
-    private final ParameterApi parameters;
     private final AuditLogApi audit;
     private final StatusHistoryApi history;
     private final CareTaskNotices notices;
@@ -56,7 +53,6 @@ public class CareTaskService {
             CurrentUser user,
             PermissionApi permissions,
             BusinessTime time,
-            ParameterApi parameters,
             AuditLogApi audit,
             StatusHistoryApi history,
             CareTaskNotices notices,
@@ -69,7 +65,6 @@ public class CareTaskService {
         this.user = user;
         this.permissions = permissions;
         this.time = time;
-        this.parameters = parameters;
         this.audit = audit;
         this.history = history;
         this.notices = notices;
@@ -107,15 +102,11 @@ public class CareTaskService {
                 .allowed()) throw new PermissionDeniedException("Không có quyền với đối tượng này");
     }
 
-    private void lead(ShiftStaffPort.ShiftView shift, Instant now) {
+    /** Q-444 (chủ dự án 2026-11-23): chỉ Trưởng tầng lập công việc của ca, kể cả lập trước; Người phụ trách ca thì không. */
+    private void floorManager(ShiftStaffPort.ShiftView shift) {
         if (!shift.published()) throw new BusinessException(HttpStatus.CONFLICT, "OUTSIDE_SHIFT", "Ca chưa công bố");
-        if (user.roles().contains(Role.FLOOR_MANAGER)) return;
-        if (user.staffId().isEmpty() || !staff().shiftLead(shift.id()).equals(user.staffId()))
-            throw new PermissionDeniedException("Chỉ Người phụ trách ca hoặc Trưởng tầng được lập công việc của ca");
-        if (now.isBefore(shift.startsAt()
-                        .minus(parameters.read(ParameterCode.CFG_M04_01).asDuration()))
-                || !now.isBefore(shift.endsAt()))
-            throw new PermissionDeniedException("Chưa tới thời gian lập công việc hoặc ca đã kết thúc");
+        if (!user.roles().contains(Role.FLOOR_MANAGER))
+            throw new PermissionDeniedException("Chỉ Trưởng tầng được lập công việc của ca");
     }
 
     @RequiresPermission(function = Function.SHIFT_TASK_PLANNING, operation = Operation.CREATE)
@@ -123,7 +114,7 @@ public class CareTaskService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<CareTask> plan(Target target, long shiftId, List<CareTaskDraft> rows) {
         var s = shift(shiftId);
-        lead(s, time.now());
+        floorManager(s);
         return saveRows(rows, s, null, Function.SHIFT_TASK_PLANNING);
     }
 
@@ -133,8 +124,9 @@ public class CareTaskService {
     public CareTask adHoc(Target target, CareTaskDraft row) {
         if (Collections.disjoint(user.roles(), Set.of(Role.FLOOR_MANAGER, Role.NURSING_STAFF)))
             throw new PermissionDeniedException("Chỉ Trưởng tầng hoặc Điều dưỡng tạo công việc phát sinh");
-        if (row.basisType() != SourceType.AD_HOC)
-            throw new InvalidValueException("Công việc phát sinh phải có căn cứ AD_HOC");
+        // FR-025 (007 FR-045b): việc tiếp theo của sự cố là công việc phát sinh có căn cứ sự cố
+        if (row.basisType() != SourceType.AD_HOC && row.basisType() != SourceType.INCIDENT_FOLLOW_UP)
+            throw new InvalidValueException("Công việc phát sinh phải có căn cứ AD_HOC hoặc INCIDENT_FOLLOW_UP");
         var s = staff().shiftContaining(target.floorAreaId(), row.plannedAt()).orElseThrow(NotFoundException::new);
         return saveRows(List.of(row), s, null, Function.TASK_CHECKLIST).getFirst();
     }
@@ -301,6 +293,17 @@ public class CareTaskService {
                 .before(before == null ? Map.of() : Map.of("status", before.status()))
                 .after(Map.of("status", after.status(), "content", after.data().content()))
                 .reason(reason)
+                // FR-045 (000): thay đổi do hệ thống (job phút, sự kiện) ghi căn cứ; thiếu thì nhật ký từ chối và
+                // cả bước chuyển Đến hạn, Quá hạn bị hủy
+                .basis(
+                        system
+                                ? new com.eldercare.backend.administration.auditlog.api.dto.Basis(
+                                        "FR-026",
+                                        null,
+                                        after.id(),
+                                        org.slf4j.MDC.get(
+                                                com.eldercare.backend.common.scheduling.SchedulerRuns.MDC_KEY))
+                                : null)
                 .build());
     }
 }

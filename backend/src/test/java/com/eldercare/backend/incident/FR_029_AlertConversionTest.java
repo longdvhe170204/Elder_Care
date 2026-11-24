@@ -24,6 +24,7 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
+import com.eldercare.backend.incident.internal.alert.domain.ConversionRequest;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
 import com.eldercare.backend.incident.internal.alert.service.AlertConversionService;
@@ -46,6 +47,8 @@ class FR_029_AlertConversionTest {
     private final PermissionApi permissions = mock(PermissionApi.class);
     private final IncidentRecordService incidents = mock(IncidentRecordService.class);
     private final BusinessTime time = mock(BusinessTime.class);
+    private final com.eldercare.backend.incident.internal.incident.service.IncidentHandlingService incidentHandling =
+            mock(com.eldercare.backend.incident.internal.incident.service.IncidentHandlingService.class);
     private final CurrentUser user = mock(CurrentUser.class);
     private final AlertConversionService service = new AlertConversionService(
             new AlertHandlingService(
@@ -64,6 +67,7 @@ class FR_029_AlertConversionTest {
             mock(AuditLogApi.class),
             time,
             mock(com.eldercare.backend.incident.internal.emergency.service.EmergencyCallService.class),
+            incidentHandling,
             null);
 
     @BeforeEach
@@ -110,6 +114,48 @@ class FR_029_AlertConversionTest {
         var command = ArgumentCaptor.forClass(RecordIncidentCommand.class);
         verify(incidents).record(command.capture(), eq(user), eq(ID));
         assertThat(command.getValue().residentId()).isEqualTo(202L);
+    }
+
+    @Test
+    void FR_041_separateIncidentSendsCreateDespiteOpen() {
+        service.convert(ID, new ConversionRequest(3L, null, null, null, true, null), user);
+
+        var command = ArgumentCaptor.forClass(RecordIncidentCommand.class);
+        verify(incidents).record(command.capture(), eq(user), eq(ID));
+        assertThat(command.getValue().createDespiteExisting()).isTrue();
+    }
+
+    @Test
+    void FR_029_sameCaseIsLinkedToOpenIncidentWithoutCreatingOne() {
+        long incidentId = service.convert(ID, new ConversionRequest(null, null, null, null, false, 77L), user);
+
+        assertThat(incidentId).isEqualTo(77L);
+        verify(incidentHandling).linkAlert(77L, 101L, IncidentLevel.MEDIUM, user);
+        verify(incidents, never()).record(any(), any(), anyLong());
+        verify(alerts).convert(ID, 77L, 3);
+    }
+
+    @Test
+    void FR_047i_linkingAlertWithoutResidentTakesResidentOfIncident() {
+        lock(AlertStatus.IN_PROGRESS, null);
+        when(incidentHandling.residentOf(77L)).thenReturn(101L);
+
+        service.convert(ID, new ConversionRequest(null, null, null, null, false, 77L), user);
+
+        verify(alerts).attachResident(ID, 101L);
+        verify(alerts).convert(ID, 77L, 4);
+    }
+
+    @Test
+    void FR_029_newAlertIsReceivedAndStartedBeforeLinking() {
+        lock(AlertStatus.NEW, 101L);
+
+        service.activateEmergency(ID, new ConversionRequest(null, null, null, null, false, 77L), user);
+
+        verify(incidentHandling).linkAlert(77L, 101L, IncidentLevel.CRITICAL, user);
+        verify(alerts).receive(ID, 900L, NOW, IncidentLevel.MEDIUM, 3);
+        verify(alerts).startHandling(ID, 900L, 4);
+        verify(alerts).convert(ID, 77L, 5);
     }
 
     private void lock(AlertStatus status, Long residentId) {

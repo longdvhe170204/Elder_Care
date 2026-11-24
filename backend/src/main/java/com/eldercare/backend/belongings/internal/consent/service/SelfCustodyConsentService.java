@@ -22,6 +22,7 @@ import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingResidentLock;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
+import com.eldercare.backend.belongings.internal.belonging.service.StaffNoticeDetails;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogs;
 import com.eldercare.backend.belongings.internal.consent.domain.SelfCustodyConsent;
 import com.eldercare.backend.common.Reason;
@@ -68,6 +69,7 @@ public class SelfCustodyConsentService {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
+    private final StaffNoticeDetails details;
 
     SelfCustodyConsentService(
             SimpleRecordApi records,
@@ -79,7 +81,9 @@ public class SelfCustodyConsentService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             BusinessTime time,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.records = records;
         this.belongings = belongings;
         this.residentLock = residentLock;
@@ -296,10 +300,12 @@ public class SelfCustodyConsentService {
                 .resident(residentId)
                 .after(Map.of("belongingId", belongingId, "representativeId", representativeId, "method", method))
                 .build());
+        // Nguồn là đồ gửi để nhân viên mở được; khóa sự kiện vẫn theo bản đồng ý (hoàn thiện BF-14, 2026-11-23)
         events.publishEvent(BelongingNotices.notice(
                 "SELF_CUSTODY_CONSENT_RECORDED",
-                SelfCustodyConsent.KIND.code(),
-                created.id(),
+                BELONGING_ENTITY,
+                belongingId,
+                "SELF_CUSTODY_CONSENT_RECORDED:" + created.id(),
                 NotificationLevel.LOW,
                 residentId,
                 List.of(
@@ -307,7 +313,8 @@ public class SelfCustodyConsentService {
                         new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)),
                 typeName(belonging) + ": đã ghi đồng ý cho tự giữ",
                 user.accountId(),
-                now));
+                now,
+                false));
         return created.id();
     }
 
@@ -363,10 +370,11 @@ public class SelfCustodyConsentService {
                 type = typeName(belonging);
             }
             if (belonging.status() == BelongingStatus.IN_USE) {
-                events.publishEvent(BelongingNotices.notice(
+                events.publishEvent(details.forStaff(BelongingNotices.notice(
                         "SELF_CUSTODY_CONSENT_WITHDRAWN_IN_USE",
-                        SelfCustodyConsent.KIND.code(),
-                        part.id(),
+                        BELONGING_ENTITY,
+                        part.content().belongingId(),
+                        "SELF_CUSTODY_CONSENT_WITHDRAWN_IN_USE:" + part.id(),
                         NotificationLevel.MEDIUM,
                         residentId,
                         List.of(
@@ -374,13 +382,15 @@ public class SelfCustodyConsentService {
                                 new RecipientGroup.AssignedNurse(residentId, new Substitution.Default())),
                         type + ": đồng ý đã rút khi đồ đang được sử dụng, cần thu lại",
                         user.accountId(),
-                        now));
+                        now,
+                        false)));
             }
         }
         events.publishEvent(BelongingNotices.notice(
                 "SELF_CUSTODY_CONSENT_WITHDRAWN",
-                SelfCustodyConsent.KIND.code(),
-                consent.id(),
+                BELONGING_ENTITY,
+                consent.content().belongingId(),
+                "SELF_CUSTODY_CONSENT_WITHDRAWN:" + consent.id(),
                 NotificationLevel.LOW,
                 residentId,
                 List.of(
@@ -388,7 +398,8 @@ public class SelfCustodyConsentService {
                         new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)),
                 type + ": đồng ý cho tự giữ đã bị rút",
                 user.accountId(),
-                now));
+                now,
+                false));
     }
 
     private BelongingView lockedBelonging(long belongingId) {

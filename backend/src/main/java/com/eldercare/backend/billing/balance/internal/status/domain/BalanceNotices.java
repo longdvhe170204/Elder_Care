@@ -106,7 +106,10 @@ public final class BalanceNotices {
                         new ContentPart(InformationType.GENERAL, general),
                         new ContentPart(InformationType.COSTS, costs.toString())),
                 general,
-                Optional.of(InformationSubject.ABOUT_RESIDENT));
+                // Khoản phải trả là việc của chính người thân: không theo mục "nhận thông báo" của bản đồng ý
+                // (nghiep-vu 14.x, Q-353, Q-362; sửa sau test BF-16 2026-11-22)
+                Optional.of(InformationSubject.ABOUT_FAMILY_MATTER),
+                "");
     }
 
     private static NotificationRequest staff(Facts f, String type, Role role, String text) {
@@ -117,7 +120,9 @@ public final class BalanceNotices {
                 new RecipientGroup.FacilityRole(role),
                 List.of(new ContentPart(InformationType.GENERAL, text)),
                 text,
-                Optional.empty());
+                Optional.empty(),
+                // 009 bỏ yêu cầu trùng nguồn và khóa sự kiện (FR-005): khóa của nhân viên khác khóa của người đại diện
+                ":" + role.name());
     }
 
     private static NotificationRequest request(
@@ -127,13 +132,14 @@ public final class BalanceNotices {
             RecipientGroup group,
             List<ContentPart> content,
             String shortContent,
-            Optional<InformationSubject> subject) {
+            Optional<InformationSubject> subject,
+            String audience) {
         return new NotificationRequest(
                 MODULE,
                 type,
                 SourceGroup.COSTS,
                 new SourceRecord(SOURCE, Long.toString(f.residentId())),
-                type + ":" + f.residentId() + ":" + f.key(),
+                type + ":" + f.residentId() + ":" + f.key() + audience,
                 Optional.of(level),
                 Optional.of(f.residentId()),
                 Optional.empty(),

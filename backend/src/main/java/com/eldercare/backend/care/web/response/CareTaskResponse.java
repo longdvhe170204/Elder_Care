@@ -24,6 +24,7 @@ public record CareTaskResponse(
         Importance importance,
         String performer,
         boolean shared,
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) long shiftId,
 
         @Schema(allowableValues = {"FROM_PREVIOUS_SHIFT", "AWAITING_CONFIRMATION"})
         String carryover,
@@ -66,6 +67,7 @@ public record CareTaskResponse(
                 t.importance(),
                 performer,
                 t.performerId() == null,
+                t.shiftId(),
                 t.carryover(),
                 t.status(),
                 t.awaitingRemeasurement(),

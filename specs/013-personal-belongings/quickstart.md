@@ -33,7 +33,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q1 | HC tiếp nhận điện thoại của A không ảnh | 409 `THIEU_ANH` | US1, BR-M12-05 |
 | Q2 | Tiếp nhận điện thoại có ảnh, vị trí Tủ khóa HC | Đồ Đang giữ, một bản ghi Tiếp nhận; R nhận Nhẹ | US1, FR-004 |
 | Q3 | Tiếp nhận 2.000.000 đồng tiền mặt, giao ngay, người giao là P | Chặn: người giao không phải người đại diện; R giao kèm bản ký → hai bản ghi, đồng ý Hiệu lực | US1, FR-005, BR-M12-06 |
-| Q4 | DD tiếp nhận cho người ngoài phạm vi | 403 | FR-007 |
+| Q4 | DD tiếp nhận cho người ngoài phạm vi | 404, không lộ hồ sơ có tồn tại (002 FR-043; sửa 2026-11-23 khi test luồng BF-14, trước ghi 403) | FR-007 |
 | Q5 | Tiếp nhận 10 bộ quần áo; chuyển giữ 4 bộ sang Tủ tầng 2 | Tách: đồ mới 4 bộ Đang giữ tại tầng 2; đồ cũ 6 bộ; tổng bằng 10 | US2, FR-012, SC-001 |
 | Q6 | DD thu lại 6 bộ nhưng đếm được 5 | Tách 1 bộ và Báo thất lạc trong cùng lệnh | US2, FR-013 |
 | Q7 | DD chuyển giữ điện thoại khi người giữ là HC đang trong ca | 409 `NGUOI_GIAO_KHONG_PHAI_NGUOI_GIU` | US2, FR-014 |
@@ -52,7 +52,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q20 | QL tự lập rồi duyệt thay | 409 `TU_DUYET` | FR-017a |
 | Q21 | DD trả 1 điện thoại + 2 bộ quần áo cho P | Chặn toàn bộ `DIEU_DUONG_DO_CO_GIA_TRI` | FR-016a |
 | Q22 | Xác nhận Hiệu lực quá 4 giờ chưa dùng | Hết hạn, người lập nhận Nhẹ | FR-017 |
-| Q23 | DD báo thất lạc kính, chọn ghi sự cố mới mức Nhẹ | Sự cố 007 nguồn "đồ gửi" trong cùng lệnh; người liên hệ chính và HC nhận Trung bình ≤ 5 phút | US4, FR-021, SC-005 |
+| Q23 | DD báo thất lạc kính, chọn ghi sự cố mới mức Nhẹ kèm lý do chọn mức thấp hơn mặc định Trung bình (007 FR-042; thiếu lý do thì 422 `REASON_REQUIRED`, sửa 2026-11-23) | Sự cố 007 nguồn "đồ gửi" trong cùng lệnh; người liên hệ chính và HC nhận Trung bình ≤ 5 phút | US4, FR-021, SC-005 |
 | Q24 | Như Q23 nhưng 007 lỗi | Lệnh không lưu | FR-021 |
 | Q25 | Ghi hư hỏng không ghi sự cố; sau đó liên kết sự cố CS đã ghi | Không có sự cố tự tạo; liên kết một lần; lần hai 409 `SU_CO_DA_LIEN_KET` | US4, FR-024 |
 | Q26 | Tìm thấy kính (có sự cố liên kết) | Đang giữ; 007 nhận diễn biến "đã tìm thấy"; sự cố không tự đóng | US4 |

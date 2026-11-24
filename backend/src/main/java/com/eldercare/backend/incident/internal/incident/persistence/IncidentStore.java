@@ -149,6 +149,14 @@ public class IncidentStore {
                 .findFirst();
     }
 
+    /** Mã các sự cố Mới, Đang xử lý, Đang theo dõi của người cao tuổi, cũ trước. */
+    public List<Long> openIds(long residentId) {
+        return jdbc.queryForList(
+                "SELECT id FROM incident WHERE resident_id = ? AND status IN ('NEW','IN_PROGRESS','MONITORING') ORDER BY id",
+                Long.class,
+                residentId);
+    }
+
     /** Sự cố Mới, Đang xử lý, Đang theo dõi của người cao tuổi (CHK061, research S-17). */
     public boolean hasOpen(long residentId) {
         return !jdbc.queryForList(

@@ -215,7 +215,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     /**
-     * FR-043l (Q-438, R22): loại thay đổi "Loại phòng" (mã {@code BED}) chỉ dùng khi giường mới thuộc loại phòng khác loại
+     * FR-043l (Q-445, R22): loại thay đổi "Loại phòng" (mã {@code BED}) chỉ dùng khi giường mới thuộc loại phòng khác loại
      * phòng của hợp đồng hiện hành; cùng loại phòng thì không đổi điều khoản, dùng Chuyển giường trực tiếp (7.4). Không xét
      * khi đổi giường đi kèm bán trú sang nội trú (giường đầu tiên), khi yêu cầu lập sau chuyển giường gấp, hoặc khi hợp đồng
      * chưa ghi loại phòng. Lập, sửa: 422 qua {@link #validateContent}; gửi duyệt, duyệt: 409 cùng các điều kiện khác.
@@ -232,7 +232,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (current == null || current.isNull()) {
             return List.of();
         }
-        boolean same = structure.getObject()
+        boolean same = structure
+                .getObject()
                 .roomTypeOfBed(change.newBedId())
                 .map(RoomTypeRef::id)
                 .filter(id -> id == current.asLong())

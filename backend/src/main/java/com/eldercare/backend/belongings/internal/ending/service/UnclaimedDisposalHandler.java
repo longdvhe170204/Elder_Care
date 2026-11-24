@@ -39,10 +39,13 @@ import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
@@ -143,10 +146,12 @@ class UnclaimedDisposalHandler implements RequestTypeHandler {
                 .map(FamilyMemberView::familyMemberId)
                 .filter(id -> !people.contains(id))
                 .ifPresent(people::add);
+        Duration threshold = parameters.read(ParameterCode.CFG_M12_03).asDuration();
+        Instant finalStatusAt = residents.finalStatusAt(residentId).orElse(null);
         List<String> violations = UnclaimedDisposalRules.violations(new UnclaimedDisposalRules.Check(
                 now,
-                parameters.read(ParameterCode.CFG_M12_03).asDuration(),
-                residents.finalStatusAt(residentId).orElse(null),
+                threshold,
+                finalStatusAt,
                 method,
                 items,
                 content.hasNonNull("minutesFileId"),
@@ -158,9 +163,51 @@ class UnclaimedDisposalHandler implements RequestTypeHandler {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
                     violations.getFirst(),
-                    "Đề nghị xử lý đồ không người nhận chưa đạt điều kiện: " + String.join(", ", violations),
+                    "Chưa lập được đề nghị xử lý đồ không người nhận: "
+                            + String.join(
+                                    "; ",
+                                    violations.stream()
+                                            .map(v -> violationText(
+                                                    v, items, finalStatusAt, threshold, rule.attempts(), gap))
+                                            .toList()),
                     Map.of("violations", violations));
         }
+    }
+
+    private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+
+    /** Lời báo cho từng vi phạm (test luồng BF-14 2026-11-23): nói điều cần làm và lúc được lập, không hiện mã. */
+    private static String violationText(
+            String code,
+            List<DisposalItem> items,
+            Instant finalStatusAt,
+            Duration threshold,
+            int attempts,
+            Duration gap) {
+        return switch (code) {
+            case "NO_BELONGINGS" -> "chưa chọn đồ nào";
+            case "BELONGING_NOT_DISPOSABLE" ->
+                "chỉ xử lý được đồ Đang giữ hoặc Hư hỏng (đồ đang được sử dụng phải thu lại trước)";
+            case "CASH_ONLY_TRANSFER_TO_AUTHORITY" -> "tiền mặt chỉ được chuyển cơ quan có thẩm quyền";
+            case "PHOTO_REQUIRED" -> "đồ có giá trị cần có ảnh";
+            case "MINUTES_REQUIRED" -> "cần đính kèm biên bản";
+            case "CONTACT_EVIDENCE_INSUFFICIENT" ->
+                "chưa đủ bằng chứng liên hệ: mỗi người đại diện, người liên hệ chính cần " + attempts
+                        + " lần liên hệ có kết quả, hai lần liền nhau cách ít nhất " + gap.toDays() + " ngày";
+            case "DISPOSAL_TOO_EARLY" -> {
+                Instant allowed = items.stream()
+                        .map(i -> i.foundAt() != null ? i.foundAt() : finalStatusAt)
+                        .filter(Objects::nonNull)
+                        .max(Comparator.naturalOrder())
+                        .map(since -> since.plus(threshold))
+                        .orElse(null);
+                yield allowed == null
+                        ? "hồ sơ người cao tuổi chưa ở trạng thái cuối"
+                        : "chưa đủ " + threshold.toDays() + " ngày kể từ khi hồ sơ ở trạng thái cuối, lập được từ "
+                                + DISPLAY_TIME.format(allowed.atZone(BusinessTime.ZONE));
+            }
+            default -> code;
+        };
     }
 
     /** Hành chính lập: khóa "Đồ gửi" thao tác Tạo (Phụ lục 27 chú thích). */

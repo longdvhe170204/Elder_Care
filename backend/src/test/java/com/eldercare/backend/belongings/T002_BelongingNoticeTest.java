@@ -49,6 +49,51 @@ class T002_BelongingNoticeTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    /** Test luồng BF-14 2026-11-23: nhân viên thấy người cao tuổi, đồ; người thân và tin nhắn không (SC-012, 009 FR-019). */
+    @Test
+    void staffDetail_onlyInFullContentOfStaffRequests() {
+        var staff = com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices.notice(
+                "BELONGINGS_AT_PREVIOUS_FLOOR",
+                "M03.BED_ALLOCATION",
+                5L,
+                NotificationLevel.LOW,
+                7L,
+                List.of(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)),
+                "2 đồ gửi Đang giữ ở vị trí tầng cũ: cần Chuyển giữ",
+                null,
+                Instant.parse("2026-11-05T03:00:00Z"));
+        var family = com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices.notice(
+                "BELONGING_LOST",
+                "M12.BELONGING",
+                5L,
+                NotificationLevel.MEDIUM,
+                7L,
+                List.of(new RecipientGroup.Representative(7L)),
+                "Điện thoại: đồ gửi thất lạc",
+                null,
+                Instant.parse("2026-11-05T03:00:00Z"));
+
+        // Tiêu đề theo sự kiện, không chứa tên người hay sức khỏe (009 FR-034)
+        assertThat(staff.notificationRequests().getFirst().title()).contains("Đồ gửi còn ở tủ tầng cũ");
+        assertThat(family.notificationRequests().getFirst().title()).contains("Đồ gửi thất lạc");
+
+        var detailed = com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices.withStaffDetail(
+                staff, "Người cao tuổi: Bà A (HS-1)");
+        var request = detailed.notificationRequests().getFirst();
+        assertThat(request.content().getFirst().content())
+                .isEqualTo("2 đồ gửi Đang giữ ở vị trí tầng cũ: cần Chuyển giữ. Người cao tuổi: Bà A (HS-1)");
+        assertThat(request.shortContent()).contains("2 đồ gửi Đang giữ ở vị trí tầng cũ: cần Chuyển giữ");
+
+        assertThat(com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices.withStaffDetail(
+                                family, "Người cao tuổi: Bà A (HS-1)")
+                        .notificationRequests()
+                        .getFirst()
+                        .content()
+                        .getFirst()
+                        .content())
+                .isEqualTo("Điện thoại: đồ gửi thất lạc");
+    }
+
     @Test
     void staffOnlyRequest_needsNoSubject() {
         var notice = new BelongingNotice(

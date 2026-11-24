@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
+import org.openpdf.text.Chunk;
 import org.openpdf.text.Document;
 import org.openpdf.text.DocumentException;
 import org.openpdf.text.Element;
@@ -38,6 +39,7 @@ public final class PdfDocument {
     private static final Font TEXT_BOLD = new Font(BOLD, 10);
     private static final Font SMALL = new Font(REGULAR, 8);
     private static final Font TITLE = new Font(BOLD, 14);
+    private static final Font HEADING = new Font(BOLD, 11);
 
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
     private final Document document = new Document(PageSize.A4, MARGIN, MARGIN, MARGIN, MARGIN);
@@ -67,6 +69,35 @@ public final class PdfDocument {
     public PdfDocument paragraph(String text) {
         Paragraph paragraph = new Paragraph(text, TEXT);
         paragraph.setSpacingAfter(6);
+        add(paragraph);
+        return this;
+    }
+
+    /** Tiêu đề mục: chữ đậm cỡ vừa, cách đoạn trước. */
+    public PdfDocument heading(String text) {
+        Paragraph paragraph = new Paragraph(text, HEADING);
+        paragraph.setSpacingBefore(8);
+        paragraph.setSpacingAfter(6);
+        paragraph.setKeepTogether(true);
+        add(paragraph);
+        return this;
+    }
+
+    /** Một dòng "Nhãn: giá trị", nhãn in đậm. */
+    public PdfDocument field(String label, String value) {
+        Paragraph paragraph = new Paragraph();
+        paragraph.add(new Chunk(label + ": ", TEXT_BOLD));
+        paragraph.add(new Chunk(value == null ? "" : value, TEXT));
+        paragraph.setSpacingAfter(6);
+        add(paragraph);
+        return this;
+    }
+
+    /** Dòng chữ nhỏ canh giữa (phụ đề, nguồn thông tin). */
+    public PdfDocument note(String text, boolean centered) {
+        Paragraph paragraph = new Paragraph(text, SMALL);
+        paragraph.setSpacingAfter(4);
+        if (centered) paragraph.setAlignment(Element.ALIGN_CENTER);
         add(paragraph);
         return this;
     }

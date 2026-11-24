@@ -168,10 +168,16 @@ public class CareChecklistService {
             doses = medicationSource.inRange(ids, from, shift.endsAt()).stream()
                     .filter(d -> ids.contains(d.residentId()))
                     .toList();
-            open = alertSource.open(ids).stream()
+            handover = staffing.handoverTasks(actor, shiftId);
+        }
+        // 005 FR-057 (Q-443): mọi người xem checklist thấy cảnh báo đang mở của người cao tuổi trong phạm vi để hiện
+        // nhãn
+        // "Đang theo dõi"; với người không phải điều dưỡng, thiếu nguồn cảnh báo thì bỏ nhãn, không chặn checklist.
+        var alertReader = alerts.getIfAvailable();
+        if (alertReader != null) {
+            open = alertReader.open(ids).stream()
                     .filter(a -> ids.contains(a.residentId()))
                     .toList();
-            handover = staffing.handoverTasks(actor, shiftId);
         }
         return new CareChecklist(
                 shiftId,

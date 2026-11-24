@@ -537,7 +537,7 @@ public class ResidentStatusService {
                 .orElseThrow(() -> new BusinessException(
                         HttpStatus.CONFLICT,
                         "INVALID_TRANSITION",
-                        "Không chuyển được từ " + from + " bằng lệnh " + command));
+                        "Tình trạng hiện tại của người cao tuổi không cho phép thực hiện thao tác này"));
     }
 
     private CommandContext context(Resident resident, StatusCommand command, CurrentUser user, JsonNode details) {

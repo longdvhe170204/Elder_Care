@@ -2,6 +2,7 @@ package com.eldercare.backend.belongings.internal.belonging.persistence;
 
 import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.internal.belonging.domain.GiverType;
+import com.eldercare.backend.belongings.internal.belonging.domain.HandoverParties;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverRow;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverType;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverView;
@@ -16,7 +17,9 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -132,6 +135,25 @@ public class BelongingHandoverStore {
                         + " (SELECT id FROM belonging WHERE intake_handover_id = ?) ORDER BY id",
                 BelongingHandoverStore::view,
                 intakeHandoverId);
+    }
+
+    /** Mã người giao, người nhận của các bản ghi trong {@link #ofIntakeWithBlocks}, để tra tên khi bản ghi chỉ lưu mã. */
+    public Map<Long, HandoverParties> partiesOfIntake(long intakeHandoverId) {
+        Map<Long, HandoverParties> parties = new HashMap<>();
+        jdbc.query(
+                "SELECT id, giver_type, giver_id, recipient_type, recipient_id FROM belonging_handover WHERE"
+                        + " belonging_id IN (SELECT id FROM belonging WHERE intake_handover_id = ?)",
+                rs -> {
+                    parties.put(
+                            rs.getLong("id"),
+                            new HandoverParties(
+                                    rs.getString("giver_type"),
+                                    rs.getObject("giver_id", Long.class),
+                                    rs.getString("recipient_type"),
+                                    rs.getObject("recipient_id", Long.class)));
+                },
+                intakeHandoverId);
+        return parties;
     }
 
     private static final String ROW_COLUMNS =

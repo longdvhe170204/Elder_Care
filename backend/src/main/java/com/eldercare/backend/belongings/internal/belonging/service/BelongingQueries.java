@@ -10,6 +10,7 @@ import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.internal.belonging.domain.BelongingDetail;
+import com.eldercare.backend.belongings.internal.belonging.domain.HandoverRow;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingHandoverStore;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
 import com.eldercare.backend.common.Role;
@@ -38,18 +39,21 @@ public class BelongingQueries {
     private final ValuableTypes valuableTypes;
     private final PermissionApi permissions;
     private final ObjectProvider<CurrentUser> users;
+    private final HandoverPartyNames partyNames;
 
     BelongingQueries(
             BelongingStore belongings,
             BelongingHandoverStore handovers,
             ValuableTypes valuableTypes,
             PermissionApi permissions,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            HandoverPartyNames partyNames) {
         this.belongings = belongings;
         this.handovers = handovers;
         this.valuableTypes = valuableTypes;
         this.permissions = permissions;
         this.users = users;
+        this.partyNames = partyNames;
     }
 
     /**
@@ -94,6 +98,36 @@ public class BelongingQueries {
         return belongings.ofResident(resident.residentId(), status);
     }
 
+    /** Bản ghi bàn giao để mở đồ từ thông báo; cùng quyền xem với {@link #detail} (404 khi không xem được). */
+    @Transactional(readOnly = true)
+    public HandoverRow handoverRef(long handoverId) {
+        HandoverRow row = handovers.find(handoverId).orElseThrow(NotFoundException::new);
+        if (!canView(row.belongingId(), row.residentId())) {
+            throw new NotFoundException();
+        }
+        return row;
+    }
+
+    /** Người dùng hiện tại xem được đồ của người cao tuổi (khóa "Đồ gửi" Xem, phạm vi; dùng cho mở từ thông báo). */
+    public boolean canView(long belongingId, long residentId) {
+        return permissions
+                .hasPermission(
+                        users.getObject(),
+                        new PermissionKey(Function.BELONGINGS, Operation.VIEW),
+                        new Target("M12.BELONGING", Long.toString(belongingId), residentId, null))
+                .allowed();
+    }
+
+    /** Người dùng hiện tại xem được đồ gửi của người cao tuổi (mở từ thông báo FR-028). */
+    public boolean canViewResident(long residentId) {
+        return permissions
+                .hasPermission(
+                        users.getObject(),
+                        new PermissionKey(Function.BELONGINGS, Operation.VIEW),
+                        new Target("M12.BELONGING", null, residentId, null))
+                .allowed();
+    }
+
     /** Không xem được người cao tuổi chủ đồ thì 404, không lộ đồ có tồn tại (002 FR-043). */
     @Transactional(readOnly = true)
     public BelongingDetail detail(long belongingId) {
@@ -108,6 +142,7 @@ public class BelongingQueries {
             throw new NotFoundException();
         }
         long intake = belongings.intakeHandoverOf(belongingId).orElseThrow(NotFoundException::new);
-        return new BelongingDetail(belonging, handovers.ofIntakeWithBlocks(intake));
+        return new BelongingDetail(
+                belonging, partyNames.named(intake, belonging.residentId(), handovers.ofIntakeWithBlocks(intake)));
     }
 }

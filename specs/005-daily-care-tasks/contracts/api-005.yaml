@@ -347,6 +347,22 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [recipientId], properties: { recipientId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: Đã phân lại }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanProblem' } }
+  /care-tasks:
+    get:
+      x-implementation-phase: 11
+      operationId: listCareTaskHistory
+      tags: [cong-viec]
+      summary: Lịch sử công việc đã lập, không theo ca, ngày (màn Lập công việc ca)
+      description: 'Việc lập gần nhất trước (id giảm dần), phân trang; lọc theo tầng, người cao tuổi, loại công việc, người làm. Chỉ trong phạm vi quyền xem lập công việc của người gọi; lọc tầng ngoài phạm vi thì 403. size tối đa 100. Thêm 2026-11-23, chờ chủ dự án duyệt.'
+      x-fr: [FR-017]
+      parameters:
+        - { name: floorAreaId, in: query, schema: { type: integer, format: int64 } }
+        - { name: residentId, in: query, schema: { type: integer, format: int64 } }
+        - { name: taskTypeId, in: query, schema: { type: integer, format: int64 } }
+        - { name: performerId, in: query, schema: { type: integer, format: int64 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CareTaskPage' } } } }, '403': { $ref: '#/components/responses/CarePlanProblem' } }
   /care-tasks/overdue:
     get:
       x-implementation-phase: 7
@@ -481,6 +497,39 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CatalogReason' }
       responses: { '200': { description: OK } }
+  # Bổ sung 2026-11-22 (Q-440, FR-056): mốc sinh hoạt cố định của toàn viện; quyền như danh mục công việc chăm sóc.
+  /daily-routines:
+    get:
+      x-implementation-phase: 2
+      tags: [danh-muc]
+      summary: Mốc sinh hoạt cố định (giá trị mới nhất kèm ngày bắt đầu áp dụng)
+      x-fr: [FR-056]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DailyRoutine' } } } } } }
+    post:
+      x-implementation-phase: 2
+      tags: [danh-muc]
+      summary: Thêm mốc sinh hoạt (Quản lý viện); áp dụng từ ngày hôm sau
+      x-fr: [FR-056]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DailyRoutineWrite' } } } }
+      responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/CareCatalogProblem' } }
+  /daily-routines/{id}:
+    put:
+      x-implementation-phase: 2
+      tags: [danh-muc]
+      summary: Sửa mốc sinh hoạt; áp dụng từ ngày hôm sau
+      x-fr: [FR-056]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DailyRoutineWrite' } } } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/CareCatalogProblem' } }
+  /daily-routines/{id}/deactivate:
+    post:
+      x-implementation-phase: 2
+      tags: [danh-muc]
+      summary: Ngừng mốc sinh hoạt; từ ngày hôm sau không còn hiện
+      x-fr: [FR-056]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/CareCatalogProblem' } }
   /non-performance-reason-types:
     get:
       x-implementation-phase: 2
@@ -662,7 +711,7 @@ paths:
     post:
       tags:
         - cong-viec
-      summary: Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng)
+      summary: Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng); căn cứ AD_HOC hoặc INCIDENT_FOLLOW_UP
       x-fr:
         - FR-025
         - FR-023
@@ -1117,6 +1166,21 @@ components:
       properties:
         ca: { type: object, properties: { id: { type: integer, format: int64 }, batDau: { type: string, format: date-time }, ketThuc: { type: string, format: date-time }, tangKhuVucId: { type: integer, format: int64 } } }
         nguoiCaoTuoi: { type: array, items: { type: object, properties: { nctId: { type: integer, format: int64 }, coMat: { type: string }, phanCong: { type: array, items: { type: object, additionalProperties: true } }, mucKeHoach: { type: array, items: { $ref: '#/components/schemas/CarePlanItem' } }, nguonKhac: { type: array, items: { type: object, properties: { loai: { $ref: '#/components/schemas/LoaiCanCu' }, id: { type: integer, format: int64 }, thoiDiem: { type: string, format: date-time }, moTa: { type: string } } } } } } }
+    DailyRoutine:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        time: { type: string, description: 'HH:mm' }
+        active: { type: boolean }
+        effectiveFrom: { type: string, format: date }
+        version: { type: integer, format: int32 }
+    DailyRoutineWrite:
+      type: object
+      required: [name, time]
+      properties:
+        name: { type: string, maxLength: 200 }
+        time: { type: string, pattern: '^[0-9]{2}:[0-9]{2}$' }
     TaskType:
       type: object
       properties:
@@ -1216,6 +1280,12 @@ components:
           format: int64
         shared:
           type: boolean
+    CareTaskPage:
+      type: object
+      required: [items, total]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/CareTask' } }
+        total: { type: integer, format: int64, description: Tổng số công việc khớp bộ lọc }
     CareTask:
       type: object
       properties:
@@ -1276,6 +1346,11 @@ components:
           type: string
         shared:
           type: boolean
+        shiftId:
+          type: integer
+          format: int64
+          readOnly: true
+          description: Ca của công việc, để mở đúng việc từ cảnh báo quá hạn, sự cố (007 FR-045b). Đổi api 2026-11-23, chờ chủ dự án duyệt.
         carryover:
           type: string
           enum:
@@ -1434,6 +1509,8 @@ components:
         - AD_HOC
         - AD_HOC_RECORDING
         - REWORK
+        # Đổi api 2026-11-23, chờ chủ dự án duyệt: việc tiếp theo của sự cố đang mở (007 FR-045b)
+        - INCIDENT_FOLLOW_UP
     CareTaskStatus:
       type: string
       enum:
