@@ -117,6 +117,7 @@ Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người t
 - **Lệch Q-307** ("không đưa danh sách sự kiện chưa lập khoản, không gợi ý khoản"): màn "Gom chi phí phát sinh" (tên mới của "Lập khoản từ nguồn") có nút **Gom toàn bộ chi phí chưa lập**. Hành chính chọn người cao tuổi và khoảng ngày rồi bấm một lần; màn tra mọi loại nguồn ở bảng 15.2, lấy nguồn chưa có khoản và lập hàng loạt khoản Nháp bằng `POST /costs/items/from-events` theo từng loại. Lý do: trước khi xuất viện, chọn từng nguồn bằng tay dễ sót khoản.
 - Vẫn giữ: khoản chỉ được lập khi Hành chính bấm lệnh (không tự lập theo lịch); backend vẫn kiểm FR-006, FR-007, FR-011 và bỏ qua nguồn không đạt kèm lý do; khoản đi đủ vòng đời mục D. Không đổi API, data-model; lọc "chưa có khoản" làm ở web theo `existingItemId`.
 - Nếu chủ dự án không duyệt: bỏ nút gom, giữ tên mới hoặc trả lại tên cũ; không ảnh hưởng dữ liệu đã lập.
+- **Lệch BR-M11-06, User Story 3, bảng trạng thái bảng chi phí (chỉ bảng kỳ cuối)**: lệnh Gửi chốt của Hành chính trên bảng kỳ cuối (`finalPeriod`) chốt luôn bảng: khoản theo sự kiện Đã kiểm tra và khoản Đã duyệt chuyển Đã chốt, không qua Đã duyệt; Quản lý viện nhận thông báo "Bảng chi phí kỳ cuối đã được Hành chính chốt" (mức Nhẹ). Giữ BR-M11-04: còn khoản nhập tay, mua hộ, điều chỉnh Đã kiểm tra chưa được Quản lý viện duyệt thì bảng vào Chờ chốt như cũ. Bảng thường, bảng bổ sung không đổi. Không đổi API, quyền (Gửi chốt vẫn là Chốt kỳ T của Hành chính), data-model. Web đổi nút thành "Chốt bảng kỳ cuối". Test: `CostWorkflowIT` (4 ca mới).
 
 ## Phạm vi
 
