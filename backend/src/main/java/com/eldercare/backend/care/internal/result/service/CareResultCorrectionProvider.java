@@ -41,6 +41,7 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
     private final CurrentUser user;
     private final FieldVisibilityApi visibility;
     private final com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckTaskVoids qualityVoids;
+    private final CareResultReRecording reRecording;
 
     public CareResultCorrectionProvider(
             CareResultStore results,
@@ -52,7 +53,8 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
             CareResultQueries queries,
             CurrentUser user,
             FieldVisibilityApi visibility,
-            com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckTaskVoids qualityVoids) {
+            com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckTaskVoids qualityVoids,
+            CareResultReRecording reRecording) {
         this.results = results;
         this.tasks = tasks;
         this.locks = locks;
@@ -63,6 +65,7 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
         this.user = user;
         this.visibility = visibility;
         this.qualityVoids = qualityVoids;
+        this.reRecording = reRecording;
     }
 
     @Override
@@ -119,6 +122,8 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
         if (original.residentId() != null) locks.lock(List.of(original.residentId()));
         var task = tasks.get(id, true);
         if (method == CreationMethod.C || task.data().resultType().equals("MEASURED_VALUE")) return false;
+        // Q-446: người đã ghi chỉ tự ghi nhận lại (cách A) khi ca của công việc còn diễn ra.
+        if (method == CreationMethod.A && !reRecording.shiftOngoing(task)) return false;
         if (!permissions
                 .hasPermission(user, RECORD, CareTaskService.target(task))
                 .allowed()) return false;

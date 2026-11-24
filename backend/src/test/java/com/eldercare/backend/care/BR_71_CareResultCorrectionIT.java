@@ -171,4 +171,27 @@ class BR_71_CareResultCorrectionIT extends CareResultTestBase {
                                 new BigDecimal(v.values().get("numericValue").toString()))
                         .isEqualByComparingTo("200"));
     }
+
+    /** Q-446: trong ca, người đã ghi thấy lệnh reRecord và ghi nhận lại được; hết ca thì mất lệnh và bị chặn (403). */
+    @Test
+    void Q_446_nguoiGhiGhiNhanLaiTrongCa_hetCaThiBiChan() throws Exception {
+        original();
+        mvc.perform(get("/api/v1/care-tasks/" + task))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.allowedCommands").value(org.hamcrest.Matchers.hasItem("reRecord")));
+        correct(
+                        "{\"type\":\"AMEND_CONTENT\",\"correctedContent\":{\"numericValue\":300},\"reason\":\"Ghi lại lượng nước\"}")
+                .andExpect(status().isCreated());
+
+        shifts.shift(new com.eldercare.backend.care.api.spi.ShiftStaffPort.ShiftView(
+                shift, floor, time.now().minusSeconds(7200), time.now().minusSeconds(60), true));
+        mvc.perform(get("/api/v1/care-tasks/" + task))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.allowedCommands")
+                        .value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("reRecord"))));
+        correct(
+                        "{\"type\":\"AMEND_CONTENT\",\"correctedContent\":{\"numericValue\":400},\"reason\":\"Ghi lại sau ca\"}")
+                .andExpect(status().isForbidden());
+        assertThat(corrections.chain("M04.CARE_RESULT", task).corrections()).hasSize(1);
+    }
 }

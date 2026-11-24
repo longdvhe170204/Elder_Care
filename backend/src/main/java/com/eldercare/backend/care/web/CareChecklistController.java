@@ -28,6 +28,7 @@ public class CareChecklistController {
     private final PermissionApi permissions;
     private final JsonMapper json;
     private final com.eldercare.backend.care.internal.result.service.CareResultService recording;
+    private final com.eldercare.backend.care.internal.result.service.CareResultReRecording reRecording;
 
     public CareChecklistController(
             CareChecklistService checklist,
@@ -37,7 +38,8 @@ public class CareChecklistController {
             FieldVisibilityApi visibility,
             PermissionApi permissions,
             JsonMapper json,
-            com.eldercare.backend.care.internal.result.service.CareResultService recording) {
+            com.eldercare.backend.care.internal.result.service.CareResultService recording,
+            com.eldercare.backend.care.internal.result.service.CareResultReRecording reRecording) {
         this.checklist = checklist;
         this.tasks = tasks;
         this.user = user;
@@ -46,6 +48,7 @@ public class CareChecklistController {
         this.permissions = permissions;
         this.json = json;
         this.recording = recording;
+        this.reRecording = reRecording;
     }
 
     @GetMapping("/checklist")
@@ -106,6 +109,9 @@ public class CareChecklistController {
                     }
                     if (checklist.canClaim(task))
                         available.put("claim", new PermissionKey(Function.TASK_CHECKLIST, Operation.CONFIRM));
+                    // Q-446: người đã ghi kết quả ghi nhận lại (đính chính) khi ca còn diễn ra.
+                    if (reRecording.allowed(task))
+                        available.put("reRecord", new PermissionKey(Function.TASK_CHECKLIST, Operation.CONFIRM));
                     return CareTaskResponse.of(
                             task,
                             card,
