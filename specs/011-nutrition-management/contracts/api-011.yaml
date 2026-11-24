@@ -8,8 +8,10 @@ info:
     Sửa nội dung Nháp (món, thực đơn) dùng If-Match; lệnh chuyển trạng thái khóa dòng và kiểm tra lại (research M-03).
     Hệ thống không tự chốt suất, không tự lập phiếu (Q-306): lệnh Chốt suất của Nhân viên bếp tính lại tại lúc lệnh,
     không tin số đã xem ở màn tính sẵn.
-    Phản hồi cho Nhân viên bếp dùng DTO riêng (KitchenMealSlip, KitchenMenuWarning) không có dị ứng, bệnh lý,
-    tên người trong cảnh báo dị ứng (FR-025 c, FR-046, SC-008).
+    Phản hồi cho Nhân viên bếp dùng DTO riêng (KitchenMealSlip, MealPlanningInfo) không có tên người, dị ứng của từng người,
+    bệnh lý (FR-025a, FR-046, SC-008).
+    Sửa 2026-11-24 theo Q-445: món gồm tên, mô tả, ảnh; thực đơn chung không chia chế độ ăn; Quản lý viện duyệt;
+    bỏ suất đặc biệt, món thay thế, món an toàn, xác nhận phục vụ, kiểm tra thực đơn; thêm phiếu nhân viên.
     Tên định danh tiếng Anh theo glossary.md của 000, mục 17 (dịch 2026-11-06, chủ dự án duyệt; bản tên logic tiếng Việt ở lịch sử git).
     Truy vết: mỗi operation có x-fr (FR của spec 011) và x-br khi có.
 servers:
@@ -21,7 +23,7 @@ tags:
   - { name: diet, description: 'UC-45; mục B, C' }
   - { name: menu, description: 'UC-46; mục D' }
   - { name: portion-closing, description: 'UC-47; mục E' }
-  - { name: meal-slip, description: 'UC-47, UC-48; mục F, G' }
+  - { name: meal-slip, description: 'UC-47, UC-75, UC-76; mục F' }
   - { name: family-food, description: 'UC-75, UC-76; mục H' }
   - { name: review-and-sample, description: 'UC-77, UC-78; mục I, J' }
 
@@ -66,43 +68,54 @@ paths:
   /nutrition/dishes:
     get:
       tags: [catalog]
-      summary: Danh mục món (lọc trạng thái, chế độ ăn phù hợp); kèm bản sửa chờ nếu có
+      summary: Danh mục món (lọc trạng thái)
       x-fr: [FR-004, FR-004a]
       parameters:
         - { name: status, in: query, schema: { $ref: '#/components/schemas/DishStatus' } }
-        - { name: dietId, in: query, schema: { type: integer, format: int64 } }
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Dish' } } } } } }
     post:
       tags: [catalog]
       summary: Tạo món Nháp (Nhân viên bếp)
       x-fr: [FR-004]
-      x-br: [BR-M08-02]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DishCommand' } } } }
       responses: { '201': { description: OK }, '422': { $ref: '#/components/responses/Problem' } }
   /nutrition/dishes/{id}:
     put:
       tags: [catalog]
-      summary: Sửa món Nháp; với món Hiệu lực chỉ sửa tên, ghi chú (nội dung đổi qua bản sửa)
+      summary: Sửa tên, mô tả của món Nháp hoặc Hiệu lực; áp dụng ngay (Nhân viên bếp)
       x-fr: [FR-004, FR-004a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DishCommand' } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /nutrition/dishes/{id}/image:
+    put:
+      tags: [catalog]
+      summary: Tải lên hoặc thay ảnh món (JPEG, PNG, WebP; tối đa 5 MB); thay ảnh cũ
+      x-fr: [FR-004]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, required: [file], properties: { file: { type: string, format: binary } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Dish' } } } }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+    delete:
+      tags: [catalog]
+      summary: Bỏ ảnh món
+      x-fr: [FR-004]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '204': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
   /nutrition/dishes/{id}/{command}:
     post:
       tags: [catalog]
-      summary: Lệnh trên món theo bảng trạng thái
+      summary: Lệnh trên món theo bảng trạng thái (Nhân viên bếp)
       description: |
-        submit, withdraw, cancel (Nhân viên bếp); confirm, return (Bác sĩ, return cần lý do);
-        submit-revision (kèm nội dung), confirm-revision, return-revision, withdraw-revision; deactivate (Nhân viên bếp, Bác sĩ; lý do;
-        chặn IS_SAFE_DISH). Xác nhận bản sửa chạy lại kiểm tra thực đơn chưa hết tuần (FR-004a).
+        activate (Nháp → Hiệu lực, "Đưa vào dùng"); cancel (Nháp chưa từng Hiệu lực → Đã hủy); deactivate (Hiệu lực → Ngừng hiệu lực, lý do).
+        Sửa 2026-11-24 (Q-445): bỏ submit, withdraw, confirm, return và các lệnh bản sửa.
       x-fr: [FR-004, FR-004a]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: command, in: path, required: true, schema: { type: string, enum: [submit, withdraw, cancel, confirm, return, submit-revision, confirm-revision, return-revision, withdraw-revision, deactivate] } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [activate, cancel, deactivate] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' }, content: { $ref: '#/components/schemas/DishCommand' } } } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MenuCheckResult' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
   /nutrition/meals:
     get:
       tags: [catalog]
@@ -147,21 +160,21 @@ paths:
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DietAssignment' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
     post:
       tags: [diet]
-      summary: Lập đề xuất bản gán (Bác sĩ); trả kết quả đối chiếu FR-016 và có cần lý do chuyên môn
-      x-fr: [FR-010, FR-012, FR-013, FR-016]
+      summary: Lập đề xuất bản gán (Bác sĩ); trả có cần lý do chuyên môn
+      x-fr: [FR-010, FR-012, FR-013]
       x-br: [BR-M08-03]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DietAssignmentCommand' } } } }
-      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MenuCheckResult' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DietAssignmentCheck' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
   /diet-assignments/{id}/apply:
     post:
       tags: [diet]
       summary: Áp dụng bản gán; Hiệu lực ngay hoặc Chờ hiệu lực (FR-017); bản cũ Ngừng cùng lệnh
-      description: Chặn PROFESSIONAL_REASON_REQUIRED khi thuộc FR-013 (a)–(d); WARNINGS_NOT_CONFIRMED khi chưa gửi danh sách cảnh báo đã xem.
-      x-fr: [FR-011, FR-013, FR-016, FR-017, FR-039]
+      description: Chặn PROFESSIONAL_REASON_REQUIRED khi thuộc FR-013 (a)–(d).
+      x-fr: [FR-011, FR-013, FR-017]
       x-br: [BR-M08-03]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { professionalReason: { type: string }, confirmedWarnings: { type: array, items: { type: string } } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { professionalReason: { type: string } } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
   /diet-assignments/{id}/cancel:
     post:
@@ -171,21 +184,23 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
-  /residents/{residentId}/dish-conflict-check:
+  /menus/shared:
     get:
-      tags: [diet]
-      summary: Kết quả đối chiếu xung đột của một người với thực đơn chưa hết tuần (Bác sĩ)
-      x-fr: [FR-020, FR-022]
-      x-br: [BR-M08-02, BR-M01-07]
-      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Conflict' } } } } } }
-
+      tags: [menu]
+      summary: Thực đơn chung đã Công bố, Đã áp dụng theo khoảng ngày (mọi người dùng app; mặc định hôm nay)
+      x-fr: [FR-028]
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SharedMenuDay' } } } } } }
   /menus:
     get:
       tags: [menu]
-      summary: Thực đơn theo tuần
-      x-fr: [FR-023]
-      parameters: [ { name: week, in: query, schema: { type: string, format: date } } ]
+      summary: Danh sách thực đơn tuần (Nhân viên bếp, Quản lý viện); lọc tuần, trạng thái
+      x-fr: [FR-023, FR-029]
+      parameters:
+        - { name: week, in: query, schema: { type: string, format: date } }
+        - { name: status, in: query, schema: { type: string, enum: [DRAFT, PENDING_PUBLICATION, PUBLISHED, APPLIED, CANCELLED] } }
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Menu' } } } } } }
     post:
       tags: [menu]
@@ -197,7 +212,7 @@ paths:
   /menus/{id}:
     get:
       tags: [menu]
-      summary: Chi tiết thực đơn (nội dung, kết quả kiểm tra, lịch sử đổi món)
+      summary: Chi tiết thực đơn (nội dung, người gửi, lý do trả lại, lịch sử đổi món)
       x-fr: [FR-024, FR-031]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } } } }
@@ -211,41 +226,33 @@ paths:
   /menus/{id}/pre-submit-info:
     get:
       tags: [menu]
-      summary: "Thông tin trước khi gửi: số người theo chế độ ăn (không tên); tồn kho bỏ theo Q-392"
+      summary: "Số suất dự kiến và số người cao tuổi theo loại dị ứng mỗi ngày, bữa (không tên; Nhân viên bếp, Quản lý viện)"
       x-fr: [FR-025a]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
-  /menus/{id}/check:
-    post:
-      tags: [menu]
-      summary: Chạy kiểm tra độ phủ, lặp món, dị ứng trong một lần (không đổi trạng thái)
-      x-fr: [FR-025, FR-026, FR-027]
-      x-br: [BR-M08-06, BR-M08-07, BR-M08-08]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: 'Bếp nhận KitchenMenuWarning; Bác sĩ nhận kèm tên người', content: { application/json: { schema: { $ref: '#/components/schemas/MenuCheckResult' } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MealPlanningInfo' } } } } } }
   /menus/{id}/{command}:
     post:
       tags: [menu]
       summary: Lệnh trên thực đơn theo bảng trạng thái
       description: |
-        submit (Nhân viên bếp; processingCheckConfirmed bắt buộc; chặn INSUFFICIENT_COVERAGE, DISH_NOT_ACTIVE, WARNINGS_NOT_CONFIRMED);
-        withdraw, cancel (Nhân viên bếp; cancel cần lý do); return (Bác sĩ, lý do); publish (Bác sĩ; chạy lại kiểm tra, tuần đã bắt đầu thì Đã áp dụng).
-      x-fr: [FR-025, FR-025a, FR-028, FR-029]
+        submit (gửi duyệt; Nhân viên bếp; chặn DISH_NOT_ACTIVE); withdraw, cancel (Nhân viên bếp; cancel cần lý do);
+        return (Quản lý viện, lý do); publish (Quản lý viện; chặn DISH_NOT_ACTIVE; tuần đã bắt đầu thì Đã áp dụng). Sửa 2026-11-24 (Q-445).
+      x-fr: [FR-025, FR-028, FR-029]
       parameters:
         - { $ref: '#/components/parameters/Id' }
         - { name: command, in: path, required: true, schema: { type: string, enum: [submit, withdraw, cancel, return, publish] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' }, processingCheckConfirmed: { type: boolean }, processingNote: { type: string }, confirmedWarnings: { type: array, items: { type: string } } } } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MenuCheckResult' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
   /menus/{id}/dish-swaps:
     post:
       tags: [menu]
-      summary: Đổi món (thay, thêm, bớt món; đổi món thay thế) trên thực đơn Công bố hoặc Đã áp dụng (Nhân viên bếp; lý do); sau chốt tạo phát sinh
-      x-fr: [FR-031, FR-032, FR-039]
+      summary: Đổi món (thay, thêm, bớt món) trên thực đơn Công bố hoặc Đã áp dụng (Nhân viên bếp; lý do); sau chốt tạo phát sinh
+      x-fr: [FR-031, FR-039]
       x-br: [BR-M08-08, BR-M08-13]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DishSwap' } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MenuCheckResult' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
 
   /daily-meals:
     get:
@@ -257,17 +264,17 @@ paths:
   /daily-meals/{id}/precomputed:
     get:
       tags: [portion-closing]
-      summary: Tính sẵn người được tính, số suất theo tầng và chế độ ăn, suất đặc biệt (chỉ xem; không lưu)
-      x-fr: [FR-034, FR-035, FR-036, FR-036a, FR-038]
+      summary: Tính sẵn người được tính, tổng số suất theo tầng/khu và phiếu nhân viên (chỉ xem; không lưu)
+      x-fr: [FR-034, FR-035, FR-038]
       x-br: [BR-M08-01]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ClosingResult' } } } } }
   /daily-meals/{id}/close-portions:
     post:
       tags: [portion-closing]
-      summary: Chốt suất (Nhân viên bếp); tính lại tại lúc lệnh, lập phiếu mỗi tầng/khu và suất ăn người thân trong cùng lệnh
+      summary: Chốt suất (Nhân viên bếp); tính lại tại lúc lệnh, lập phiếu mỗi tầng/khu, phiếu nhân viên và suất ăn người thân trong cùng lệnh
       description: Chặn BEFORE_CLOSING_TIME (trước giờ bữa − CFG-M08-01), CLOSED. Chốt sau giờ bữa được phép, mang dấu CLOSED_AFTER_MEAL_TIME.
-      x-fr: [FR-033, FR-035, FR-037a, FR-038, FR-043, FR-044]
+      x-fr: [FR-033, FR-035, FR-038, FR-043, FR-044]
       x-br: [BR-M08-01, BR-M08-09]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ClosingResult' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
@@ -294,53 +301,38 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [residentId, floorAreaId, reason], properties: { residentId: { type: integer, format: int64 }, floorAreaId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
-  /special-portions/{id}/serve-held-portion:
+  /held-portions/{id}/serve:
     post:
       tags: [portion-closing]
-      summary: Phục vụ suất giữ cho người trở về trong ngưỡng (tạo phát sinh "+1" không cần giao)
+      summary: Phục vụ suất giữ cho người trở về trong ngưỡng (tạo phát sinh "+1" không cần giao); đổi đường dẫn 2026-11-24 (Q-445)
       x-fr: [FR-040a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
-  /special-portions/{id}/discard-held-portion:
+  /held-portions/{id}/discard:
     post:
       tags: [portion-closing]
       summary: Ghi hủy bỏ suất giữ khi hết ngưỡng
       x-fr: [FR-040a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
-  /special-portions/{id}/assign-dish:
-    post:
-      tags: [portion-closing]
-      summary: Bác sĩ chỉ định món thay thế riêng cho bữa chưa qua giờ; sau chốt tạo phát sinh đổi suất
-      x-fr: [FR-037, FR-039]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [dishId], properties: { dishId: { type: integer, format: int64 }, note: { type: string } } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
 
   /meal-slips:
     get:
       tags: [meal-slip]
-      summary: Phiếu theo bữa ngày, tầng/khu (bếp nhận KitchenMealSlip; tầng nhận FloorMealSlip trong phạm vi)
-      x-fr: [FR-044, FR-045, FR-046]
+      summary: Phiếu theo bữa ngày, tầng/khu hoặc phiếu nhân viên (bếp nhận KitchenMealSlip; tầng nhận FloorMealSlip trong phạm vi)
+      x-fr: [FR-044, FR-046]
       x-br: [BR-M08-09, BR-M08-10]
       parameters:
         - { name: dailyMealId, in: query, schema: { type: integer, format: int64 } }
         - { name: floorAreaId, in: query, schema: { type: integer, format: int64 } }
       responses: { '200': { description: OK, content: { application/json: { schema: { oneOf: [ { type: array, items: { $ref: '#/components/schemas/KitchenMealSlip' } }, { type: array, items: { $ref: '#/components/schemas/FloorMealSlip' } } ] } } } } }
-  /special-portions/{id}/mark-prepared:
-    post:
-      tags: [meal-slip]
-      summary: Bếp đánh dấu suất đặc biệt đã chuẩn bị
-      x-fr: [FR-045]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
   /meal-slips/{id}/{command}:
     post:
       tags: [meal-slip]
       summary: Lệnh trên phiếu theo bảng trạng thái
       description: |
-        mark-prepared, deliver (Nhân viên bếp; deliver chặn theo FR-047: NOT_PREPARED, MISSING_SUBSTITUTE_DISH, ADJUSTMENTS_NOT_CONFIRMED, SAMPLE_NOT_RETAINED);
-        receive, report-discrepancy (người nhận tại tầng, FR-048; report-discrepancy cần nội dung); resolve-discrepancy (Nhân viên bếp; cách xử lý).
+        mark-prepared, deliver (Nhân viên bếp; deliver chặn theo FR-047: ADJUSTMENTS_NOT_CONFIRMED, SAMPLE_NOT_RETAINED);
+        receive, report-discrepancy (người nhận tại tầng, FR-048; phiếu nhân viên: nhân viên có ca đang diễn ra; report-discrepancy cần nội dung); resolve-discrepancy (Nhân viên bếp; cách xử lý).
       x-fr: [FR-047, FR-048]
       x-br: [BR-M08-10, BR-M08-11, BR-M08-15]
       parameters:
@@ -363,19 +355,6 @@ paths:
         - { $ref: '#/components/parameters/IdempotencyKey' }
       requestBody: { content: { application/json: { schema: { type: object, properties: { content: { type: string } } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
-  /special-portions/{id}/confirm-serving:
-    post:
-      tags: [meal-slip]
-      summary: Xác nhận phục vụ suất đặc biệt (Nhân viên chăm sóc, Điều dưỡng); ghi ngoại tuyến được
-      description: |
-        PORTION_WRONG_RESIDENT: chặn, không sự cố. PORTION_HAS_ALLERGEN: chặn, cảnh báo 007 mức Trung bình đã được tạo,
-        yêu cầu gửi lại với hasEaten. hasEaten = true bắt buộc incident (triệu chứng, xử trí); 011 gọi 007 ghi nhận sự cố trong cùng lệnh.
-        PORTION_VIOLATES_RESTRICTION: chặn khi chỉ xung đột hạn chế.
-      x-fr: [FR-049, FR-050, FR-051]
-      x-br: [BR-M08-14]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ServingConfirmation' } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
 
   /residents/{residentId}/family-foods:
     get:
@@ -462,7 +441,7 @@ components:
       type: object
       properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, errorCode: { type: string }, unmetConditions: { type: array, items: { type: object } } }
     Texture: { type: string, enum: [REGULAR, SOFT, PUREED] }
-    DishStatus: { type: string, enum: [DRAFT, PENDING_CONFIRMATION, ACTIVE, INACTIVE, CANCELLED] }
+    DishStatus: { type: string, enum: [DRAFT, ACTIVE, INACTIVE, CANCELLED] }
     Diet:
       type: object
       properties:
@@ -472,31 +451,27 @@ components:
         treatmentRelated: { type: boolean }
         isDefault: { type: boolean }
         restrictions: { type: array, items: { type: integer, format: int64 }, description: 'Id dị nguyên' }
-        safeDishId: { type: integer, format: int64 }
         status: { type: string, enum: [ACTIVE, INACTIVE] }
         version: { type: integer, readOnly: true, description: 'Phiên bản cho If-Match của PUT (bổ sung 2026-11-08, chủ dự án chọn)' }
     DietCommand:
       type: object
-      required: [name, safeDishId]
-      properties: { name: { type: string }, description: { type: string }, treatmentRelated: { type: boolean }, isDefault: { type: boolean }, restrictions: { type: array, items: { type: integer, format: int64 } }, safeDishId: { type: integer, format: int64 } }
+      required: [name]
+      properties: { name: { type: string }, description: { type: string }, treatmentRelated: { type: boolean }, isDefault: { type: boolean }, restrictions: { type: array, items: { type: integer, format: int64 } } }
     DishCommand:
       type: object
-      required: [name, suitableDietIds, texture]
+      required: [name]
       properties:
-        name: { type: string }
-        note: { type: string }
-        ingredients: { type: array, items: { type: integer, format: int64 } }
-        noCatalogIngredient: { type: boolean }
-        suitableDietIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }
-        texture: { $ref: '#/components/schemas/Texture' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
     Dish:
       type: object
       properties:
         id: { type: integer, format: int64 }
         name: { type: string }
+        description: { type: string }
+        imageUrl: { type: string, description: 'Url đọc ảnh có hạn; vắng khi chưa có ảnh' }
         status: { $ref: '#/components/schemas/DishStatus' }
-        effective: { $ref: '#/components/schemas/DishCommand' }
-        pendingRevision: { $ref: '#/components/schemas/DishCommand' }
+        inactiveReason: { type: string }
         version: { type: integer }
     Meal:
       type: object
@@ -519,69 +494,76 @@ components:
         - { $ref: '#/components/schemas/DietAssignmentCommand' }
         - type: object
           properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PROPOSED, PENDING_EFFECTIVE, ACTIVE, DISCONTINUED, CANCELLED] }, actualEffectiveAt: { type: string, format: date-time }, professionalReason: { type: string }, isDefault: { type: boolean, description: 'Chế độ ăn mặc định do chưa gán (FR-014)' } }
-    Conflict:
+    DietAssignmentCheck:
       type: object
-      properties: { date: { type: string, format: date }, mealId: { type: integer, format: int64 }, dishId: { type: integer, format: int64 }, ingredients: { type: array, items: { type: integer, format: int64 } }, type: { type: string, enum: [ALLERGY, PERSONAL_RESTRICTION, DIET_RESTRICTION] }, hasSuitableSubstitute: { type: boolean } }
-    MenuCheckResult:
-      type: object
-      properties:
-        coverageGaps: { type: array, items: { type: object, properties: { dietId: { type: integer, format: int64 }, date: { type: string, format: date }, mealId: { type: integer, format: int64 } } } }
-        dishRepetitions: { type: array, items: { type: object } }
-        allergies: { type: array, items: { type: object, description: 'Bếp: residentCount; Bác sĩ: kèm tên người' } }
-        professionalReasonRequired: { type: boolean }
-        warningCodes: { type: array, items: { type: string } }
+      properties: { professionalReasonRequired: { type: boolean } }
     MenuContent:
       type: object
       properties:
-        dishes: { type: array, items: { type: object, required: [date, mealId, dietId, dishId], properties: { date: { type: string, format: date }, mealId: { type: integer, format: int64 }, dietId: { type: integer, format: int64 }, dishId: { type: integer, format: int64 }, substituteDishIds: { type: array, items: { type: integer, format: int64 } } } } }
+        dishes: { type: array, description: 'Thứ tự trong mảng là thứ tự món trong bữa', items: { type: object, required: [date, mealId, dishId], properties: { date: { type: string, format: date }, mealId: { type: integer, format: int64 }, dishId: { type: integer, format: int64 } } } }
     Menu:
       type: object
-      properties: { id: { type: integer, format: int64 }, weekStart: { type: string, format: date }, status: { type: string, enum: [DRAFT, PENDING_PUBLICATION, PUBLISHED, APPLIED, CANCELLED] }, version: { type: integer } }
+      properties:
+        id: { type: integer, format: int64 }
+        weekStart: { type: string, format: date }
+        status: { type: string, enum: [DRAFT, PENDING_PUBLICATION, PUBLISHED, APPLIED, CANCELLED] }
+        submittedAt: { type: string, format: date-time }
+        submittedBy: { type: string, description: 'Tên người gửi duyệt' }
+        publishedAt: { type: string, format: date-time }
+        returnReason: { type: string }
+        version: { type: integer }
+    MealPlanningInfo:
+      type: object
+      description: 'FR-025a: số suất dự kiến và số người cao tuổi theo loại dị ứng của một ngày, bữa; không tên, phòng, tầng'
+      properties:
+        date: { type: string, format: date }
+        mealId: { type: integer, format: int64 }
+        residentPortions: { type: integer }
+        familyPortions: { type: integer }
+        staffPortions: { type: integer }
+        allergyCounts: { type: array, items: { type: object, properties: { allergenId: { type: integer, format: int64, description: 'Vắng với nhóm dị ứng khác' }, name: { type: string }, residentCount: { type: integer } } } }
+    SharedMenuDay:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        meals: { type: array, items: { type: object, properties: { mealId: { type: integer, format: int64 }, name: { type: string }, expectedTime: { type: string }, dishes: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, name: { type: string }, description: { type: string }, imageUrl: { type: string } } } } } } }
     DishSwap:
       type: object
       description: |
-        Sửa 2026-11-06 (chủ dự án chọn, FR-031, FR-032): oldDishId và newDishId là thay món; chỉ newDishId là thêm món (bổ sung bữa
-        trống); chỉ oldDishId là bớt món; oldDishId = newDishId kèm substituteDishIds là chỉ đổi món thay thế. Cần ít nhất một
-        trong hai. substituteDishIds là danh sách món thay thế mới của món sau (vắng thì giữ danh sách cũ, thêm món thì rỗng).
-      required: [date, mealId, dietId, reason]
-      properties: { date: { type: string, format: date }, mealId: { type: integer, format: int64 }, dietId: { type: integer, format: int64 }, oldDishId: { type: integer, format: int64 }, newDishId: { type: integer, format: int64 }, substituteDishIds: { type: array, items: { type: integer, format: int64 } }, reason: { $ref: '#/components/schemas/Reason' }, confirmedWarnings: { type: array, items: { type: string } } }
+        Sửa 2026-11-24 (Q-445): oldDishId và newDishId là thay món; chỉ newDishId là thêm món; chỉ oldDishId là bớt món. Cần ít nhất một trong hai.
+      required: [date, mealId, reason]
+      properties: { date: { type: string, format: date }, mealId: { type: integer, format: int64 }, oldDishId: { type: integer, format: int64 }, newDishId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } }
     ClosingResult:
       type: object
       properties:
         dailyMealId: { type: integer, format: int64 }
-        portionsByFloorArea: { type: array, items: { type: object, properties: { floorAreaId: { type: integer, format: int64 }, dietId: { type: integer, format: int64 }, portionCount: { type: integer } } } }
-        specialPortions: { type: integer }
+        portionsByGroup: { type: array, items: { type: object, properties: { group: { type: string, enum: [FLOOR, STAFF] }, floorAreaId: { type: integer, format: int64, description: 'Vắng khi group = STAFF' }, portionCount: { type: integer } } } }
+        staffPortions: { type: integer }
         familyMealPortions: { type: integer }
-        flags: { type: array, items: { type: string, enum: [NO_MENU, CLOSED_AFTER_MEAL_TIME, MISSING_SUBSTITUTE_DISH, NO_DIET_ASSIGNED] } }
-        missingData: { type: array, items: { type: string, enum: [STAY, TRIP] } }
+        flags: { type: array, items: { type: string, enum: [NO_MENU, CLOSED_AFTER_MEAL_TIME] } }
+        missingData: { type: array, items: { type: string, enum: [STAY, TRIP, SHIFT] } }
     Adjustment:
       type: object
-      properties: { id: { type: integer, format: int64 }, floorAreaId: { type: integer, format: int64 }, dietId: { type: integer, format: int64 }, portionCount: { type: integer }, changeType: { type: string }, needsDelivery: { type: boolean }, kitchenConfirmedAt: { type: string, format: date-time } }
+      properties: { id: { type: integer, format: int64 }, group: { type: string, enum: [FLOOR, STAFF] }, floorAreaId: { type: integer, format: int64 }, portionCount: { type: integer }, changeType: { type: string }, needsDelivery: { type: boolean }, kitchenConfirmedAt: { type: string, format: date-time } }
     KitchenMealSlip:
       type: object
-      description: 'Chỉ trường FR-046; không có dị ứng, bệnh lý, thành phần xung đột'
+      description: 'Chỉ trường FR-046; không có tên, dị ứng, chế độ ăn, bệnh lý (sửa 2026-11-24, Q-445)'
       properties:
         id: { type: integer, format: int64 }
-        floorArea: { type: string }
+        group: { type: string, enum: [FLOOR, STAFF] }
+        floorArea: { type: string, description: 'Vắng khi group = STAFF' }
         meal: { type: string }
-        portionsByDiet: { type: array, items: { type: object, properties: { diet: { type: string }, portionCount: { type: integer } } } }
-        labels: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, fullName: { type: string }, room: { type: string }, diet: { type: string }, texture: { $ref: '#/components/schemas/Texture' }, dishes: { type: string }, flags: { type: array, items: { type: string } }, prepared: { type: boolean } } } }
+        dishes: { type: array, items: { type: string } }
+        portionCount: { type: integer }
+        heldPortionCount: { type: integer, description: 'Suất giữ (FR-040a), không kèm tên' }
         status: { type: string, enum: [CLOSED, PREPARED, DELIVERED, HAS_DISCREPANCY, RECEIVED] }
-        flags: { type: array, description: 'Dấu mức phiếu FR-046 (bổ sung 2026-11-07, chủ dự án chọn): NO_MENU = chưa có thực đơn công bố, CLOSED_AFTER_MEAL_TIME = chốt sau giờ bữa', items: { type: string, enum: [NO_MENU, CLOSED_AFTER_MEAL_TIME] } }
-        supplementaryPortions: { type: array, description: 'Phần bổ sung FR-048b (bổ sung 2026-11-07, chủ dự án chọn; labels[].id cùng lần)', items: { type: object, properties: { id: { type: integer, format: int64 }, dietId: { type: integer, format: int64 }, portionCount: { type: integer }, deliveredAt: { type: string, format: date-time }, receivedAt: { type: string, format: date-time } } } }
+        flags: { type: array, items: { type: string, enum: [NO_MENU, CLOSED_AFTER_MEAL_TIME] } }
+        supplementaryPortions: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, portionCount: { type: integer }, deliveredAt: { type: string, format: date-time }, receivedAt: { type: string, format: date-time } } } }
     FloorMealSlip:
       allOf:
         - { $ref: '#/components/schemas/KitchenMealSlip' }
         - type: object
-          properties: { needsCrossCheck: { type: array, items: { type: integer, format: int64 }, description: 'Người có dị ứng loại khác (FR-036a)' }, allergies: { type: array, items: { type: object }, description: 'Chỉ khi có quyền xem dị ứng' } }
-    ServingConfirmation:
-      type: object
-      required: [residentId]
-      properties:
-        residentId: { type: integer, format: int64, description: Người đang được phục vụ }
-        hasEaten: { type: boolean, description: 'Chỉ gửi sau khi bị chặn PORTION_HAS_ALLERGEN' }
-        incident: { type: object, properties: { severity: { type: string }, symptoms: { type: string }, treatment: { type: string } } }
-        deviceTime: { type: string, format: date-time }
+          properties: { heldPortions: { type: array, description: 'Suất giữ có tên cho người nhận tại tầng (FR-040a)', items: { type: object, properties: { id: { type: integer, format: int64 }, residentId: { type: integer, format: int64 }, fullName: { type: string }, status: { type: string, enum: [HELD, SERVED, DISCARDED] } } } } }
     FamilyFoodCommand:
       type: object
       required: [senderName, type, description, expiresAt, storageMethod]

@@ -92,6 +92,30 @@ Không còn `TonKhoNguyenLieuPort`: hệ thống không quản lý kho nguyên l
 
 ---
 
+## 1.9. Sửa theo Q-445 (2026-11-24)
+
+Mục này thắng các mục 1, 2 ở chỗ khác nhau.
+
+- **Bỏ**: `NgoaiTuyenHandler` `M08.XAC_NHAN_PHUC_VU`; `xacNhanPhucVu` của `NguonCongViecPort` (005 không còn chặn ghi kết quả ăn uống, FR-050 bỏ); `SuatAnDuKienApi` (1.3a; kênh người cao tuổi dùng `ThucDonChungApi`); sự kiện `YeuCauTaoCanhBao` `XUNG_DOT_DI_UNG_CHE_DO_AN`, `PHUC_VU_SUAT_DI_UNG` và `YeuCauDongCanhBaoNguon` của thực đơn; `SuCoLenhApi.ghiNhan` (FR-049 bỏ).
+- **Sửa `ThucDonChungApi`** (012, kênh người cao tuổi, app nhân viên):
+
+```java
+List<MonTheoBuaView> thucDonChung(LocalDate tuNgay, LocalDate denNgay);
+    // thực đơn Công bố, Đã áp dụng; ngày, bữa, tên bữa, giờ dự kiến, món (id, tên, mô tả, url ảnh), theo thứ tự
+```
+  Bỏ `tenCheDoAn()`.
+- **`DinhDuongThongKeApi.suat`**: số suất theo tầng và phiếu nhân viên, bỏ chế độ ăn.
+- **Sự kiện 001 nghe**: `DiUngDaGhiNhan`, `DiUngKhacDaGhiNhan`, `DiUngDaLoaiTru` chỉ còn đối chiếu đồ ăn gia đình (FR-021, FR-056); bỏ đối chiếu thực đơn, suất đã chốt.
+- **Sự kiện 011 phát thêm cho 009** (thông báo, FR-065): thực đơn gửi duyệt, đổi món → Quản lý viện; trả lại, công bố → Nhân viên bếp người gửi; nhắc CFG-M08-07 → Nhân viên bếp, Quản lý viện.
+- **Cần thêm từ 008** (`staffing.api.ShiftApi`, chủ module 008 duyệt):
+
+```java
+List<Long> staffOnShiftAt(Instant at);   // mọi nhân viên (kể cả Quản lý viện) có ca bao trùm thời điểm, không phân tầng; FR-034 (d)
+```
+  và nghe `staffing.api.events.ShiftChanged`, `AssignmentChanged` để tạo phát sinh nguồn `DOI_CA` cho phiếu nhân viên (FR-039). Bản giả: danh sách cố định trong test.
+- **Cần từ 001**: `MucSucKhoeApi.hieuLuc(nctIds, DI_UNG)` theo danh sách người để đếm số người theo loại dị ứng (FR-025a); không trả tên ra khỏi M08.
+- **Cần từ 000**: tệp đính kèm cho ảnh món (tải lên, url đọc có hạn, xóa khi thay ảnh).
+
 ## 2. 011 cần từ module khác
 
 | Giao diện | Module | Dùng cho | Kiểm thử thay thế |

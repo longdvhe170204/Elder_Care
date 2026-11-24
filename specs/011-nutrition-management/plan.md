@@ -37,6 +37,15 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 - **Suất ăn dự kiến cho kênh người cao tuổi** (FR-063 dòng "Người cao tuổi"): hàm đọc mới `nutrition.api.SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` cho 012: món dự kiến theo ngày, bữa từ thực đơn đã Công bố hoặc Đã áp dụng và chế độ ăn hiện hành của người cao tuổi, kèm món thay thế; chỉ trả tên món (research M-16). Không thêm bảng.
 
+### Cập nhật 2026-11-24 (spec mục "Cập nhật 2026-11-24": Q-445)
+
+- **Món**: `DishService` bỏ phiên bản và xác nhận; thuộc tính `description`, `imageFileId` ở `DishAttributes`; lệnh `activate`, `cancel`, `deactivate`; ảnh qua tệp đính kèm của 000 (`PUT /nutrition/dishes/{id}/image`). Bỏ `SafeDishRule`, `DishConfirmationRequested`, `DishConfirmationResult`.
+- **Thực đơn**: `MenuContent` bỏ `dietId`, `substituteDishIds`; `MenuService.submit` chỉ kiểm món Hiệu lực; `publish`, `returnToKitchen` theo quyền `DISH_MENU` `APPROVE` gán cho Quản lý viện (gỡ của Bác sĩ trong seed quyền); bỏ `MenuChecker`, `AllergyWarningRule`, `ResidentMenuConflicts`, `POST /menus/{id}/check`. `pre-submit-info` trả `MealPlanningInfo` (tính khi đọc). `GET /menus/shared` và `GeneralMenuApi` cho app; bỏ `SuatAnDuKienApi`.
+- **Chốt suất, phiếu**: `PortionCounter` đếm tổng theo tầng/khu và nhóm `STAFF` (`ShiftApi.staffOnShiftAt`, cần 008); bỏ món thay thế, món an toàn (`ClosingMinuteTasks` bỏ bước áp món an toàn, `SafeDishApplied`), suất đặc biệt, `ServingService`; suất giữ đổi đường dẫn `/held-portions/{id}/…`.
+- **Thông báo** FR-065: listener ở notification cho `MenuSubmitted` (Quản lý viện), `MenuReturned`, `MenuPublished` (Bếp người gửi), `DishSwapped` (Quản lý viện), `MenuPublicationReminder` (Bếp, Quản lý viện).
+- **Liên module**: 005 bỏ chặn ghi kết quả ăn uống theo xác nhận phục vụ; 008 thêm `staffOnShiftAt`; 012 đọc thực đơn chung có mô tả, ảnh. Ghi việc chờ chủ module ở team-plan mục 8.
+- Migration `V011_xx__q445_shared_menu.sql` theo data-model mục 13.6. Tasks Phase 13.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).

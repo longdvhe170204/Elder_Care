@@ -97,7 +97,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 
 **Điểm đã làm rõ**
 
-- "Lịch ăn" là **lịch bữa** do feature 011 cung cấp cho từng người (bữa, giờ dự kiến, có suất đặc biệt hay không). Giờ bữa là CFG-M08-04, do Quản lý viện cấu hình.
+- "Lịch ăn" là **lịch bữa** do feature 011 cung cấp cho từng người (bữa, giờ dự kiến; bỏ suất đặc biệt theo Q-445). Giờ bữa là CFG-M08-04, do Quản lý viện cấu hình.
 - "Lịch sinh hoạt" không phải căn cứ lập công việc. Thời khóa biểu cá nhân (8.2) chỉ để xem, tổng hợp từ công việc, liều thuốc, buổi hoạt động và lịch thăm (spec 005 US9).
 - **(Bổ sung 2026-11-22, Q-440)** "Lịch chăm sóc hằng ngày" cho người thân, người cao tuổi ghép giờ bữa, buổi hoạt động, mốc sinh hoạt cố định và công việc chăm sóc riêng đã công bố; chỉ xem. Người khỏe bình thường chỉ có lịch sinh hoạt chung.
 - Người bán trú quên điểm danh về: cuối ngày Người phụ trách ca được báo mức Trung bình, Trưởng tầng mức Nhẹ; trạng thái có mặt không tự chuyển (spec 005 FR-019).
@@ -107,24 +107,26 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 
 ## BF-03 – Lập và công bố thực đơn tuần
 
-Bác sĩ xác định yêu cầu dinh dưỡng và duyệt; Nhân viên bếp lập món ăn, thực đơn và đổi món (2.3, Q-308).
+Nhân viên bếp lập món ăn, lập một thực đơn chung của cả viện và đổi món; Quản lý viện duyệt. Bác sĩ không xác nhận món, không duyệt thực đơn (Q-445).
 
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
-| 1 | Bác sĩ | Xác định yêu cầu dinh dưỡng của từng người cao tuổi (bản gán chế độ ăn: chế độ ăn, dị ứng, bệnh lý, thực phẩm cần tránh, kết cấu); quản lý danh mục chế độ ăn và chọn món an toàn | Bản gán (nhóm 2); danh mục chế độ ăn (nhóm 1) | 12.1, BR-M08-03, Q-308 |
-| 1a | Nhân viên bếp; Bác sĩ | Bếp tạo món ăn và khai thành phần gây dị ứng (từ danh mục dị nguyên), chế độ ăn phù hợp, kết cấu chế biến được; Bác sĩ xác nhận hoặc trả lại kèm lý do. Sửa thành phần của món đã xác nhận cần Bác sĩ xác nhận lại | Món: chờ xác nhận → dùng được trong thực đơn | 12.1, Q-308 |
-| 2 | Nhân viên bếp | Lập thực đơn tuần (thứ 2 → chủ nhật) từ các món đã xác nhận: mỗi ngày, bữa, chế độ ăn gồm các món và món thay thế theo thứ tự ưu tiên | Thực đơn: Nháp | 12.2, Q-308 |
-| 3 | Nhân viên bếp; Hệ thống | Gửi kiểm tra: Bếp xác nhận đã kiểm tra khả năng chế biến, nguyên liệu, suất ăn, kèm ghi chú (hệ thống hiển thị số người theo chế độ ăn, không đối chiếu định lượng; không có tồn kho, Q-392). Hệ thống kiểm tra độ phủ: thiếu món thì chặn. Hệ thống cảnh báo lặp món [3 ngày] và món có thành phần dị ứng chưa có món thay thế | Qua kiểm tra: Chờ công bố; Bác sĩ được báo | BR-M08-06, 07, Q-308, Q-392 |
+| 1 | Bác sĩ | Ghi dị ứng của người cao tuổi vào hồ sơ sức khỏe; gán chế độ ăn (chế độ ăn, kết cấu, thực phẩm cần tránh) làm ghi chú cho người chăm sóc | Dị ứng (5.2); bản gán (nhóm 2) | 5.2, 12.1, BR-M08-03, Q-445 |
+| 1a | Quản lý viện | Quản lý danh mục bữa: sáng, trưa, tối và bữa phụ | Danh mục bữa (nhóm 1) | 12.2, Q-401 |
+| 1b | Nhân viên bếp | Tạo món ăn: tên, mô tả, hình ảnh; Đưa vào dùng. Sửa món Hiệu lực áp dụng ngay | Món: Nháp → Hiệu lực | 12.1, Q-445 |
+| 2 | Nhân viên bếp; Hệ thống | Lập thực đơn tuần (thứ 2 → chủ nhật) từ các món Hiệu lực: mỗi ngày, mỗi bữa một danh sách món dùng chung cả viện. Hệ thống tự hiện số suất dự kiến mỗi bữa (người cao tuổi, người thân ở lại, Quản lý viện và nhân viên trong ca) và số người cao tuổi theo từng loại dị ứng, không kèm tên. Không kiểm tra độ phủ, lặp món, dị ứng | Thực đơn: Nháp | 12.2, Q-445 |
+| 3 | Nhân viên bếp | Gửi duyệt | Nháp → Chờ công bố; Quản lý viện được báo | 12.2, Q-445 |
 | 4 | Nhân viên bếp | Rút lại nếu cần sửa | Chờ công bố → Nháp | 12.2 |
-| 5 | Bác sĩ | Duyệt: Công bố, kiểm tra độ phủ chạy lại với dữ liệu tại thời điểm công bố; hoặc Trả lại kèm lý do, Bếp được báo | Chờ công bố → Công bố (nếu tuần đã bắt đầu: chuyển thẳng Đã áp dụng); hoặc Chờ công bố → Nháp | 12.2, Q-142, Q-308 |
+| 5 | Quản lý viện | Xem danh sách thực đơn tuần được gửi tới và duyệt: Công bố; hoặc Trả lại kèm lý do, Bếp được báo | Chờ công bố → Công bố (nếu tuần đã bắt đầu: chuyển thẳng Đã áp dụng); hoặc Chờ công bố → Nháp | 12.2, Q-445 |
 | 6 | Hệ thống | Tới ngày đầu tuần | Công bố → Đã áp dụng | 12.2 |
-| 7 | Nhân viên bếp | Đổi món bằng lệnh có lý do, chỉ dùng món đã xác nhận, hiệu lực ngay; hệ thống chặn nếu làm chế độ ăn mất món, chạy lại cảnh báo lặp món và dị ứng. Bác sĩ được báo; đổi sau thời điểm chốt suất thì thành phát sinh | Thực đơn không bị hủy | BR-M08-08, Q-308 |
-| 8 | Bộ lập lịch | Tới [2 ngày] trước ngày đầu tuần (CFG-M08-07) mà chưa có thực đơn Công bố: nhắc Nhân viên bếp (và Bác sĩ nếu thực đơn đang Chờ công bố), báo Quản lý viện | — | BR-M08-16 |
+| 7 | Nhân viên bếp | Đổi món bằng lệnh có lý do, chỉ dùng món Hiệu lực, hiệu lực ngay; không áp cho bữa đã qua giờ. Quản lý viện được báo; đổi sau thời điểm chốt suất thì thành phát sinh | Thực đơn không bị hủy | BR-M08-08, Q-445 |
+| 8 | Bộ lập lịch | Tới [2 ngày] trước ngày đầu tuần (CFG-M08-07) mà chưa có thực đơn Công bố: nhắc Nhân viên bếp, báo Quản lý viện | — | BR-M08-16 |
+| 9 | Mọi người dùng app | Xem thực đơn hôm nay và thực đơn tuần đã công bố, thấy tất cả các món | — | 12.2, Q-445 |
 
 **Điểm đã làm rõ**
 
-- Nhân viên bếp lập thực đơn; Bác sĩ duyệt bằng Công bố hoặc Trả lại (Chờ công bố → Nháp, có lý do). Bếp có Rút lại (Chờ công bố → Nháp) và Hủy (Nháp → Đã hủy) (Q-308).
-- Quản lý viện chỉ xem thực đơn và các cảnh báo đã được xác nhận (Q-142, 19.3).
+- Nhân viên bếp lập thực đơn; Quản lý viện duyệt bằng Công bố hoặc Trả lại (Chờ công bố → Nháp, có lý do). Bếp có Rút lại (Chờ công bố → Nháp) và Hủy (Nháp → Đã hủy) (Q-445).
+- Món nấu thế nào do Bếp quyết theo số người cao tuổi theo loại dị ứng; hệ thống không cảnh báo, không chặn (Q-445).
 
 ---
 
@@ -132,22 +134,22 @@ Bác sĩ xác định yêu cầu dinh dưỡng và duyệt; Nhân viên bếp l�
 
 | Bước | Vai trò | Hoạt động | Trạng thái phiếu / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------------- | ------ |
-| 1 | Nhân viên bếp; Hệ thống | Từ mốc [2 giờ] trước bữa (CFG-M08-01), thực hiện lệnh Chốt suất: hệ thống tính sẵn số suất theo chế độ ăn, chọn món thay thế theo thứ tự ưu tiên; không có món phù hợp thì dùng món an toàn hoặc báo Bác sĩ. Lệnh lập phiếu bữa ăn theo tầng/khu. Quá mốc mà chưa chốt thì hệ thống nhắc Nhân viên bếp | Đã chốt | BR-M08-01, 02, 09, Q-306 |
-| 2 | Nhân viên bếp | Chuẩn bị suất; dán nhãn suất đặc biệt (họ tên, phòng, chế độ ăn); đánh dấu từng suất đặc biệt đã chuẩn bị | Đã chốt → Đã chuẩn bị (có phát sinh làm thêm hoặc đổi suất đặc biệt thì quay về Đã chốt) | 12.5, BR-M08-10 |
-| 3 | Nhân viên bếp | Xác nhận đã nhận các phát sinh sau thời điểm chốt. Chưa xác nhận trước giờ bữa [30 phút] thì nhắc Bếp và Bác sĩ | — | BR-M08-13 |
+| 1 | Nhân viên bếp; Hệ thống | Từ mốc [2 giờ] trước bữa (CFG-M08-01), thực hiện lệnh Chốt suất: hệ thống tính sẵn tổng số suất của bữa (người cao tuổi có mặt, người thân ở lại, Quản lý viện và nhân viên có ca bao trùm giờ bữa). Lệnh lập phiếu bữa ăn theo tầng/khu và phiếu nhân viên, mỗi phiếu ghi các món của bữa và số suất. Quá mốc mà chưa chốt thì hệ thống nhắc Nhân viên bếp | Đã chốt | BR-M08-01, 09, Q-306, Q-445 |
+| 2 | Nhân viên bếp | Chuẩn bị suất | Đã chốt → Đã chuẩn bị (có phát sinh làm thêm suất thì quay về Đã chốt) | 12.5 |
+| 3 | Nhân viên bếp | Xác nhận đã nhận các phát sinh sau thời điểm chốt. Chưa xác nhận trước giờ bữa [30 phút] thì nhắc Bếp | — | BR-M08-13 |
 | 4 | Nhân viên bếp | Ghi bản ghi lưu mẫu của bữa: mọi món được nấu, mỗi món một mẫu; món không lưu được thì ghi lý do | Bắt buộc có bản ghi trước bước 5 | BR-M08-15, Q-39, Q-146 |
 | 5 | Nhân viên bếp | Giao phiếu và suất tới tầng/khu | Đã chuẩn bị → Đã giao | BR-M08-10 |
 | 6 | Người nhận tại tầng | Kiểm đếm, rồi xác nhận nhận hoặc báo sai lệch kèm nội dung | Đã giao → Đã nhận (trạng thái cuối) / Có sai lệch | BR-M08-11 |
 | 7 | Nhân viên bếp; Người nhận tại tầng | Bếp ghi cách xử lý (bổ sung, đổi suất, khác); tầng xác nhận lại | Có sai lệch → Đã giao → Đã nhận. Lịch sử sai lệch giữ nguyên | 12.5 |
 | 8 | Nhân viên bếp; Người nhận tại tầng | Phát sinh tới sau khi phiếu Đã giao được giao như phần bổ sung, nhận hoặc báo sai lệch riêng | Phiếu không quay lại trạng thái trước | 12.5 |
-| 9 | Nhân viên chăm sóc | Phục vụ. Với suất đặc biệt và người thuộc danh sách cần đối chiếu khi phục vụ: xác nhận đúng người, đúng suất trước khi ghi kết quả ăn uống. Suất có thành phần dị ứng với người nhận: hệ thống chặn và tạo cảnh báo mức Trung bình cho Điều dưỡng phụ trách; người đã ăn thì nhân viên ghi nhận sự cố | — | Q-307, BR-M08-14, spec 011 FR-036a, FR-050 |
+| 9 | Điều dưỡng; Nhân viên chăm sóc | Phục vụ: đối chiếu ghi chú dị ứng và chế độ ăn trong hồ sơ người cao tuổi trước khi phục vụ; hệ thống không xác nhận suất, không chặn ghi nhận. Người đã ăn món gây dị ứng thì nhân viên ghi nhận sự cố | — | Q-307, BR-M08-14, Q-445 |
 | 10 | Hệ thống | Quá giờ bữa [30 phút] (CFG-M08-04) mà phiếu chưa Đã giao: cảnh báo nhẹ cho Trưởng tầng và Bếp | — | BR-M08-12 |
 
 **Điểm đã làm rõ**
 
 - **Người nhận tại tầng** là Trưởng tầng, Điều dưỡng hoặc Nhân viên chăm sóc (kể cả Người phụ trách ca) có phân công tại tầng/khu của phiếu trong ca đang diễn ra. Với phiếu khu bán trú: người thuộc các vai trò đó được phân công tại tầng/khu vực mà khu nghỉ bán trú gắn vào (Q-143, 2.4).
-- **Kết cấu thức ăn** lưu trên bản gán chế độ ăn, do Bác sĩ nhập. Muốn đổi kết cấu phải tạo bản gán mới; bản gán do Bác sĩ lập nên không có bước duyệt riêng, các trường hợp của BR-M08-03 chỉ bắt buộc lý do chuyên môn.
-- **Suất thường và dị ứng**: theo định nghĩa, suất có món trùng dị ứng đang hiệu lực đã là suất đặc biệt, nên suất thường không có xung đột dị ứng đã biết. Người có dị ứng loại "khác" (không kiểm tra tự động) vẫn nhận suất thường nhưng nằm trong danh sách cần đối chiếu khi phục vụ, và phải được xác nhận như suất đặc biệt. Danh sách này bếp không thấy. Người có suất thường và không thuộc danh sách thì không cần xác nhận.
+- **Kết cấu thức ăn** lưu trên bản gán chế độ ăn, do Bác sĩ nhập, là ghi chú cho người chăm sóc; không ghi trên phiếu (Q-445).
+- **Bỏ suất đặc biệt, món thay thế, món an toàn** (Q-445): mọi suất trong bữa như nhau; dị ứng của từng người được đối chiếu tại tầng khi phục vụ.
 
 ---
 

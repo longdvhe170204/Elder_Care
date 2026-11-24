@@ -309,6 +309,41 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ---
 
+## Phase 13: Sửa theo Q-445 (2026-11-24, thực đơn chung, Quản lý viện duyệt)
+
+**Mục tiêu**: cài spec mục "Cập nhật 2026-11-24", data-model mục 13, module-interfaces mục 1.9, api-011.yaml bản 2026-11-24. Viết test trước, test phải lỗi rồi xanh. Đợt 2 (T047 → T053), đợt 3 (T054 → T060), đợt 4 (T061, T062), kiểm cuối (T063).
+
+### Đợt 2: món, thực đơn
+
+- [ ] T047 Viết `MIG/V011_xx__q445_shared_menu.sql` chuyển dữ liệu theo data-model mục 13.6 (món `PENDING_CONFIRMATION` → `DRAFT`, ghi chú → mô tả, bỏ `safeDishId`, gộp thực đơn chưa hết tuần về thực đơn chung); test migration với dữ liệu cũ
+- [ ] T048 [US2] Món: `DishStatus` bỏ `PENDING_CONFIRMATION`; `DishCommand` `ACTIVATE`, `CANCEL`, `DEACTIVATE`; `DishService` bỏ phiên bản, xác nhận, `IS_SAFE_DISH`; `DishAttributes` `description`, `imageFileId`; `PUT`, `DELETE /nutrition/dishes/{id}/image` qua tệp đính kèm 000 (JPEG, PNG, WebP ≤ 5 MB). Test: thay `FR_004a_DishConfirmationIT` bằng `FR_004_DishActivationIT` (kịch bản US2 1 → 6)
+- [ ] T049 [US1] Chế độ ăn: bỏ `safeDishId` (`DietService`, `DietRequest`, `DietResponse`, `SafeDishRule`, `SAFE_DISH_MISSING` của `DietAssignmentService`); lập đề xuất trả `DietAssignmentCheck`; bỏ đối chiếu thực đơn khi gán (FR-016) và `dish-conflict-check`. Bỏ `SafeDishRuleTest`, `FR_016_AssignmentMenuConflictIT`, `ConflictCheckTest` phần thực đơn
+- [ ] T050 [US3] Thực đơn: `MenuContent`, `DishSwap` bỏ `dietId`, `substituteDishIds`; `submit` chỉ kiểm món Hiệu lực, lưu người gửi, thời điểm gửi; `publish`, `return` cho Quản lý viện (quyền `DISH_MENU` `APPROVE` chuyển từ Bác sĩ sang Quản lý viện trong seed quyền, Phụ lục 27); bỏ `MenuChecker`, `AllergyWarningRule`, `ResidentMenuConflicts`, `POST /menus/{id}/check`, `thuc_don_kiem_tra`; danh sách lọc `status`. Test: `BR_34_CoverageIT` → `BR_34_MenuApprovalIT` (US3 2 → 8, 10); sửa `BR_35_DishSwapIT`; bỏ `AllergyWarningRuleTest`
+- [ ] T051 [US3] `GET /menus/{id}/pre-submit-info` trả `MealPlanningInfo` mỗi ngày, bữa: số suất dự kiến (dùng lại phần tính người được tính của `PortionCounter`, FR-034 (a) → (d)) và số người cao tuổi theo dị nguyên của dị ứng Hiệu lực (001), nhóm "dị ứng khác"; không tên. Test `FR_025a_MealPlanningInfoIT` (US3 1; SC-008)
+- [ ] T052 [US3] `GET /menus/shared` và `GeneralMenuApi` (ngày, bữa, món: tên, mô tả, url ảnh; bỏ `dietNames`); sửa `family` `PortalService`, `ResidentChannelService`; bỏ `SuatAnDuKienApi` (T045). Test `FR_028_SharedMenuIT` (US3 9), sửa test 012 liên quan
+- [ ] T053 Thông báo FR-065 (bảng sửa 2026-11-24): listener ở notification cho `MenuSubmitted` → Quản lý viện; `MenuReturned`, `MenuPublished` → Bếp người gửi; `DishSwapped` → Quản lý viện; `MenuPublicationReminder` → Bếp, Quản lý viện; bỏ người nhận Bác sĩ. Test `FR_065_MenuNotificationsIT`
+
+### Đợt 3: chốt suất, phiếu, phục vụ
+
+- [ ] T054 [US4] `ShiftApi.staffOnShiftAt(Instant)` ở 008 (chủ module 008 duyệt; ghi team-plan mục 8) và bản giả cho test 011
+- [ ] T055 [US4] `PortionCounter`, `PortionContent`, `ClosingRecords`: đếm tổng theo tầng/khu và nhóm `STAFF` (FR-034 (d)); bỏ chế độ ăn, kết cấu, món thay thế, món an toàn, suất đặc biệt; `ClosingMinuteTasks` bỏ áp món an toàn, bỏ `SafeDishApplied`; `ClosingResult` `portionsByGroup`, `staffPortions`. Test: sửa `BR_M08_01`… (US4 1 → 13, 16)
+- [ ] T056 [US4] Phát sinh: `Adjustment` `group`; bỏ nguồn bản gán chế độ ăn, dị ứng, chỉ định món, sửa thành phần món; thêm nguồn `SHIFT_CHANGED` từ `staffing.api.events.ShiftChanged`, `AssignmentChanged` cho phiếu nhân viên. Test US4 8
+- [ ] T057 [US5] Phiếu: phiếu nhân viên (`group = STAFF`, người nhận là nhân viên có ca đang diễn ra); phiếu có `dishes`, `portionCount`; bỏ suất đặc biệt, nhãn, `MISSING_SUBSTITUTE_DISH`, `NOT_PREPARED`; suất giữ đổi sang `/held-portions/{id}/serve`, `/discard`. Test: sửa `BR_M08_10`, `BR_M08_11` (US5 1 → 7)
+- [ ] T058 [US6] Bỏ xác nhận phục vụ: `ServingService`, `ServingController`, `NgoaiTuyenHandler` `M08.XAC_NHAN_PHUC_VU`, `NguonCongViecPort.xacNhanPhucVu`; 005 không chặn ghi kết quả ăn uống. Bỏ `BR_37_ServingConfirmationIT`; thêm test 005 ghi được kết quả ăn uống không cần xác nhận
+- [ ] T059 [US9] `DishesToRetain` theo món của bữa trong thực đơn chung và Đổi món. Sửa `MonCanLuuMauTest`, `BR_36_RetainedSampleIT` (US9 3)
+- [ ] T060 FR-021: listener dị ứng của 001 chỉ đối chiếu đồ ăn gia đình; bỏ yêu cầu cảnh báo 007 `XUNG_DOT_DI_UNG_CHE_DO_AN`, `PHUC_VU_SUAT_DI_UNG`
+
+### Đợt 4: web, app
+
+- [ ] T061 Web (kho Elder_Care_Frontend): `npm run gen:api`; `DishesTab` (mô tả, ảnh, Đưa vào dùng), `MenusTab` (thực đơn chung theo ngày × bữa, `MealPlanningInfo`, Gửi duyệt), màn duyệt thực đơn của Quản lý viện (danh sách gửi tới, Công bố, Trả lại), `CatalogTabs` bỏ món an toàn, `SlipsTab` (phiếu nhân viên, bỏ nhãn); theo DESIGN.md mục 0
+- [ ] T062 App (kho Elder_Care_Mobile): màn thực đơn hôm nay và tuần cho nhân viên (`lib/staff/`), người thân (`lib/family/`), người cao tuổi (`lib/resident/`) đọc `GET /menus/shared`; bỏ `serving_confirmation_screen.dart`
+
+### Kiểm cuối
+
+- [ ] T063 Chạy `ApiContractIT`, `*ArchTest`, `ModuleBoundaryTest`, IT của nutrition, care (005), family (012), staffing (008); `./mvnw clean verify -Dit.forkCount=3` trước PR; web `npm run lint`, `npm test`, `npm run build`; app `flutter analyze`, `flutter test`; quickstart mục 7
+
+---
+
 ## Dependencies & Execution Order
 
 - **Setup → Foundational**: chặn mọi story

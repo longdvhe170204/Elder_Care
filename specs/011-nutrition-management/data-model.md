@@ -6,6 +6,8 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+> **Sửa theo Q-445 (2026-11-24): xem mục 13.** Mục 13 thắng các mục 0 → 12 ở chỗ khác nhau; các mục cũ giữ để truy vết.
+
 ## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
 
 Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
@@ -307,6 +309,46 @@ Lưu giữ `THEO_HO_SO`. Không có chuyển `KHONG_SU_DUNG → DUOC_SU_DUNG`.
 
 - `su_kien_m08_da_xu_ly`: `khoa_su_kien` `UNIQUE`, `xu_ly_luc` (listener idempotent). *(R-15: `su_kien_m08_da_xu_ly` → `moc_da_nhac`)*
 - `lan_chay_m08`: `ten_viec`, `moc`, `bat_dau`, `ket_thuc`, `ket_qua` (chạy bù). *(R-15: `lan_chay_m08` → `moc_da_nhac`)*
+
+## 13. Sửa theo Q-445 (2026-11-24): thực đơn chung, Quản lý viện duyệt
+
+Lược đồ vật lý giữ bảng gộp R-15 (`danh_muc_chung`, `ho_so_chung`, `su_kien_chung`); thay đổi nằm ở thuộc tính `JSON` và mã loại. Một migration `V011_xx__q445_shared_menu.sql` chuyển dữ liệu cũ (mục 13.6).
+
+### 13.1. Món ăn (`M08.MON_AN`, FR-004, FR-004a)
+
+- Thuộc tính: `mo_ta` (`VARCHAR` ≤ 2000, `NULL`), `anh_tep_id` (`BIGINT NULL`, tệp đính kèm của 000; JPEG, PNG, WebP ≤ 5 MB), `trang_thai` (`NHAP`, `HIEU_LUC`, `NGUNG_HIEU_LUC`, `DA_HUY`), `ly_do_ngung`, `da_tung_hieu_luc`. Tên ở cột `ten` của `danh_muc_chung`.
+- Bỏ: `CHO_XAC_NHAN`, `phien_ban_hieu_luc_id`, `mon_an_phien_ban` (`M08.MON_AN_PHIEN_BAN`). Không ghi phiên bản mới; bản ghi phiên bản cũ giữ để tra cứu, không đọc.
+- Bảng trạng thái: Nháp → Hiệu lực (Đưa vào dùng); Nháp → Đã hủy; Hiệu lực → Ngừng hiệu lực (lý do). Sửa tên, mô tả, ảnh ghi nhật ký với giá trị trước/sau.
+
+### 13.2. Chế độ ăn (`M08.CHE_DO_AN`, FR-001)
+
+- Bỏ thuộc tính `mon_an_toan_id`. Giữ tên, mô tả, liên quan điều trị, mặc định, hạn chế, trạng thái. Bản gán (`M08.BAN_GAN`, mục 4) giữ nguyên.
+
+### 13.3. Thực đơn tuần (`thuc_don`, mục D)
+
+- Nội dung `JSON`: `[{ngay, bua_an_id, mon_an_id, thu_tu}]`; bỏ `che_do_an_id`, `mon_thay_the`.
+- Bỏ cột `xac_nhan_kiem_tra`, `ghi_chu_kiem_tra`, `canh_bao_da_xac_nhan`, `nguoi_xac_nhan_kiem_tra_id`; không ghi `thuc_don_kiem_tra` mới.
+- Thêm `gui_luc`, `gui_boi_id` (người gửi, thời điểm gửi duyệt); `cong_bo_boi_id` là Quản lý viện.
+- `doi_mon` (`su_kien_chung`): bỏ `che_do_an_id`, `mon_thay_the_truoc`, `mon_thay_the_sau`.
+- Số suất dự kiến và số người theo loại dị ứng (FR-025a) tính khi đọc, không lưu.
+
+### 13.4. Chốt suất, phát sinh, phiếu (mục E, F)
+
+- `lan_chot`, danh sách người được tính `JSON`: `loai` thêm `NHAN_VIEN` (`nhan_vien_id`); bỏ `che_do_an_id`, `ket_cau`, `suat_dac_biet`, `mon_thay_the`, `mon_an_toan`. Số suất `JSON`: `[{nhom, tang_khu_vuc_id NULL, so_suat}]` với `nhom` ∈ `TANG`, `NHAN_VIEN` (thay `suat_theo_che_do`).
+- `phat_sinh`: `nhom` (`TANG`, `NHAN_VIEN`), `tang_khu_vuc_id NULL`; bỏ `che_do_an_id`, `nct_lien_quan_id`, `doi_suat_dac_biet`. Nguồn mới `DOI_CA` (sự kiện ca của 008).
+- `phieu_bua_an`: `nhom` (`TANG`, `NHAN_VIEN`), `tang_khu_vuc_id NULL` (NULL khi `NHAN_VIEN`); khóa duy nhất (`bua_ngay_id`, `nhom`, `tang_khu_vuc_id`); `mon` `JSON` (tên món của bữa lúc lập phiếu, cập nhật khi Đổi món); `tong_suat`. Bỏ số suất theo chế độ ăn.
+- Không ghi mới: `suat_dac_biet` (`M08.SUAT_DAC_BIET`), `xac_nhan_phuc_vu` (`M08.XAC_NHAN_PHUC_VU`), chỉ định món thay thế, xác nhận món gốc, áp món an toàn. Bản ghi cũ giữ để tra cứu.
+
+### 13.5. Lưu mẫu (mục J)
+
+- Danh sách món cần lưu mẫu = món của bữa trong thực đơn chung (kể cả món thêm qua Đổi món); bỏ món thay thế, món an toàn, món chỉ định.
+
+### 13.6. Chuyển dữ liệu cũ (migration)
+
+1. Món `CHO_XAC_NHAN` → `NHAP`; mọi món: chép `ghi_chu` sang `mo_ta` nếu `mo_ta` trống; bỏ khóa `phien_ban_hieu_luc_id`.
+2. Chế độ ăn: bỏ khóa `mon_an_toan_id`.
+3. Thực đơn chưa hết tuần: mỗi (ngày, bữa) lấy các món của chế độ ăn mặc định; bữa không có món của chế độ mặc định thì lấy hợp các món của mọi chế độ ăn, bỏ trùng, giữ thứ tự xuất hiện đầu tiên. Thực đơn đã hết tuần giữ nguyên `JSON` cũ (chỉ tra cứu; màn đọc bỏ qua `che_do_an_id`).
+4. Phiếu, lần chốt đã có giữ nguyên; chỉ lần chốt mới dùng cấu trúc mục 13.4.
 
 ## 12. DBR áp dụng
 

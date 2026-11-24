@@ -124,3 +124,16 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 
 Test: `FR_063_SuatAnDuKienNguoiCaoTuoiIT`.
 
+
+
+## 7. Kịch bản Q-445 (2026-11-24)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| Q1 | Bếp tạo món có mô tả, ảnh; Đưa vào dùng | Món Hiệu lực, không ai được báo | FR-004, FR-004a |
+| Q2 | Bếp lập thực đơn tuần sau (sao chép), xem bữa trưa thứ 2 | Thấy số suất dự kiến (người cao tuổi, người thân, nhân viên) và số người theo dị ứng, không tên | FR-025a |
+| Q3 | Bếp gửi duyệt thực đơn thiếu món bữa tối thứ 6 | Không chặn; Quản lý viện được báo | FR-025, FR-029 |
+| Q4 | Quản lý viện trả lại có lý do; Bếp sửa, gửi lại; Quản lý viện công bố | Bếp được báo hai lần; thực đơn Công bố | FR-029 |
+| Q5 | Nhân viên, người thân, người cao tuổi mở thực đơn trên app | Thấy món hôm nay kèm mô tả, ảnh; chuyển được ngày trong tuần | FR-028 |
+| Q6 | Bếp chốt bữa trưa | Phiếu mỗi tầng/khu và phiếu nhân viên, mỗi phiếu có món của bữa và tổng suất | FR-034, FR-044 |
+| Q7 | Nhân viên chăm sóc ghi kết quả ăn uống bữa trưa | Không bị chặn vì suất ăn | FR-050 (bỏ) |
