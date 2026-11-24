@@ -167,6 +167,21 @@ public class RightChangeRequestService {
     }
 
     /**
+     * Họ tên người thân bị tác động, để người đại diện biết yêu cầu cho ai khi xác nhận trên cổng (test BF-12 2026-11-24);
+     * yêu cầu không gắn quan hệ (dấu được tự về) trả {@code null}.
+     */
+    @Transactional(readOnly = true)
+    public String familyMemberName(RightChangeRequest request) {
+        if (request.relationshipId() == null) {
+            return null;
+        }
+        return store.relationship(request.relationshipId())
+                .flatMap(r -> store.familyMember(r.familyMemberId()))
+                .map(FamilyMember::fullName)
+                .orElse(null);
+    }
+
+    /**
      * Danh sách yêu cầu; người thân thấy mọi yêu cầu của người cao tuổi mình làm người đại diện, còn lại chỉ yêu cầu về
      * chính mình hoặc do mình lập (FR-050).
      */

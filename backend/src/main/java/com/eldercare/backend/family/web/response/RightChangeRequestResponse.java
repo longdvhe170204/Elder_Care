@@ -32,9 +32,13 @@ public record RightChangeRequestResponse(
         ConfirmationMethod confirmationMethod,
         Source source,
         boolean appliedOnCreation,
-        Long conflictingWishId) {
+        Long conflictingWishId,
+        String familyMemberName) {
 
-    /** Phần trạng thái của yêu cầu (data-model mục 3). */
+    /**
+     * Phần trạng thái của yêu cầu (data-model mục 3); {@code familyMemberName} là họ tên người thân bị tác động, chỉ để
+     * hiển thị (test BF-12 2026-11-24).
+     */
     @Schema(name = "RightChangeRequestState")
     public record State(
             long id,
@@ -42,9 +46,10 @@ public record RightChangeRequestResponse(
             ConfirmationMethod confirmationMethod,
             Source source,
             boolean appliedOnCreation,
-            Long conflictingWishId) {}
+            Long conflictingWishId,
+            String familyMemberName) {}
 
-    public static RightChangeRequestResponse of(SimpleRecord<RightChangeRequest> record) {
+    public static RightChangeRequestResponse of(SimpleRecord<RightChangeRequest> record, String familyMemberName) {
         RightChangeRequest r = record.content();
         boolean signed = r.confirmationMethod() == ConfirmationMethod.SIGNED_FORM;
         RightChangeRequest.NewPicker p = r.newPicker();
@@ -71,6 +76,7 @@ public record RightChangeRequestResponse(
                 r.confirmationMethod(),
                 r.source(),
                 r.appliedOnCreation(),
-                r.conflictingWishId());
+                r.conflictingWishId(),
+                familyMemberName);
     }
 }

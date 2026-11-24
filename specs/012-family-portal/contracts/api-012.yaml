@@ -260,6 +260,14 @@ paths:
       x-br: [BR-M10-01]
       x-family-member: true
       responses: { '200': { description: OK } }
+  /family-portal/residents/{residentId}/family-members:
+    get:
+      tags: [family-portal]
+      summary: "Người thân Hiệu lực của người cao tuổi để lập yêu cầu đổi quyền trên cổng (thêm 2026-11-24, test BF-12): người đại diện thấy mọi người, người thân khác chỉ thấy chính mình; mỗi dòng relationshipId, fullName, relationship, representative, primaryContact, self, rights (mỗi quyền enabled, effective như Relationship.rights); không có số điện thoại, giấy tờ"
+      x-fr: [FR-013, FR-014, FR-050]
+      x-family-member: true
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
   /family-portal/residents/{residentId}/general:
     get:
       tags: [family-portal]
@@ -552,7 +560,7 @@ components:
       allOf:
         - { $ref: '#/components/schemas/CreateRightChangeRequest' }
         - type: object
-          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING_CONFIRMATION, EFFECTIVE, REJECTED, CANCELLED] }, confirmationMethod: { type: string, enum: [PORTAL, SIGNED_FORM, MANAGER_APPROVAL] }, source: { type: string, enum: [COUNTER, PORTAL, REGISTRATION_FORM] }, appliedOnCreation: { type: boolean }, conflictingWishId: { type: [integer, 'null'], format: int64 } }
+          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING_CONFIRMATION, EFFECTIVE, REJECTED, CANCELLED] }, confirmationMethod: { type: string, enum: [PORTAL, SIGNED_FORM, MANAGER_APPROVAL] }, source: { type: string, enum: [COUNTER, PORTAL, REGISTRATION_FORM] }, appliedOnCreation: { type: boolean }, conflictingWishId: { type: [integer, 'null'], format: int64 }, familyMemberName: { type: [string, 'null'], description: 'Họ tên người thân bị tác động, chỉ để hiển thị (thêm 2026-11-24, test BF-12)' } }
     RecordPickup:
       type: object
       required: [type, handoverStaffId]
