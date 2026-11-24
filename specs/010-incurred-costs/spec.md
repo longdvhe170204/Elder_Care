@@ -112,6 +112,12 @@ Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người t
 - Bán trú giữ hệ số theo trạng thái có mặt: Có mặt 100%; Vắng có báo và Vắng không báo theo hai tỷ lệ ở CFG-M02-05 (mặc định 0% và 50%).
 - Sửa kịch bản US1-2, US1-7, US2-3, US4-5, Edge Cases, FR-005a, FR-007, FR-009, FR-014, FR-027, bảng chuyển trạng thái, bảng giao tiếp với 004, Key Entities, Assumptions. Các chỗ khác nhắc "chờ quyết định", "quyết định giữ giường" trong mục cập nhật cũ giữ nguyên làm lịch sử.
 
+### Cập nhật 2026-11-25 (góp ý demo BF-10 của nhóm; E làm, **chờ chủ dự án duyệt khi review PR**)
+
+- **Lệch Q-307** ("không đưa danh sách sự kiện chưa lập khoản, không gợi ý khoản"): màn "Gom chi phí phát sinh" (tên mới của "Lập khoản từ nguồn") có nút **Gom toàn bộ chi phí chưa lập**. Hành chính chọn người cao tuổi và khoảng ngày rồi bấm một lần; màn tra mọi loại nguồn ở bảng 15.2, lấy nguồn chưa có khoản và lập hàng loạt khoản Nháp bằng `POST /costs/items/from-events` theo từng loại. Lý do: trước khi xuất viện, chọn từng nguồn bằng tay dễ sót khoản.
+- Vẫn giữ: khoản chỉ được lập khi Hành chính bấm lệnh (không tự lập theo lịch); backend vẫn kiểm FR-006, FR-007, FR-011 và bỏ qua nguồn không đạt kèm lý do; khoản đi đủ vòng đời mục D. Không đổi API, data-model; lọc "chưa có khoản" làm ở web theo `existingItemId`.
+- Nếu chủ dự án không duyệt: bỏ nút gom, giữ tên mới hoặc trả lại tên cũ; không ảnh hưởng dữ liệu đã lập.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15; UC-61 → UC-64, UC-79):
