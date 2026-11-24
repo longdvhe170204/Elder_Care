@@ -820,6 +820,7 @@ components:
         sessionIdleTimeoutSeconds: { type: integer, format: int64, description: 'CFG-M15-10 của kênh phiên hiện tại, tính bằng giây; null khi kênh không tự đăng xuất (BR-M15-24). Chỉ GET /me trả; phản hồi đăng nhập để null. Web dùng để báo trước khi hết phiên (bổ sung 2026-10-29, chủ dự án duyệt)' }
         phoneNumber: { type: [string, 'null'], description: 'Số điện thoại trên hồ sơ nhân viên của tài khoản; chỉ GET /me, PUT /me/contact trả, chỉ tài khoản nhân viên; phản hồi đăng nhập để null (bổ sung 2026-11-09, chủ dự án duyệt)' }
         email: { type: [string, 'null'], description: 'Email trên hồ sơ nhân viên của tài khoản; như phoneNumber (bổ sung 2026-11-09, chủ dự án duyệt)' }
+        staffId: { type: [integer, 'null'], format: int64, description: 'Hồ sơ nhân viên liên kết của tài khoản; chỉ GET /me, PUT /me/contact trả, chỉ tài khoản nhân viên; phản hồi đăng nhập để null; dùng để người ghi đón, Cho tạm vắng tự chọn mình làm người bàn giao (bổ sung 2026-11-24, test BF-12, chủ dự án duyệt)' }
     Account:
       type: object
       properties:

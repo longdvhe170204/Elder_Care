@@ -78,7 +78,8 @@ class MeController {
                 mustChange,
                 sessions.idleLimit(user.channel()).map(Duration::toSeconds).orElse(null),
                 staffId.flatMap(staffProfiles::phoneNumber).orElse(null),
-                staffId.flatMap(staffProfiles::email).orElse(null));
+                staffId.flatMap(staffProfiles::email).orElse(null),
+                staffId.orElse(null));
     }
 
     /** Nhân viên tự sửa số điện thoại, email của mình (api-002, bổ sung 2026-11-09); trả thông tin người dùng mới. */

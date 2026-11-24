@@ -219,8 +219,12 @@ public class RightChangeRequestService {
         return records.listByResident(RightChangeRequest.KIND, residentId, statuses);
     }
 
-    /** Danh sách được phép đón tại thời điểm (FR-007, FR-068). */
-    @RequiresPermission(function = Function.FAMILY_MEMBER_PERMISSION, operation = Operation.VIEW)
+    /**
+     * Danh sách được phép đón tại thời điểm (FR-007, FR-068). Người làm quy trình đón (FR-021, FR-022: Trưởng tầng, Điều
+     * dưỡng, Nhân viên chăm sóc, Hành chính) phải đọc được để chọn người đón, nên theo quyền xem "Quy trình đón" (test BF-12
+     * 2026-11-24; trước đây theo "Người thân và quyền", Trưởng tầng bị 403).
+     */
+    @RequiresPermission(function = Function.PICKUP, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<FamilyMemberView> pickupList(Target target, Instant at) {
         return rights.allowedPickersAt(target.residentId(), at == null ? time.now() : at);

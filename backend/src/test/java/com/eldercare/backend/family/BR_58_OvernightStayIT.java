@@ -58,6 +58,9 @@ class BR_58_OvernightStayIT extends StayTestBase {
 
         // Test BF-12 (2026-11-24): Trưởng tầng xác nhận thấy họ tên người thân ở lại
         assertThat(stay.get("familyMemberName").asString()).isEqualTo("Phạm R");
+        // Test BF-12 (2026-11-24, FR-021, FR-022): Trưởng tầng làm quy trình đón đọc được danh sách được phép đón
+        assertThat(getJsonAs(staff(floorManager), "/api/v1/residents/" + a + "/pickup-list"))
+                .isEmpty();
 
         command(staff(floorManager), id, "confirm", "{}").andExpect(status().isOk());
         assertThat(stayStatus(id)).isEqualTo("CONFIRMED");

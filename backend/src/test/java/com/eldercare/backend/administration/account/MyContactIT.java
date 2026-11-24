@@ -80,7 +80,9 @@ class MyContactIT extends MySqlIntegrationTestBase {
         mvc.perform(get("/api/v1/me").header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.phoneNumber").value("0912000111"))
-                .andExpect(jsonPath("$.email").value("cu@vien.vn"));
+                .andExpect(jsonPath("$.email").value("cu@vien.vn"))
+                // Test BF-12 (2026-11-24): người ghi đón, Cho tạm vắng tự chọn mình làm người bàn giao
+                .andExpect(jsonPath("$.staffId").value(nurse.staffId()));
 
         // Sai mật khẩu hiện tại: không đổi gì, không gửi tin
         contact(token, "sai12345", "0987654321", "moi@vien.vn")

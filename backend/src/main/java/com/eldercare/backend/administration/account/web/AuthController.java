@@ -238,6 +238,7 @@ class AuthController {
                 success.mustChangePassword(),
                 null,
                 null,
+                null,
                 null);
     }
 
