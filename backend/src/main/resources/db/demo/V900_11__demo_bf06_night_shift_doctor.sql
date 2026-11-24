@@ -1,7 +1,7 @@
 -- Dữ liệu demo BF-06 (chỉ profile demo; 2026-11-24, Đức Anh): bản demo hay chạy đồng hồ giả lập sang buổi tối để thử
 -- leo thang, nhưng V900_02, V900_09 chỉ có ca ngày 07:00–18:00. Ngoài giờ đó không ai trong ca nên Điều dưỡng không thấy
 -- cảnh báo, chuyển viện không chọn được nhân viên bàn giao, và mọi sự cố ghi "Không có bác sĩ trực". Thêm:
---   1. Mẫu ca đêm 9002, 18:00–07:00 giờ Việt Nam (11:00–24:00 UTC), lịch ca 7 ngày kể từ ngày nạp ở Tầng 1 (người phụ
+--   1. Mẫu ca đêm (id tự tăng: id 9002 đã bị cấp tự động sau 9001 của V900_02),18:00–07:00 giờ Việt Nam (11:00–24:00 UTC), lịch ca 7 ngày kể từ ngày nạp ở Tầng 1 (người phụ
 --      trách ca 9005, thành viên 9005, 9006) và Tầng 2 (9011, 9012), như ca ngày;
 --   2. Bác sĩ trực: demo.bacsi (9004) là thành viên ca ngày và ca đêm Tầng 1 với on_duty_doctor, để cảnh báo, sự cố báo
 --      đúng Bác sĩ trực (BR-M05-06) và leo thang cấp 1 có Bác sĩ trực (BR-M05-01);
@@ -13,11 +13,12 @@ SET @today = DATE(@demo_at + INTERVAL 7 HOUR);
 SET @manager = (SELECT id FROM account WHERE username = 'demo.quanly');
 
 -- 008: mẫu ca đêm (createdAt dạng ISO-8601 UTC như V900_03)
-INSERT INTO catalog_item (id, catalog_type, module, name, status, attributes)
-VALUES (9002, 'M09.SHIFT_TEMPLATE', 'M09', 'Ca đêm', 'ACTIVE',
+INSERT INTO catalog_item (catalog_type, module, name, status, attributes)
+VALUES ('M09.SHIFT_TEMPLATE', 'M09', 'Ca đêm', 'ACTIVE',
         JSON_OBJECT('createdAt', DATE_FORMAT(@demo_at, '%Y-%m-%dT%H:%i:%s.%fZ'), 'startTime', '18:00:00',
                     'endTime', '07:00:00', 'scopeType', 'FLOOR', 'requiresHandover', CAST('false' AS JSON),
                     'originalName', 'Ca đêm'));
+SET @night_template = LAST_INSERT_ID();
 
 CREATE TEMPORARY TABLE demo_day (k INT PRIMARY KEY);
 INSERT INTO demo_day (k) VALUES (0), (1), (2), (3), (4), (5), (6);
@@ -31,7 +32,7 @@ FROM demo_day d JOIN demo_floor f;
 
 INSERT INTO work_shift (schedule_id, template_id, scope_type, scope_id, starts_at, ends_at, requires_handover, status,
                         lead_staff_id)
-SELECT s.id, 9002, 'FLOOR', f.floor_id,
+SELECT s.id, @night_template, 'FLOOR', f.floor_id,
        TIMESTAMP(@today + INTERVAL d.k DAY) + INTERVAL 11 HOUR,
        TIMESTAMP(@today + INTERVAL d.k DAY) + INTERVAL 24 HOUR,
        FALSE, 'PUBLISHED', f.lead_id
@@ -44,7 +45,7 @@ ORDER BY f.floor_id, d.k;
 CREATE TEMPORARY TABLE demo_night AS
 SELECT w.id, w.scope_id, w.starts_at, w.ends_at, f.lead_id, f.member_id
 FROM work_shift w JOIN demo_floor f ON f.floor_id = w.scope_id
-WHERE w.template_id = 9002 AND w.scope_type = 'FLOOR';
+WHERE w.template_id = @night_template AND w.scope_type = 'FLOOR';
 
 -- Bảng tạm của MySQL không đọc hai lần trong một câu lệnh: thêm người phụ trách và thành viên bằng hai lệnh
 INSERT INTO shift_staff (shift_id, staff_id)

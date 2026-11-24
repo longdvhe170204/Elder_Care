@@ -276,8 +276,7 @@ public class AlertQueryService {
         }
         boolean shortcut = handler && AlertHandlingService.senderShortcut(alert, user);
         if (handler
-                && (shortcut
-                        || (status == AlertStatus.IN_PROGRESS && AlertHandlingService.mayClose(alert, user)))) {
+                && (shortcut || (status == AlertStatus.IN_PROGRESS && AlertHandlingService.mayClose(alert, user)))) {
             commands.add("close");
         }
         if (open

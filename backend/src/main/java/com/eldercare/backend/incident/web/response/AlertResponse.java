@@ -98,6 +98,7 @@ public record AlertResponse(
 
         @Schema(description = "Tin người gửi nhắn thêm (đề xuất 2026-11-23)")
         List<SenderMessage> senderMessages,
+
         List<AlertFollowUp> followUps) {
 
     private static final String STAFF_ASSIST = "STAFF_ASSIST_REQUEST";

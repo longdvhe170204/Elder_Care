@@ -95,8 +95,10 @@ final class TransferSummaryDocument {
         }
 
         pdf.signatures("Người lập phiếu", "Đại diện nơi nhận")
-                .note("Lập lúc " + time(s.preparedAt()) + " bởi " + orMissing(s.preparedBy())
-                        + ". Nguồn: hồ sơ người cao tuổi và bản ghi chuyển viện trên Elder_Care.", false)
+                .note(
+                        "Lập lúc " + time(s.preparedAt()) + " bởi " + orMissing(s.preparedBy())
+                                + ". Nguồn: hồ sơ người cao tuổi và bản ghi chuyển viện trên Elder_Care.",
+                        false)
                 .note(DISCLAIMER, false);
         return pdf.toBytes();
     }
