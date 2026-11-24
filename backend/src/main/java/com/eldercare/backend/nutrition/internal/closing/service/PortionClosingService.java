@@ -26,7 +26,6 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
 import com.eldercare.backend.nutrition.api.events.AdjustmentsPending;
 import com.eldercare.backend.nutrition.api.events.PortionsClosed;
-import com.eldercare.backend.nutrition.api.events.SafeDishApplied;
 import com.eldercare.backend.nutrition.internal.closing.domain.AdjustmentCalculator;
 import com.eldercare.backend.nutrition.internal.closing.domain.AdjustmentCalculator.Change;
 import com.eldercare.backend.nutrition.internal.closing.domain.AdjustmentCalculator.Delta;
@@ -180,13 +179,13 @@ public class PortionClosingService {
         }
         requireMealTime(meal);
         Instant now = time.now();
-        PortionCounter.Count count = counter.count(meal, Optional.empty(), Map.of(), !dailyMeals.officeHours(now));
+        PortionCounter.Count count = counter.count(meal, Optional.empty());
         return view(dailyMealId, count, flags(meal, count, now));
     }
 
     /**
      * Lệnh Chốt suất (FR-033 → FR-038, FR-043, FR-044): chặn trước mốc mở chốt, bữa chưa đặt giờ (chủ dự án chốt 2026-11-06)
-     * và lần chốt thứ hai; chốt sau giờ bữa được phép, mang dấu. Món an toàn áp ngay khi ngoài giờ hành chính (FR-037a i).
+     * và lần chốt thứ hai; chốt sau giờ bữa được phép, mang dấu. Lập phiếu mỗi tầng/khu và phiếu nhân viên (Q-445).
      */
     @RequiresPermission(function = Function.MEAL_PREPARATION, operation = Operation.CREATE)
     @BusinessCommand(requiresReason = false)
@@ -203,7 +202,7 @@ public class PortionClosingService {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
                     "BEFORE_CLOSING_TIME", "Chưa tới mốc chốt suất (giờ bữa − CFG-M08-01, FR-033)")));
         }
-        PortionCounter.Count count = counter.count(meal, Optional.empty(), Map.of(), !dailyMeals.officeHours(now));
+        PortionCounter.Count count = counter.count(meal, Optional.empty());
         Set<String> flags = flags(meal, count, now);
         List<FloorDietCount> portions = portions(count.persons());
         PortionClosing closing = new PortionClosing(
@@ -263,25 +262,7 @@ public class PortionClosingService {
                 .entity(ENTITY, id)
                 .after(after)
                 .build());
-        Set<String> noticeFlags = new LinkedHashSet<>(flags);
-        noticeFlags.remove("NO_DIET_ASSIGNED");
-        if (count.persons().stream().anyMatch(p -> p.flags().contains(PortionFlag.NO_DISH_IN_MENU))) {
-            noticeFlags.add("NO_DISH_IN_MENU");
-        }
-        events.publishEvent(new PortionsClosed(
-                dailyMealId,
-                meal.mealId(),
-                meal.date(),
-                noticeFlags,
-                (int) count.persons().stream()
-                        .filter(p -> p.flags().contains(PortionFlag.NO_DIET_ASSIGNED))
-                        .count(),
-                (int) count.persons().stream()
-                        .filter(p -> p.flags().contains(PortionFlag.SAFE_DISH))
-                        .count(),
-                count.safeDishConflicts(),
-                user.accountId(),
-                now));
+        events.publishEvent(new PortionsClosed(dailyMealId, meal.mealId(), meal.date(), flags, user.accountId(), now));
         return new ClosingView(dailyMealId, portions, specials, family, flags, count.missingData());
     }
 
@@ -311,36 +292,29 @@ public class PortionClosingService {
 
     /**
      * Tính lại suất của các người cao tuổi ({@code only} rỗng là mọi người) ở mọi bữa đã chốt chưa tới giờ và ghi phát sinh
-     * (FR-039, FR-043, FR-037a): mỗi bữa một phát sinh, khóa {@code sourceKey} chống trùng (NFR-04). Gỡ dấu "dự kiến trở
-     * về" khi người đã về trước giờ bữa không tạo phát sinh (FR-040a). {@code forceSafeDish}: mốc CFG-M08-05 (FR-037a ii).
+     * (FR-039, FR-043): mỗi bữa một phát sinh, khóa {@code sourceKey} chống trùng (NFR-04). Gỡ dấu "dự kiến trở về" khi người
+     * đã về trước giờ bữa không tạo phát sinh (FR-040a). {@code only} rỗng thì tính lại cả suất nhân viên (Q-445).
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public int recompute(Optional<Collection<Long>> only, String sourceKey, String changeType, boolean forceSafeDish) {
+    public int recompute(Optional<Collection<Long>> only, String sourceKey, String changeType) {
         Instant now = time.now();
         int created = 0;
         for (PortionClosing closing : closings.beforeMealTime(now)) {
-            created += recompute(closing, only, sourceKey, changeType, forceSafeDish, now);
+            created += recompute(closing, only, sourceKey, changeType, now);
         }
         return created;
     }
 
     int recompute(
-            PortionClosing closing,
-            Optional<Collection<Long>> only,
-            String sourceKey,
-            String changeType,
-            boolean forceSafeDish,
-            Instant now) {
+            PortionClosing closing, Optional<Collection<Long>> only, String sourceKey, String changeType, Instant now) {
         locks.lock(ClosingRecordStore.DAILY_MEAL + ":" + closing.dailyMealId());
         DailyMeal meal = dailyMeals.of(closing);
         Map<String, CountedPerson> current = current(closing);
         if (only.isPresent()) {
-            current.values().removeIf(p -> !only.get().contains(p.residentId()));
+            current.values()
+                    .removeIf(p -> p.kind() == CountedKind.STAFF || !only.get().contains(p.residentId()));
         }
-        boolean applySafe = forceSafeDish
-                || !dailyMeals.officeHours(now)
-                || !now.isBefore(meal.mealTime().orElseThrow().minus(dailyMeals.reminderLead()));
-        PortionCounter.Count fresh = counter.count(meal, only, assignedDishes(closing.dailyMealId()), applySafe);
+        PortionCounter.Count fresh = counter.count(meal, only);
         Map<String, CountedPerson> next = new LinkedHashMap<>();
         fresh.persons().forEach(p -> next.put(p.key(), p));
         int created = 0;
@@ -388,15 +362,6 @@ public class PortionClosingService {
             }
             familyMealEffects(meal, delta, now);
         }
-        int safeApplied = (int) AdjustmentCalculator.diff(current, next).stream()
-                .filter(d -> d.after() != null && d.after().flags().contains(PortionFlag.SAFE_DISH))
-                .filter(d -> d.before() == null || !d.before().flags().contains(PortionFlag.SAFE_DISH))
-                .count();
-        List<Long> conflicts = forceSafeDish ? fresh.safeDishConflicts() : List.of();
-        if (safeApplied > 0 || !conflicts.isEmpty()) {
-            events.publishEvent(new SafeDishApplied(
-                    closing.dailyMealId(), closing.mealDate(), safeApplied, conflicts, sourceKey, now));
-        }
         if (created > 0) {
             boolean reminder = !now.isBefore(meal.mealTime().orElseThrow().minus(dailyMeals.reminderLead()));
             events.publishEvent(new AdjustmentsPending(
@@ -411,11 +376,11 @@ public class PortionClosingService {
     }
 
     /**
-     * Đổi món của bữa đã chốt chưa tới giờ (FR-031, FR-039): một phát sinh 0 suất mỗi tầng/khu có người dùng chế độ ăn đó
-     * (bếp nấu món mới), rồi tính lại suất đặc biệt của mọi người.
+     * Đổi món của bữa đã chốt chưa tới giờ (FR-031, FR-039): một phát sinh 0 suất mỗi tầng/khu và phiếu nhân viên có suất
+     * (bếp nấu món mới), rồi tính lại món của mọi suất.
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void dishSwapped(long swapId, LocalDate date, long mealId, long dietId) {
+    public void dishSwapped(long swapId, LocalDate date, long mealId) {
         Instant now = time.now();
         long dailyMealId = DailyMeal.id(mealId, date);
         Optional<PortionClosing> closing = closings.ofDailyMeal(dailyMealId);
@@ -426,18 +391,16 @@ public class PortionClosingService {
         String source = "M08.DISH_SWAP:" + swapId;
         int created = 0;
         Set<Long> floors = new java.util.TreeSet<>();
-        current(closing.get()).values().stream()
-                .filter(p -> p.dietId() == dietId)
-                .forEach(p -> floors.add(p.floorAreaId()));
+        current(closing.get()).values().forEach(p -> floors.add(p.floorAreaId()));
         for (long floor : floors) {
             Adjustment swap =
-                    new Adjustment(dailyMealId, floor, dietId, 0, "DISH_SWAP", source, true, null, null, null, null);
+                    new Adjustment(dailyMealId, floor, 0, 0, "DISH_SWAP", source, true, null, null, null, null);
             if (records.addAdjustment(swap, null, now, source + ":" + floor).isPresent()) {
                 created++;
                 reopenPrepared(dailyMealId, floor);
             }
         }
-        recompute(closing.get(), Optional.empty(), source, "DISH_SWAP", false, now);
+        recompute(closing.get(), Optional.empty(), source, "DISH_SWAP", now);
         if (created > 0) {
             events.publishEvent(new AdjustmentsPending(
                     dailyMealId,
@@ -476,19 +439,6 @@ public class PortionClosingService {
     }
 
     /** Món Bác sĩ đã chỉ định riêng theo người ở bữa ngày (FR-037). */
-    Map<Long, Long> assignedDishes(long dailyMealId) {
-        Map<Long, Long> out = new HashMap<>();
-        for (SimpleRecord<MealSlip> slip : records.slips(dailyMealId)) {
-            for (SimpleRecord<SpecialPortion> row : records.specials(slip.id())) {
-                if (ClosingRecordStore.ACTIVE.equals(row.status())
-                        && row.content().assignedDishId() != null) {
-                    out.put(row.content().residentId(), row.content().assignedDishId());
-                }
-            }
-        }
-        return out;
-    }
-
     /**
      * Suất của người sau phát sinh trên phiếu tầng/khu mới: suất cũ (tầng khác) {@code DROPPED}, suất mới tạo trên phiếu nếu
      * phiếu đã có (tầng chưa có phiếu: lập khi bếp xác nhận phát sinh "+", Q-306).
@@ -630,12 +580,6 @@ public class PortionClosingService {
         }
         if (now.isAfter(meal.mealTime().orElseThrow())) {
             flags.add("CLOSED_AFTER_MEAL_TIME");
-        }
-        if (count.persons().stream().anyMatch(p -> p.flags().contains(PortionFlag.MISSING_SUBSTITUTE_DISH))) {
-            flags.add("MISSING_SUBSTITUTE_DISH");
-        }
-        if (count.persons().stream().anyMatch(p -> p.flags().contains(PortionFlag.NO_DIET_ASSIGNED))) {
-            flags.add("NO_DIET_ASSIGNED");
         }
         return flags;
     }

@@ -33,12 +33,11 @@ class BR_35_PortionClosingIT extends ClosingTestBase {
 
         close(dailyMeal(lunch))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.portionsByFloorArea[?(@.floorAreaId == " + floor2 + ")].portionCount")
+                .andExpect(jsonPath("$.portionsByGroup[?(@.floorAreaId == " + floor2 + ")].portionCount")
                         .value(hasItem(2)))
-                .andExpect(jsonPath("$.portionsByFloorArea[?(@.floorAreaId == " + floor3 + ")]", hasSize(0)))
-                .andExpect(jsonPath("$.portionsByFloorArea[?(@.floorAreaId == " + dayCareArea + ")].portionCount")
-                        .value(hasItem(1)))
-                .andExpect(jsonPath("$.flags", hasItem("NO_DIET_ASSIGNED")));
+                .andExpect(jsonPath("$.portionsByGroup[?(@.floorAreaId == " + floor3 + ")]", hasSize(0)))
+                .andExpect(jsonPath("$.portionsByGroup[?(@.floorAreaId == " + dayCareArea + ")].portionCount")
+                        .value(hasItem(1)));
 
         assertThat(jdbc.queryForList(
                         "SELECT JSON_EXTRACT(content, '$.persons[*].residentId') FROM record_event WHERE kind ="

@@ -1,21 +1,24 @@
 package com.eldercare.backend.nutrition.web;
 
+import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.nutrition.internal.menu.domain.Menu;
 import com.eldercare.backend.nutrition.internal.menu.domain.MenuContent;
 import com.eldercare.backend.nutrition.internal.menu.domain.MenuDish;
+import com.eldercare.backend.nutrition.internal.menu.domain.MenuStatus;
+import com.eldercare.backend.nutrition.internal.menu.service.MenuQueries;
 import com.eldercare.backend.nutrition.internal.menu.service.MenuService;
-import com.eldercare.backend.nutrition.internal.menu.service.MenuService.CheckView;
 import com.eldercare.backend.nutrition.internal.menu.service.MenuService.MenuDetail;
 import com.eldercare.backend.nutrition.internal.menu.service.MenuService.SwapInput;
 import com.eldercare.backend.nutrition.web.request.CreateMenuRequest;
 import com.eldercare.backend.nutrition.web.request.DishSwapRequest;
 import com.eldercare.backend.nutrition.web.request.MenuCommandRequest;
 import com.eldercare.backend.nutrition.web.request.MenuContentRequest;
-import com.eldercare.backend.nutrition.web.response.MenuCheckResultResponse;
+import com.eldercare.backend.nutrition.web.response.MealPlanningInfoResponse;
 import com.eldercare.backend.nutrition.web.response.MenuResponse;
 import com.eldercare.backend.nutrition.web.response.NutritionProblem;
+import com.eldercare.backend.nutrition.web.response.SharedMenuDayResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,8 +41,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Thực đơn tuần của api-011 (thẻ {@code menu}; FR-023 → FR-032, BR-M08-06 → 08). Chi tiết và thông tin trước khi gửi
- * không khai schema trong hợp đồng ({@code 200 OK}); thân trả JSON như mô tả của thao tác.
+ * Thực đơn tuần chung của api-011 (thẻ {@code menu}; FR-023 → FR-031, Q-445). Chi tiết không khai schema trong hợp đồng
+ * ({@code 200 OK}); thân trả JSON như mô tả của thao tác.
  */
 @RestController
 @RequestMapping("/api/v1/menus")
@@ -49,17 +52,30 @@ public class MenuController {
     private static final String PROBLEM = "application/problem+json";
 
     private final MenuService menus;
+    private final MenuQueries queries;
+    private final AccountApi accounts;
 
-    public MenuController(MenuService menus) {
+    public MenuController(MenuService menus, MenuQueries queries, AccountApi accounts) {
         this.menus = menus;
+        this.queries = queries;
+        this.accounts = accounts;
+    }
+
+    @GetMapping("/shared")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<SharedMenuDayResponse> shared(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return SharedMenuDayResponse.of(queries.shared(from, to));
     }
 
     @GetMapping
     @ApiResponse(responseCode = "200", description = "OK")
     public List<MenuResponse> list(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate week) {
-        return menus.list(MenuService.target(0), week).stream()
-                .map(MenuResponse::of)
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate week,
+            @RequestParam(required = false) MenuStatus status) {
+        return menus.list(MenuService.target(0), week, status).stream()
+                .map(m -> MenuResponse.of(m, submitterName(m)))
                 .toList();
     }
 
@@ -88,21 +104,13 @@ public class MenuController {
         body.put("content", menu.content());
         body.put("copiedFromId", menu.copiedFromId());
         body.put("dishesToReplace", detail.dishesToReplace());
-        body.put("processingCheckConfirmed", menu.processingCheckConfirmed());
-        body.put("processingNote", menu.processingNote());
-        body.put("processingCheckedBy", menu.processingCheckedBy());
-        body.put("processingCheckedAt", menu.processingCheckedAt());
-        body.put("confirmedWarnings", menu.confirmedWarnings());
-        body.put("submittedBy", menu.submittedBy());
+        body.put("submittedBy", submitterName(menu));
         body.put("submittedAt", menu.submittedAt());
-        body.put("publishedBy", menu.publishedBy());
+        body.put("publishedBy", menu.publishedBy() == null ? null : name(menu.publishedBy()));
         body.put("publishedAt", menu.publishedAt());
         body.put("appliedAt", menu.appliedAt());
         body.put("returnReason", menu.returnReason());
         body.put("cancelReason", menu.cancelReason());
-        body.put(
-                "checks",
-                detail.checks().stream().map(MenuCheckResultResponse::of).toList());
         body.put(
                 "dishSwaps",
                 detail.dishSwaps().stream()
@@ -111,11 +119,8 @@ public class MenuController {
                             row.put("id", swap.id());
                             row.put("date", swap.content().date());
                             row.put("mealId", swap.content().mealId());
-                            row.put("dietId", swap.content().dietId());
                             row.put("oldDishId", swap.content().oldDishId());
                             row.put("newDishId", swap.content().newDishId());
-                            row.put("oldSubstituteDishIds", swap.content().oldSubstituteDishIds());
-                            row.put("substituteDishIds", swap.content().substituteDishIds());
                             row.put("reason", swap.content().reason());
                             row.put("swappedBy", swap.actorId());
                             row.put("swappedAt", swap.occurredAt());
@@ -148,19 +153,15 @@ public class MenuController {
     }
 
     @GetMapping("/{id}/pre-submit-info")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
-    public Map<String, Object> preSubmitInfo(@PathVariable long id) {
-        return Map.of("diets", menus.preSubmitInfo(MenuService.target(id), id));
-    }
-
-    @PostMapping("/{id}/check")
-    @ApiResponse(responseCode = "200", description = "Bếp nhận KitchenMenuWarning; Bác sĩ nhận kèm tên người")
-    public MenuCheckResultResponse check(@PathVariable long id) {
-        return MenuCheckResultResponse.of(menus.check(MenuService.target(id), id));
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<MealPlanningInfoResponse> preSubmitInfo(@PathVariable long id) {
+        return menus.preSubmitInfo(MenuService.target(id), id).stream()
+                .map(MealPlanningInfoResponse::of)
+                .toList();
     }
 
     @PostMapping("/{id}/{command}")
-    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     @ApiResponse(
             responseCode = "403",
             description = "Không có quyền",
@@ -169,68 +170,55 @@ public class MenuController {
             responseCode = "409",
             description = "Bị chặn",
             content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
-    public MenuCheckResultResponse command(
+    public ResponseEntity<Void> command(
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @PathVariable long id,
             @PathVariable @Schema(allowableValues = {"submit", "withdraw", "cancel", "return", "publish"})
                     String command,
             @RequestBody(required = false) MenuCommandRequest body) {
-        MenuCommandRequest b = body == null ? new MenuCommandRequest(null, null, null, null) : body;
         var target = MenuService.target(id);
-        CheckView result = switch (command) {
-            case "submit" ->
-                menus.submit(
-                        target,
-                        id,
-                        Boolean.TRUE.equals(b.processingCheckConfirmed()),
-                        b.processingNote(),
-                        b.confirmedWarnings());
-            case "withdraw" -> {
-                menus.withdraw(target, id);
-                yield null;
-            }
-            case "cancel" -> {
-                menus.cancel(target, id, b.reason());
-                yield null;
-            }
-            case "return" -> {
-                menus.returnToKitchen(target, id, b.reason());
-                yield null;
-            }
-            case "publish" -> menus.publish(target, id, b.confirmedWarnings());
+        var reason = body == null ? null : body.reason();
+        switch (command) {
+            case "submit" -> menus.submit(target, id);
+            case "withdraw" -> menus.withdraw(target, id);
+            case "cancel" -> menus.cancel(target, id, reason);
+            case "return" -> menus.returnToKitchen(target, id, reason);
+            case "publish" -> menus.publish(target, id);
             default -> throw new InvalidValueException("Lệnh không có trong bảng trạng thái thực đơn: " + command);
-        };
-        return result == null ? MenuCheckResultResponse.empty() : MenuCheckResultResponse.of(result);
+        }
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/dish-swaps")
-    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     @ApiResponse(
             responseCode = "409",
             description = "Bị chặn",
             content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
-    public MenuCheckResultResponse swap(
+    public ResponseEntity<Void> swap(
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @PathVariable long id,
             @RequestBody DishSwapRequest body) {
-        return MenuCheckResultResponse.of(menus.swap(
+        menus.swap(
                 MenuService.target(id),
                 id,
-                new SwapInput(
-                        body.date(),
-                        body.mealId(),
-                        body.dietId(),
-                        body.oldDishId(),
-                        body.newDishId(),
-                        body.substituteDishIds(),
-                        body.confirmedWarnings()),
-                body.reason()));
+                new SwapInput(body.date(), body.mealId(), body.oldDishId(), body.newDishId()),
+                body.reason());
+        return ResponseEntity.ok().build();
+    }
+
+    private String submitterName(Menu menu) {
+        return menu.submittedBy() == null ? null : name(menu.submittedBy());
+    }
+
+    private String name(long accountId) {
+        return accounts.fullName(accountId).orElse(null);
     }
 
     private static MenuDish dish(MenuContentRequest.Row row) {
-        if (row.date() == null || row.mealId() == null || row.dietId() == null || row.dishId() == null) {
-            throw new InvalidValueException("Mỗi dòng thực đơn cần ngày, bữa, chế độ ăn, món");
+        if (row.date() == null || row.mealId() == null || row.dishId() == null) {
+            throw new InvalidValueException("Mỗi dòng thực đơn cần ngày, bữa, món");
         }
-        return new MenuDish(row.date(), row.mealId(), row.dietId(), row.dishId(), row.substituteDishIds());
+        return new MenuDish(row.date(), row.mealId(), row.dishId());
     }
 }

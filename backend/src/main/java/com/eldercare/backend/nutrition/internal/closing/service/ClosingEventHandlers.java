@@ -7,15 +7,13 @@ import com.eldercare.backend.admission.api.events.DayCareAbsenceNoticeRecorded;
 import com.eldercare.backend.admission.api.events.DayCareClosureDayChanged;
 import com.eldercare.backend.care.api.events.AttendanceChanged;
 import com.eldercare.backend.care.api.events.AttendanceDetermined;
-import com.eldercare.backend.nutrition.api.events.DietAssignmentTookEffect;
 import com.eldercare.backend.nutrition.api.events.StayMealChanged;
 import com.eldercare.backend.nutrition.api.events.TripMealChanged;
 import com.eldercare.backend.nutrition.internal.conflict.service.M08EventListener;
-import com.eldercare.backend.resident.api.events.AllergyExcluded;
-import com.eldercare.backend.resident.api.events.AllergyRecorded;
-import com.eldercare.backend.resident.api.events.OtherAllergyRecorded;
 import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
 import com.eldercare.backend.roombedallocation.api.events.BedTransferred;
+import com.eldercare.backend.staffing.api.events.AssignmentChanged;
+import com.eldercare.backend.staffing.api.events.ShiftChanged;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -92,24 +90,18 @@ public class ClosingEventHandlers {
         all("DAY_CARE_CLOSURE:" + e.date() + ":" + e.active(), "DAY_CARE_CLOSURE");
     }
 
+    /** Đổi ca, đổi phân công ca (008): tính lại suất nhân viên của các bữa đã chốt chưa tới giờ (FR-034 (d), Q-445). */
     @Transactional
-    public void onDietAssignmentTookEffect(DietAssignmentTookEffect e) {
-        one("DIET_ASSIGNMENT:" + e.assignmentId(), e.residentId(), "DIET_ASSIGNMENT");
+    public void onShiftChanged(ShiftChanged e) {
+        all("SHIFT:" + e.shiftId() + ":" + e.changeType() + ":" + e.occurredAt().toEpochMilli(), "SHIFT_CHANGED");
     }
 
     @Transactional
-    public void onAllergyRecorded(AllergyRecorded e) {
-        one("ALLERGY_RECORDED:" + e.itemId(), e.residentId(), "ALLERGY");
-    }
-
-    @Transactional
-    public void onOtherAllergyRecorded(OtherAllergyRecorded e) {
-        one("OTHER_ALLERGY_RECORDED:" + e.itemId(), e.residentId(), "ALLERGY");
-    }
-
-    @Transactional
-    public void onAllergyExcluded(AllergyExcluded e) {
-        one("ALLERGY_EXCLUDED:" + e.itemId(), e.residentId(), "ALLERGY");
+    public void onAssignmentChanged(AssignmentChanged e) {
+        all(
+                "SHIFT_ASSIGNMENT:" + e.shiftId() + ":" + e.staffId() + ":"
+                        + e.occurredAt().toEpochMilli(),
+                "SHIFT_CHANGED");
     }
 
     @Transactional
@@ -128,11 +120,11 @@ public class ClosingEventHandlers {
 
     private void many(String key, Collection<Long> residents, String type) {
         String eventKey = "M08.CLOSING." + key;
-        listener.once(eventKey, () -> closing.recompute(Optional.of(residents), eventKey, type, false));
+        listener.once(eventKey, () -> closing.recompute(Optional.of(residents), eventKey, type));
     }
 
     private void all(String key, String type) {
         String eventKey = "M08.CLOSING." + key;
-        listener.once(eventKey, () -> closing.recompute(Optional.empty(), eventKey, type, false));
+        listener.once(eventKey, () -> closing.recompute(Optional.empty(), eventKey, type));
     }
 }

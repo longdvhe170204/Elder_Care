@@ -65,6 +65,15 @@ public class FakeShifts implements ShiftApi {
         return this;
     }
 
+    public List<Long> staffOnShiftAt(Instant at) {
+        return shifts.values().stream()
+                .filter(e -> inProgress(e.view(), at))
+                .flatMap(e -> e.staffIds().stream())
+                .distinct()
+                .toList();
+    }
+
+    @Override
     public List<Long> staffOnShift(long floorAreaId, Instant at) {
         return shifts.values().stream()
                 .filter(e -> Objects.equals(e.view().floorAreaId(), floorAreaId) && inProgress(e.view(), at))

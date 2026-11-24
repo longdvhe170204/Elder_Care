@@ -316,7 +316,7 @@ Lược đồ vật lý giữ bảng gộp R-15 (`danh_muc_chung`, `ho_so_chung`
 
 ### 13.1. Món ăn (`M08.MON_AN`, FR-004, FR-004a)
 
-- Thuộc tính: `mo_ta` (`VARCHAR` ≤ 2000, `NULL`), `anh_tep_id` (`BIGINT NULL`, tệp đính kèm của 000; JPEG, PNG, WebP ≤ 5 MB), `trang_thai` (`NHAP`, `HIEU_LUC`, `NGUNG_HIEU_LUC`, `DA_HUY`), `ly_do_ngung`, `da_tung_hieu_luc`. Tên ở cột `ten` của `danh_muc_chung`.
+- Thuộc tính: `mo_ta` (`VARCHAR` ≤ 2000, `NULL`), `anh_tep_id` (`BIGINT NULL`, tệp đính kèm của 000; JPEG, PNG ≤ 5 MB), `trang_thai` (`NHAP`, `HIEU_LUC`, `NGUNG_HIEU_LUC`, `DA_HUY`), `ly_do_ngung`, `da_tung_hieu_luc`. Tên ở cột `ten` của `danh_muc_chung`.
 - Bỏ: `CHO_XAC_NHAN`, `phien_ban_hieu_luc_id`, `mon_an_phien_ban` (`M08.MON_AN_PHIEN_BAN`). Không ghi phiên bản mới; bản ghi phiên bản cũ giữ để tra cứu, không đọc.
 - Bảng trạng thái: Nháp → Hiệu lực (Đưa vào dùng); Nháp → Đã hủy; Hiệu lực → Ngừng hiệu lực (lý do). Sửa tên, mô tả, ảnh ghi nhật ký với giá trị trước/sau.
 

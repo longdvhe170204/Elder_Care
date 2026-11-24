@@ -91,7 +91,7 @@ paths:
   /nutrition/dishes/{id}/image:
     put:
       tags: [catalog]
-      summary: Tải lên hoặc thay ảnh món (JPEG, PNG, WebP; tối đa 5 MB); thay ảnh cũ
+      summary: Tải lên hoặc thay ảnh món (JPEG, PNG; tối đa 5 MB); thay ảnh cũ
       x-fr: [FR-004]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, required: [file], properties: { file: { type: string, format: binary } } } } } }

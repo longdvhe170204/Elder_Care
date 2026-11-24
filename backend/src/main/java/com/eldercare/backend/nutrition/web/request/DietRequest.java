@@ -10,5 +10,4 @@ public record DietRequest(
         String description,
         Boolean treatmentRelated,
         Boolean isDefault,
-        List<Long> restrictions,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long safeDishId) {}
+        List<Long> restrictions) {}

@@ -9,27 +9,19 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Thực đơn gửi kiểm tra, chờ công bố, hoặc bếp rút lại (FR-065 dòng "Thực đơn gửi kiểm tra, chờ duyệt; nhân viên bếp rút
- * lại"; FR-029): báo Bác sĩ mức Nhẹ.
- */
-public record MenuSubmitted(long menuId, LocalDate weekStart, boolean withdrawn, long by, Instant at)
-        implements HasNotificationRequests {
+/** Nhân viên bếp gửi duyệt thực đơn tuần (FR-065 dòng "Thực đơn gửi duyệt"; FR-029, Q-445): báo Quản lý viện mức Nhẹ. */
+public record MenuSubmitted(long menuId, LocalDate weekStart, long by, Instant at) implements HasNotificationRequests {
 
     @Override
     public List<NotificationRequest> notificationRequests() {
-        String type = withdrawn ? "MENU_WITHDRAWN" : "MENU_SUBMITTED";
-        String text = withdrawn
-                ? "Nhân viên bếp đã rút lại thực đơn tuần " + weekStart
-                : "Thực đơn tuần " + weekStart + " chờ Bác sĩ công bố";
         return List.of(MenuNotices.request(
-                type,
+                "MENU_SUBMITTED",
                 menuId,
-                "M08." + type + ":" + menuId + ":" + at.toEpochMilli(),
+                "M08.MENU_SUBMITTED:" + menuId + ":" + at.toEpochMilli(),
                 NotificationLevel.LOW,
-                List.of(new RecipientGroup.FacilityRole(Role.DOCTOR)),
-                text,
-                withdrawn ? "Thực đơn được rút lại" : "Thực đơn chờ công bố",
+                List.of(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER)),
+                "Thực đơn tuần " + weekStart + " chờ Quản lý viện duyệt",
+                "Thực đơn chờ duyệt",
                 by,
                 at));
     }

@@ -12,31 +12,18 @@ import com.eldercare.backend.common.data.TechnicalLocks;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.UnmetCondition;
-import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
-import com.eldercare.backend.nutrition.api.events.MenuDishViolation;
 import com.eldercare.backend.nutrition.internal.assignment.persistence.DietAssignmentStore;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DietAttributes;
-import com.eldercare.backend.nutrition.internal.catalog.domain.Dish;
-import com.eldercare.backend.nutrition.internal.catalog.domain.DishStatus;
-import com.eldercare.backend.nutrition.internal.catalog.domain.SafeDishRule;
-import com.eldercare.backend.nutrition.internal.catalog.domain.SafeDishRule.SafeDish;
 import com.eldercare.backend.nutrition.internal.catalog.persistence.NutritionCatalogStore;
-import com.eldercare.backend.nutrition.internal.menu.domain.Menu;
-import com.eldercare.backend.nutrition.internal.menu.domain.MenuDish;
-import com.eldercare.backend.nutrition.internal.menu.persistence.MenuStore;
 import com.eldercare.backend.resident.api.AllergenApi;
 import com.eldercare.backend.resident.api.dto.AllergenGroup;
 import com.eldercare.backend.resident.api.dto.CreateAllergen;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,37 +47,23 @@ public class DietService {
     private final AuditLogApi audit;
     private final TechnicalLocks locks;
     private final DietAssignmentStore assignments;
-    private final MenuStore menus;
-    private final BusinessTime time;
-    private final ApplicationEventPublisher events;
 
     public DietService(
             NutritionCatalogStore store,
             AllergenApi allergens,
             AuditLogApi audit,
             TechnicalLocks locks,
-            DietAssignmentStore assignments,
-            MenuStore menus,
-            BusinessTime time,
-            ApplicationEventPublisher events) {
+            DietAssignmentStore assignments) {
         this.store = store;
         this.allergens = allergens;
         this.audit = audit;
         this.locks = locks;
         this.assignments = assignments;
-        this.menus = menus;
-        this.time = time;
-        this.events = events;
     }
 
     /** Thân lệnh tạo, sửa chế độ ăn (api-011 {@code DietCommand}). */
     public record DietInput(
-            String name,
-            String description,
-            boolean treatmentRelated,
-            boolean isDefault,
-            List<Long> restrictions,
-            Long safeDishId) {}
+            String name, String description, boolean treatmentRelated, boolean isDefault, List<Long> restrictions) {}
 
     @RequiresPermission(function = Function.DIET, operation = Operation.VIEW)
     @Transactional(readOnly = true)
@@ -140,38 +113,7 @@ public class DietService {
                 .before(snapshot(current))
                 .after(snapshot(after))
                 .build());
-        reportMenuViolations(current, after);
         return after;
-    }
-
-    /**
-     * Đổi hạn chế: kiểm lại FR-005 với thực đơn chưa hết tuần; món vi phạm được báo Bác sĩ, bếp để Đổi món, thực đơn không
-     * tự đổi (FR-002).
-     */
-    private void reportMenuViolations(Diet before, Diet after) {
-        Set<Long> restrictions = new HashSet<>(after.attributes().restrictions());
-        if (restrictions.equals(new HashSet<>(before.attributes().restrictions()))) {
-            return;
-        }
-        int violations = 0;
-        for (Menu menu : menus.notEnded(time.today())) {
-            for (MenuDish row : menu.content().dishes()) {
-                if (row.dietId() != after.id()) {
-                    continue;
-                }
-                List<Long> dishes = new ArrayList<>(row.substituteDishIds());
-                dishes.add(row.dishId());
-                for (long dish : dishes) {
-                    if (store.effectiveIngredients(dish).stream().anyMatch(restrictions::contains)) {
-                        violations++;
-                    }
-                }
-            }
-        }
-        if (violations > 0) {
-            events.publishEvent(
-                    new MenuDishViolation("DIET_RESTRICTION", after.id(), after.name(), violations, null, time.now()));
-        }
     }
 
     @RequiresPermission(function = Function.DIET, operation = Operation.UPDATE)
@@ -191,13 +133,6 @@ public class DietService {
                     org.springframework.http.HttpStatus.CONFLICT,
                     "STILL_ASSIGNED",
                     "Chế độ ăn còn bản gán Hiệu lực hoặc Chờ hiệu lực (FR-002)");
-        }
-        if (menus.notEnded(time.today()).stream()
-                .anyMatch(m -> m.content().dishes().stream().anyMatch(d -> d.dietId() == id))) {
-            throw new com.eldercare.backend.common.error.BusinessException(
-                    org.springframework.http.HttpStatus.CONFLICT,
-                    "STILL_IN_MENU",
-                    "Chế độ ăn còn món trong thực đơn chưa hết tuần (FR-002)");
         }
         Diet after = store.deactivateDiet(current);
         audit.write(AuditLogEntry.builder()
@@ -245,33 +180,16 @@ public class DietService {
                 throw new InvalidValueException("Hạn chế không có trong danh mục dị nguyên: " + allergen);
             }
         }
-        List<Dish> dishes = store.dishes();
-        Optional<SafeDish> safeDish = Optional.ofNullable(attributes.safeDishId())
-                .map(id -> dishes.stream()
-                        .filter(d -> d.id() == id)
-                        .findFirst()
-                        .map(d -> new SafeDish(d.status(), new HashSet<>(effectiveIngredients(d))))
-                        .orElse(new SafeDish(null, java.util.Set.of())));
-        boolean anyActive = dishes.stream().anyMatch(d -> d.status() == DishStatus.ACTIVE);
-        unmet.addAll(SafeDishRule.check(safeDish, new HashSet<>(attributes.restrictions()), anyActive));
         if (!unmet.isEmpty()) {
             throw new ConditionNotMetException(unmet);
         }
-    }
-
-    private List<Long> effectiveIngredients(Dish dish) {
-        Long versionId = dish.attributes().effectiveVersionId();
-        return versionId == null
-                ? List.of()
-                : store.version(versionId).content().ingredients();
     }
 
     private static DietAttributes attributes(DietInput input) {
         List<Long> restrictions = input.restrictions() == null
                 ? List.of()
                 : input.restrictions().stream().distinct().toList();
-        return new DietAttributes(
-                input.description(), input.treatmentRelated(), input.isDefault(), restrictions, input.safeDishId());
+        return new DietAttributes(input.description(), input.treatmentRelated(), input.isDefault(), restrictions);
     }
 
     private static String name(String name) {
@@ -291,7 +209,6 @@ public class DietService {
         out.put("treatmentRelated", diet.attributes().treatmentRelated());
         out.put("isDefault", diet.attributes().isDefault());
         out.put("restrictions", diet.attributes().restrictions());
-        out.put("safeDishId", diet.attributes().safeDishId());
         out.put("status", diet.status().name());
         return out;
     }

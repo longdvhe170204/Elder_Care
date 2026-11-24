@@ -30,9 +30,13 @@ public record CountedPerson(
         flags = flags == null || flags.isEmpty() ? Set.of() : Set.copyOf(EnumSet.copyOf(flags));
     }
 
-    /** Khóa người: người cao tuổi, hoặc người thân của lượt ở lại. */
+    /** Khóa người: người cao tuổi, người thân của lượt ở lại, hoặc nhân viên ({@code residentId} là mã nhân viên). */
     public String key() {
-        return kind == CountedKind.FAMILY ? "FAMILY:" + familyMemberId + ":" + residentId : "RESIDENT:" + residentId;
+        return switch (kind) {
+            case FAMILY -> "FAMILY:" + familyMemberId + ":" + residentId;
+            case STAFF -> "STAFF:" + residentId;
+            default -> "RESIDENT:" + residentId;
+        };
     }
 
     /**

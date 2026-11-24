@@ -105,7 +105,8 @@ class FR_046_PortalMenuDietTest {
         GeneralMenuApi api = mock(GeneralMenuApi.class);
         when(menus.getIfAvailable()).thenReturn(api);
         when(api.generalMenu(TODAY, TODAY.plusDays(6)))
-                .thenReturn(List.of(new DishByMealView(TODAY, 2, "Bữa trưa", 30, "Canh bí đỏ")));
+                .thenReturn(List.of(
+                        new DishByMealView(TODAY, 2, "Bữa trưa", "11:00", 30, "Canh bí đỏ", "Bí đỏ nấu tôm", null)));
 
         PortalService.General general = portal.general(RESIDENT);
 

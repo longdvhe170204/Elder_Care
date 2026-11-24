@@ -22,6 +22,12 @@ public interface ShiftApi {
      */
     List<Long> staffOnShift(long floorAreaId, Instant at);
 
+    /**
+     * Mọi nhân viên có mặt trong ca bao trùm {@code at} ở mọi tầng/khu vực, cộng Quản lý viện, Hành chính, Kế toán trong giờ
+     * hành chính CFG-M13-06 ({@link #onShift}); mỗi người một lần. Dùng tính suất nhân viên của 011 (FR-034 (d), Q-445).
+     */
+    List<Long> staffOnShiftAt(Instant at);
+
     /** Bác sĩ trực đang có mặt trong ca tại thời điểm {@code at} (FR-023; 009 FR-007 (a) nhóm {@code OnDutyDoctor}). */
     List<Long> onDutyDoctors(Instant at);
 }
