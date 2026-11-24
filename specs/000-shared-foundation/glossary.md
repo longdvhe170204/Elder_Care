@@ -4245,6 +4245,7 @@ Gói `billing.balance.internal.<chức năng>.{domain, service}` (mục 23.5; ch
 | họ tên người lập, người duyệt giao dịch | `createdBy`, `approvedBy` mang họ tên ("Hệ thống" với giao dịch kèm lệnh chốt bảng); `ledger.service.AccountNames` (đọc `AccountApi.fullName`) |
 | job số dư chạy theo yêu cầu của test | giá trị `COMPUTE_BALANCE_STATUS` của `runJobs` (`/testing/clock`, `TestClockController.TestJob`) |
 | job hằng ngày, theo phút của M12 chạy theo yêu cầu của test (bổ sung 2026-11-23, test BF-14) | giá trị `M12_DAILY` (`belongings.scheduling.M12DailyJob`), `M12_MINUTE` (`M12MinuteJob`) của `runJobs` |
+| job theo phút, theo giờ, nửa đêm của M10 chạy theo yêu cầu của test (bổ sung 2026-11-24, test BF-12) | giá trị `M10_MINUTE`, `M10_HOURLY`, `M10_MIDNIGHT` (`family.scheduling.M10MinuteJob`, `M10HourlyJob`, `M10MidnightJob`) của `runJobs` |
 
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
