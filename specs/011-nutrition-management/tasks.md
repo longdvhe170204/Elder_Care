@@ -340,7 +340,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ### Kiểm cuối
 
-- [ ] T063 *(2026-11-25: đã chạy IT nutrition, ApiContractIT, PermissionMatrixMatchesSourceIT, IT family, staffing, care liên quan, web lint/test/build, app analyze/test; còn `./mvnw clean verify -Dit.forkCount=3` toàn bộ trước PR)* Chạy `ApiContractIT`, `*ArchTest`, `ModuleBoundaryTest`, IT của nutrition, care (005), family (012), staffing (008); `./mvnw clean verify -Dit.forkCount=3` trước PR; web `npm run lint`, `npm test`, `npm run build`; app `flutter analyze`, `flutter test`; quickstart mục 7
+- [x] T063 *(2026-11-25: đã chạy IT nutrition, ApiContractIT, PermissionMatrixMatchesSourceIT, IT family, staffing, care liên quan, web lint/test/build, app analyze/test; clean verify toàn bộ 2026-11-25: 936 test đơn vị, 520 IT; sửa ParameterCodeTest (bỏ CFG-M08-03) và BR_35_PortionClosingIT (bỏ suất nhân viên khỏi kiểm mã người) rồi chạy lại xanh)* Chạy `ApiContractIT`, `*ArchTest`, `ModuleBoundaryTest`, IT của nutrition, care (005), family (012), staffing (008); `./mvnw clean verify -Dit.forkCount=3` trước PR; web `npm run lint`, `npm test`, `npm run build`; app `flutter analyze`, `flutter test`; quickstart mục 7
 
 ---
 

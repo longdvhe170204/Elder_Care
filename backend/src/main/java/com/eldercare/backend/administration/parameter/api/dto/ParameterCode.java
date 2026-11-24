@@ -118,8 +118,6 @@ public enum ParameterCode {
     CFG_M07_11,
     /** Mốc Nhân viên bếp được chốt suất ăn (mặc định: 2 giờ trước bữa) */
     CFG_M08_01,
-    /** Số ngày lặp món liên tiếp để cảnh báo (mặc định: 3 ngày) */
-    CFG_M08_03,
     /** Giờ bữa dự kiến / ngưỡng giao trễ (mặc định: Theo cơ sở / 30 phút) */
     CFG_M08_04,
     /** Nhắc xác nhận phát sinh trước bữa (mặc định: 30 phút) */

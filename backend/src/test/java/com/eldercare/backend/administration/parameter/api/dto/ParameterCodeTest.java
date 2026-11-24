@@ -30,9 +30,10 @@ class ParameterCodeTest {
         Set<String> codes =
                 Arrays.stream(ParameterCode.values()).map(ParameterCode::code).collect(Collectors.toSet());
 
-        // 121 sau Q-427 → Q-437 (thêm CFG-M07-08 → 11, CFG-M11-12, 2026-11-22); 116 sau Q-420 (thêm CFG-M02-17, 18,
+        // 120 sau Q-445 (bỏ CFG-M08-03, 2026-11-24); 121 sau Q-427 → Q-437 (thêm CFG-M07-08 → 11, CFG-M11-12,
+        // 2026-11-22); 116 sau Q-420 (thêm CFG-M02-17, 18,
         // 2026-11-20); 114 sau Q-407 (bỏ CFG-M04-10, 2026-11-10)
-        assertThat(codes).hasSize(121).isEqualTo(source);
+        assertThat(codes).hasSize(120).isEqualTo(source);
     }
 
     @Test

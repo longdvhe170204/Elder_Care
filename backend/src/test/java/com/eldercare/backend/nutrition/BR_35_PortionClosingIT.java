@@ -39,15 +39,16 @@ class BR_35_PortionClosingIT extends ClosingTestBase {
                 .andExpect(jsonPath("$.portionsByGroup[?(@.floorAreaId == " + dayCareArea + ")].portionCount")
                         .value(hasItem(1)));
 
+        // Suất nhân viên (Q-445) mang mã nhân viên ở residentId: chỉ xét người cao tuổi
         assertThat(jdbc.queryForList(
-                        "SELECT JSON_EXTRACT(content, '$.persons[*].residentId') FROM record_event WHERE kind ="
-                                + " 'M08.PORTION_CLOSING' AND entity_type = 'M08.DAILY_MEAL' AND entity_id = ?",
-                        String.class,
+                        "SELECT jt.rid FROM record_event e, JSON_TABLE(e.content, '$.persons[*]' COLUMNS("
+                                + " rid BIGINT PATH '$.residentId', kind VARCHAR(20) PATH '$.kind')) jt"
+                                + " WHERE e.kind = 'M08.PORTION_CLOSING' AND e.entity_type = 'M08.DAILY_MEAL'"
+                                + " AND e.entity_id = ? AND jt.kind <> 'STAFF'",
+                        Long.class,
                         dailyMeal(lunch)))
-                .singleElement()
-                .satisfies(ids -> assertThat(ids)
-                        .contains(String.valueOf(a), String.valueOf(expected), String.valueOf(dayCare))
-                        .doesNotContain(String.valueOf(hospital), String.valueOf(late)));
+                .contains(a, expected, dayCare)
+                .doesNotContain(hospital, late);
         assertThat(slipCount(dailyMeal(lunch))).isGreaterThanOrEqualTo(2);
         assertThat(jdbc.queryForObject(
                         "SELECT JSON_CONTAINS(content->'$.flags', '\"EXPECTED_RETURN\"') FROM simple_record"
