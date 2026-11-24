@@ -239,6 +239,17 @@ public class FamilyStayService {
     }
 
     /**
+     * Họ tên người thân ở lại, để Trưởng tầng (không đọc được danh sách quan hệ) biết người mình xác nhận (test BF-12
+     * 2026-11-24).
+     */
+    public String familyMemberName(FamilyStay stay) {
+        return relationships
+                .familyMember(stay.familyMemberId())
+                .map(m -> m.fullName())
+                .orElse(null);
+    }
+
+    /**
      * Xác nhận (FR-040, FR-041, FR-045): Trưởng tầng được giao của tầng, tầng không có thì Quản lý viện; kiểm lại FR-041
      * và giới hạn CFG-M10-10; phòng có từ hai giường đang dùng thì bắt buộc ý kiến người cùng phòng.
      */

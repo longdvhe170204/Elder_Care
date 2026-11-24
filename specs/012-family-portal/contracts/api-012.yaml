@@ -594,7 +594,7 @@ components:
       allOf:
         - { $ref: '#/components/schemas/FamilyStayRegistration' }
         - type: object
-          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING_CONFIRMATION, CONFIRMED, REJECTED, STAYING, ENDED, CANCELLED] }, actualStartAt: { type: string, format: date-time }, actualEndAt: { type: string, format: date-time }, nightCount: { type: integer, readOnly: true } }
+          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING_CONFIRMATION, CONFIRMED, REJECTED, STAYING, ENDED, CANCELLED] }, actualStartAt: { type: string, format: date-time }, actualEndAt: { type: string, format: date-time }, nightCount: { type: integer, readOnly: true }, familyMemberName: { type: [string, 'null'], readOnly: true, description: 'Họ tên người thân ở lại, chỉ để hiển thị (thêm 2026-11-24, test BF-12)' } }
     SubmitFeedback:
       type: object
       required: [residentId, type, group, content]

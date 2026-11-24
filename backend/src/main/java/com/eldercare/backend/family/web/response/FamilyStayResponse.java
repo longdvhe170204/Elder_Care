@@ -22,9 +22,13 @@ public record FamilyStayResponse(
         FamilyStay.Status status,
         Instant actualStartAt,
         Instant actualEndAt,
-        int nightCount) {
+        int nightCount,
+        String familyMemberName) {
 
-    /** Phần trạng thái của lượt ở lại (data-model mục 6). */
+    /**
+     * Phần trạng thái của lượt ở lại (data-model mục 6); {@code familyMemberName} là họ tên người thân ở lại, chỉ để hiển
+     * thị (test BF-12 2026-11-24).
+     */
     @Schema(name = "FamilyStayState")
     public record State(
             long id,
@@ -33,9 +37,12 @@ public record FamilyStayResponse(
             Instant actualEndAt,
 
             @Schema(accessMode = Schema.AccessMode.READ_ONLY)
-            int nightCount) {}
+            int nightCount,
 
-    public static FamilyStayResponse of(SimpleRecord<FamilyStay> record, int nightCount) {
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+            String familyMemberName) {}
+
+    public static FamilyStayResponse of(SimpleRecord<FamilyStay> record, int nightCount, String familyMemberName) {
         FamilyStay s = record.content();
         return new FamilyStayResponse(
                 s.familyMemberId(),
@@ -49,6 +56,7 @@ public record FamilyStayResponse(
                 FamilyStay.Status.valueOf(record.status()),
                 s.actualStartAt(),
                 s.actualEndAt(),
-                nightCount);
+                nightCount,
+                familyMemberName);
     }
 }
