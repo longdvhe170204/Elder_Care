@@ -70,6 +70,20 @@ class M12SourceRecordAccessTest {
         assertThat(period.canOpen("20758")).isFalse();
     }
 
+    /** FR-014a: nhắc còn giữ đồ khi hết ca có nguồn là đồ nhân viên đang giữ (mã nhân viên). */
+    @Test
+    void staffHeld_opensWhenHeldListIsReadable() {
+        BelongingQueries queries = mock(BelongingQueries.class);
+        when(queries.heldValuableBy(9005L)).thenReturn(java.util.List.of());
+        when(queries.heldValuableBy(9001L)).thenThrow(new PermissionDeniedException("Không xem được"));
+        var access = new com.eldercare.backend.belongings.internal.belonging.service.StaffHeldSourceAccess(queries);
+
+        assertThat(access.sourceRecordType()).isEqualTo("M12.STAFF_HELD_BELONGINGS");
+        assertThat(access.canOpen("9005")).isTrue();
+        assertThat(access.canOpen("9001")).isFalse();
+        assertThat(access.canOpen("x")).isFalse();
+    }
+
     /** FR-028: thông báo đồ còn ở tủ tầng cũ có nguồn là đồ gửi của người cao tuổi (mã người cao tuổi). */
     @Test
     void residentBelongings_opensWhenResidentIsInScope() {

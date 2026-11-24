@@ -125,7 +125,7 @@ interface SourceRecordAccessPort {                // module nguồn cài, mỗi 
 }
 ```
 
-Hộp thông báo đặt `sourceRecord.canOpen` theo bản cài của đúng loại nguồn; loại không có bản cài, hoặc bản cài ném lỗi, là `false`. Bản cài hiện có: 013 cho `M12.RECIPIENT_CONFIRMATION` (người đại diện hiện tại, như `GET /family-portal/recipient-confirmations/{id}`; *bổ sung 2026-11-23* thêm Hành chính, Quản lý viện), `M12.BELONGING_HANDOVER` (như `GET /belongings/handovers/{id}`), `M12.BELONGING` (như `GET /belongings/{id}`), `M12.BELONGING_RESIDENT` (mã người cao tuổi, như `GET /residents/{residentId}/belongings`), `M12.INVENTORY_CHECK`, `M12.INVENTORY_PERIOD`, `M12.STORAGE_LOCATION` (người xem được tab Kiểm kê). 003 không cài cho `M03.BED_ALLOCATION` vì 003 → 009 tạo vòng phụ thuộc giữa module (`ModuleBoundaryTest`).
+Hộp thông báo đặt `sourceRecord.canOpen` theo bản cài của đúng loại nguồn; loại không có bản cài, hoặc bản cài ném lỗi, là `false`. Bản cài hiện có: 013 cho `M12.RECIPIENT_CONFIRMATION` (người đại diện hiện tại, như `GET /family-portal/recipient-confirmations/{id}`; *bổ sung 2026-11-23* thêm Hành chính, Quản lý viện), `M12.BELONGING_HANDOVER` (như `GET /belongings/handovers/{id}`), `M12.BELONGING` (như `GET /belongings/{id}`), `M12.BELONGING_RESIDENT` (mã người cao tuổi, như `GET /residents/{residentId}/belongings`), `M12.STAFF_HELD_BELONGINGS` (mã nhân viên, như `GET /staff/{staffId}/held-belongings`), `M12.INVENTORY_CHECK`, `M12.INVENTORY_PERIOD`, `M12.STORAGE_LOCATION` (người xem được tab Kiểm kê). 003 không cài cho `M03.BED_ALLOCATION` vì 003 → 009 tạo vòng phụ thuộc giữa module (`ModuleBoundaryTest`).
 
 ### 2.2. Sự kiện 009 nghe
 
