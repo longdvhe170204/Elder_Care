@@ -230,13 +230,14 @@ public class CostStatementService {
                     .after(Map.of("status", "FINALIZED"))
                     .build());
         log("COST_STATEMENT_FINALIZED", s, "FINALIZED", null);
+        long total = totals.values().stream().reduce(0L, Math::addExact);
         var request = notifications.request(
                 "COST_STATEMENT_FINALIZED",
                 "M11.COST_STATEMENT",
                 id,
                 s.residentId(),
                 "M11:FINALIZED:" + id,
-                "Bảng chi phí đã được chốt",
+                finalizedMessage(s, total),
                 List.of(new RecipientGroup.FamilyWithRight(s.residentId(), FamilyRight.VIEW_COSTS)),
                 NotificationLevel.MEDIUM,
                 at,
@@ -246,10 +247,30 @@ public class CostStatementService {
                 CostStatementType.valueOf(s.statementType()),
                 s.periodId(),
                 s.residentId(),
-                totals.values().stream().reduce(0L, Math::addExact),
+                total,
                 at,
                 List.of(request)));
         events.publishEvent(new CostItemChanged(s.residentId(), s.periodId()));
+    }
+
+    /**
+     * Demo 2026-11-25: người thân biết ngay kỳ, tổng tiền và việc số dư đã được trừ (017 US4 trừ số dư khi bảng chốt; bảng
+     * tổng âm thì cộng lại vào số dư).
+     */
+    static String finalizedMessage(CostStatementRecord s, long total) {
+        String kind = s.finalPeriod()
+                ? "kỳ cuối tháng"
+                : s.statementType().equals("SUPPLEMENTARY") ? "bổ sung tháng" : "tháng";
+        String month =
+                String.format("%02d/%d", s.month().getMonthValue(), s.month().getYear());
+        String effect = total < 0 ? "đã cộng lại vào số dư" : "đã trừ vào số dư";
+        return "Bảng chi phí " + kind + " " + month + " đã chốt: tổng " + vnd(total) + ", " + effect + ".";
+    }
+
+    private static String vnd(long amount) {
+        var digits = new StringBuilder(Long.toString(Math.abs(amount)));
+        for (int i = digits.length() - 3; i > 0; i -= 3) digits.insert(i, '.');
+        return (amount < 0 ? "-" : "") + digits + " đ";
     }
 
     private CostStatementRecord locked(long id, Role role, Operation operation) {

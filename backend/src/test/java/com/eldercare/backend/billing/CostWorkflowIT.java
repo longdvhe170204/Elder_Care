@@ -221,6 +221,25 @@ class CostWorkflowIT extends MySqlIntegrationTestBase {
                 .isEqualTo(300L);
     }
 
+    // Demo 2026-11-25: thông báo chốt bảng tới người thân nêu kỳ, tổng tiền và việc đã trừ vào số dư (017 US4)
+    @Test
+    void finalize_familyNotificationStatesPeriodTotalAndBalanceDeduction() {
+        finalPeriod();
+        long a = item("EVENT_BASED", 1_250_000L, "");
+        long b = item("EVENT_BASED", 300_000L, "");
+        items.check(selection(a, b));
+        statements.submit(statement);
+        var event = events.stream(com.eldercare.backend.billing.api.events.CostStatementFinalized.class)
+                .filter(e -> e.statementId() == statement)
+                .findFirst()
+                .orElseThrow();
+        var content =
+                event.notificationRequests().getFirst().content().getFirst().content();
+        assertThat(content)
+                .isEqualTo("Bảng chi phí kỳ cuối tháng %02d/%d đã chốt: tổng 1.550.000 đ, đã trừ vào số dư."
+                        .formatted(billedMonth.getMonthValue(), billedMonth.getYear()));
+    }
+
     @Test
     void finalPeriod_manualItemNotApproved_staysAwaitingManager() {
         finalPeriod();
