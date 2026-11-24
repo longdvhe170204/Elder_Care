@@ -153,5 +153,21 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND t.code='NURSING_LICENSE' WHERE c.staff_id IN (9005, 9011) ORDER BY c.staff_id",
                         Long.class))
                 .containsExactly(9005L, 9011L);
+        // V900_12: A, B đi được BF-10 (kết thúc lưu trú): phiên bản nội dung mới nhất của hợp đồng có kỳ tính phí lưu
+        // trú
+        // (010 chia phí theo ngày, trước báo 500) và không cần cọc; có sổ số dư với mã nộp tiền đúng ký tự kiểm tra
+        // (017)
+        assertThat(jdbc.queryForList(
+                        "SELECT v.content->>'$.residencyFeeBillingPeriod' FROM contract_version v"
+                                + " WHERE v.kind='CONTENT' AND v.contract_id IN (9001,9002) AND v.sequence_no ="
+                                + " (SELECT MAX(x.sequence_no) FROM contract_version x"
+                                + " WHERE x.kind='CONTENT' AND x.contract_id=v.contract_id)",
+                        String.class))
+                .containsOnly("MONTH")
+                .hasSize(2);
+        assertThat(jdbc.queryForList(
+                        "SELECT payment_code FROM resident_balance WHERE resident_id IN (9001,9002) ORDER BY resident_id",
+                        String.class))
+                .containsExactly("NCTDEM9012", "NCTDEM9023");
     }
 }
