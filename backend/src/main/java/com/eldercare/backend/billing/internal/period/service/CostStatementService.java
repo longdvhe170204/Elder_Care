@@ -87,6 +87,28 @@ public class CostStatementService {
                 .map(i -> i.id())
                 .toList();
         if (!drafts.isEmpty()) throw invalid("DRAFT_ITEMS_REMAIN", "Bảng còn khoản nháp", drafts);
+        // Demo 2026-11-25 (E, chờ chủ dự án duyệt khi review PR): bảng kỳ cuối do Hành chính chốt luôn khi gửi chốt,
+        // Quản
+        // lý viện chỉ được báo. Khoản nhập tay, mua hộ, điều chỉnh vẫn phải được Quản lý viện duyệt riêng trước
+        // (BR-M11-04); còn khoản như vậy chưa duyệt thì bảng đi đường cũ (Chờ chốt, Quản lý viện duyệt, chốt).
+        if (s.finalPeriod()) {
+            var all = items.lockItems(id);
+            boolean awaitingApproval = all.stream()
+                    .anyMatch(i -> i.status().equals("CHECKED") && !i.origin().equals("EVENT_BASED"));
+            if (!awaitingApproval) {
+                finalizeLocked(s, all);
+                notifications.staff(
+                        "COST_STATEMENT_FINALIZED_BY_OFFICE",
+                        id,
+                        s.residentId(),
+                        "M11:OFFICE_FINALIZED:" + id,
+                        "Bảng chi phí kỳ cuối đã được Hành chính chốt",
+                        Role.NURSING_HOME_MANAGER,
+                        time.now(),
+                        access.user().accountId());
+                return Optional.empty();
+            }
+        }
         var warning = warning(s);
         store.submit(id, access.user().accountId(), time.now(), warning.orElse(null));
         log("COST_STATEMENT_SUBMITTED", s, "AWAITING_FINALIZATION", null);
@@ -176,17 +198,26 @@ public class CostStatementService {
                 .map(i -> i.id())
                 .toList();
         if (!blocked.isEmpty()) throw invalid("UNAPPROVED_ITEMS_REMAIN", "Bảng còn khoản chưa duyệt", blocked);
+        finalizeLocked(s, all);
+    }
+
+    /**
+     * Chốt bảng đã khóa: khoản Đã duyệt (và, với bảng kỳ cuối Hành chính chốt, khoản theo sự kiện Đã kiểm tra) chuyển Đã
+     * chốt; lưu tổng; chốt kỳ nếu đủ; báo người thân có quyền xem chi phí; phát sự kiện cho 017, 004.
+     */
+    private void finalizeLocked(CostStatementRecord s, List<CostItemRecord> all) {
+        long id = s.id();
         var at = time.now();
         var totals = totals(all, false);
         for (var item : all)
-            if (item.status().equals("APPROVED")) {
+            if (Set.of("APPROVED", "CHECKED").contains(item.status())) {
                 items.transition(item, "FINALIZED", access.user().accountId(), at, null);
                 itemHistory.changed(item, "FINALIZED", "FINALIZE", null);
                 audit.write(AuditLogEntry.builder()
                         .action(new AuditAction("COST_ITEM_FINALIZED", false))
                         .entity("M11.COST_ITEM", item.id())
                         .resident(s.residentId())
-                        .before(Map.of("status", "APPROVED"))
+                        .before(Map.of("status", item.status()))
                         .after(Map.of("status", "FINALIZED"))
                         .build());
             }

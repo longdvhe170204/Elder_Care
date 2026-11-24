@@ -203,6 +203,57 @@ class CostWorkflowIT extends MySqlIntegrationTestBase {
         assertThat(status("cost_item", id)).isEqualTo("APPROVED");
     }
 
+    // Demo 2026-11-25 (E, chờ chủ dự án duyệt): bảng kỳ cuối do Hành chính chốt luôn khi gửi chốt; khoản nhập tay, mua
+    // hộ, điều chỉnh vẫn phải được Quản lý viện duyệt riêng trước (BR-M11-04 giữ nguyên).
+    void finalPeriod() {
+        jdbc.update("UPDATE cost_statement SET final_period=1 WHERE id=?", statement);
+    }
+
+    @Test
+    void finalPeriod_submitByOfficeFinalizesDirectly_whenOnlyEventItemsChecked() {
+        finalPeriod();
+        long id = item("EVENT_BASED", 300L, "");
+        items.check(selection(id));
+        statements.submit(statement);
+        assertThat(status("cost_statement", statement)).isEqualTo("FINALIZED");
+        assertThat(status("cost_item", id)).isEqualTo("FINALIZED");
+        assertThat(jdbc.queryForObject("SELECT total FROM cost_statement WHERE id=?", Long.class, statement))
+                .isEqualTo(300L);
+    }
+
+    @Test
+    void finalPeriod_manualItemNotApproved_staysAwaitingManager() {
+        finalPeriod();
+        long event = item("EVENT_BASED", 300L, "");
+        long manual = item("MANUAL", 50L, "");
+        items.check(selection(event, manual));
+        statements.submit(statement);
+        assertThat(status("cost_statement", statement)).isEqualTo("AWAITING_FINALIZATION");
+        assertThat(status("cost_item", event)).isEqualTo("CHECKED");
+        assertThat(status("cost_item", manual)).isEqualTo("CHECKED");
+    }
+
+    @Test
+    void finalPeriod_manualItemApprovedByManager_thenOfficeSubmitFinalizes() {
+        finalPeriod();
+        long event = item("EVENT_BASED", 300L, "");
+        long manual = item("MANUAL", 50L, "");
+        items.check(selection(event));
+        approve(manual);
+        statements.submit(statement);
+        assertThat(status("cost_statement", statement)).isEqualTo("FINALIZED");
+        assertThat(status("cost_item", event)).isEqualTo("FINALIZED");
+        assertThat(status("cost_item", manual)).isEqualTo("FINALIZED");
+    }
+
+    @Test
+    void regularStatement_submitStillWaitsForManager() {
+        long id = item("EVENT_BASED", 300L, "");
+        items.check(selection(id));
+        statements.submit(statement);
+        assertThat(status("cost_statement", statement)).isEqualTo("AWAITING_FINALIZATION");
+    }
+
     private void await(java.util.concurrent.CountDownLatch latch) {
         try {
             if (!latch.await(15, java.util.concurrent.TimeUnit.SECONDS))
