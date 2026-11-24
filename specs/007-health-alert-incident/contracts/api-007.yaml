@@ -346,6 +346,30 @@ paths:
       x-fr: [FR-040, FR-048b]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Incident' } } } } }
+  /incidents/{id}/follow-up-tasks:
+    get:
+      tags: [incidents]
+      summary: Việc tiếp theo của sự cố và kết quả (công việc 005 có căn cứ INCIDENT_FOLLOW_UP, POST_FALL_MONITORING của sự cố)
+      description: 'Đổi api 2026-11-23, chờ chủ dự án duyệt (FR-045b). Chỉ đọc; lập việc bằng POST /care-tasks/ad-hoc hoặc lô công việc của ca (005). Quyền xem như chi tiết sự cố.'
+      x-fr: [FR-045b]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/IncidentFollowUpTask' } } } } } }
+  /incident-floors:
+    get:
+      tags: [incidents]
+      summary: Tầng chọn được khi ghi sự cố cơ sở vật chất, gửi yêu cầu hỗ trợ (tầng đang trực trước, rồi các tầng đang có ca)
+      description: 'Đổi api 2026-11-23, chờ chủ dự án duyệt (BR-M05-17, BR-M05-29). Người có quyền ghi nhận sự cố hoặc nút hỗ trợ; chỉ mã, tên tầng, tòa nhà.'
+      x-fr: [FR-040, FR-047i]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/IncidentFloor' } } } } } }
+  /incident-residents:
+    get:
+      tags: [incidents]
+      summary: Tìm người cao tuổi khi gửi yêu cầu hỗ trợ, ghi sự cố (trong toàn viện; chỉ họ tên, mã, phòng, tầng)
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh). Người có quyền ghi nhận sự cố hoặc nút hỗ trợ. q ít nhất 2 ký tự (422), không phân biệt hoa thường, dấu; tối đa 5 người; bỏ người đã ở trạng thái cuối.'
+      x-fr: [FR-040, FR-047i]
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/IncidentResident' } } } } } }
   /incidents/{id}/receive:
     post:
       tags: [incidents]
@@ -697,11 +721,14 @@ paths:
   /emergency-assist:
     post:
       tags: [alerts, emergency]
-      summary: Nhân viên đang trong ca bấm nút hỗ trợ khẩn cấp; tạo hoặc gộp cảnh báo Khẩn cấp STAFF_ASSIST_REQUEST
-      description: 'Quyền EMERGENCY_ASSIST_BUTTON (EMERGENCY_ASSIST_BUTTON); chỉ trực tuyến. Không trong ca: 409 NOT_ON_SHIFT kèm contacts. Không tự tạo sự cố (Q-67); không báo người thân. Đếm ngược 3 giây và Hủy là việc của app.'
+      summary: Nhân viên bấm nút hỗ trợ khẩn cấp; tạo hoặc gộp cảnh báo Khẩn cấp STAFF_ASSIST_REQUEST
+      description: 'Quyền EMERGENCY_ASSIST_BUTTON (EMERGENCY_ASSIST_BUTTON); chỉ trực tuyến. Không tự tạo sự cố (Q-67); không báo người thân. Đếm ngược 3 giây và Hủy là việc của app. Đổi api 2026-11-23, A duyệt (qua Đức Anh): thân không bắt buộc chọn tầng xảy ra (tầng đang có ca, người nhận theo tầng đó) hoặc khu vực chung (Người phụ trách ca của mọi tầng đang có ca); không chọn thì tầng theo ca. Người không trong ca vẫn gửi được, cảnh báo mang dấu senderOffShift; 409 NOT_ON_SHIFT chỉ còn khi tài khoản không có hồ sơ nhân viên. 422 khi tầng không có ca hoặc chọn cả tầng và khu vực chung.'
       x-fr: [FR-026, FR-047i]
       x-br: [BR-M05-29]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: false
+        content: { application/json: { schema: { $ref: '#/components/schemas/AssistFloor' } } }
       responses:
         '201': { description: Đã gửi, content: { application/json: { schema: { $ref: '#/components/schemas/SosStatus' } } } }
         '403': { $ref: '#/components/responses/Problem' }
@@ -732,7 +759,41 @@ paths:
                 floorAreaId: { type: integer, format: int64 }
                 place: { type: string, enum: [ROOM, RESTROOM, CORRIDOR, COMMON_ROOM, YARD, OTHER] }
                 residentId: { type: integer, format: int64 }
+                placeNote: { type: string, maxLength: 200, description: 'Nơi gõ tự do, ví dụ "hành lang gần phòng 101"; Đổi api 2026-11-23, chờ chủ dự án duyệt' }
       responses: { '204': { description: Đã ghi }, '409': { $ref: '#/components/responses/Problem' } }
+  /emergency-assist/{id}/floor:
+    post:
+      tags: [alerts]
+      summary: Đổi tầng xảy ra sau khi gửi (người bấm hoặc người phụ trách)
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh). Cảnh báo còn mở; tầng mới đang có ca hoặc khu vực chung, khác tầng hiện tại (422). Báo thêm nhóm của tầng mới (thông báo cũ không thu hồi); chưa ai tiếp nhận thì người phụ trách theo tầng mới; ghi lịch sử, nhật ký ALERT_FLOOR_CHANGED.'
+      x-fr: [FR-047i]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AssistFloor' } } }
+      responses: { '204': { description: Đã đổi }, '409': { $ref: '#/components/responses/Problem' } }
+  /emergency-assist/{id}/messages:
+    post:
+      tags: [alerts]
+      summary: Người bấm nhắn thêm tình hình (ví dụ "cụ đã tỉnh", "cần cáng")
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh). Chỉ người bấm, cảnh báo còn mở; 1 → 200 ký tự (422). Báo người nhận hiện tại của yêu cầu.'
+      x-fr: [FR-047i]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AssistMessage' } } }
+      responses: { '204': { description: Đã gửi }, '409': { $ref: '#/components/responses/Problem' } }
+  /emergency-assist/{id}/withdraw:
+    post:
+      tags: [alerts]
+      summary: Người bấm rút yêu cầu khi bấm nhầm, chỉ khi chưa ai tiếp nhận
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh). Mới, Leo thang và chưa có người tiếp nhận: Đã đóng, kết quả "Người gửi rút yêu cầu", báo người nhận thôi chạy tới, nhật ký ALERT_WITHDRAWN. Đã có người tiếp nhận: 409 ALREADY_RECEIVED.'
+      x-fr: [FR-047i]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: false
+        content: { application/json: { schema: { $ref: '#/components/schemas/AssistWithdraw' } } }
+      responses: { '204': { description: Đã rút }, '409': { $ref: '#/components/responses/Problem' } }
   /emergency-assist/{id}/location:
     post:
       tags: [alerts]
@@ -752,6 +813,14 @@ paths:
       x-br: [BR-M05-30]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /alerts/{id}/join-help:
+    post:
+      tags: [alerts]
+      summary: Tôi đến giúp (cảnh báo từ nút SOS hoặc nút hỗ trợ đang mở)
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh). Người xem được cảnh báo, không phải người gửi, người phụ trách; một lần mỗi người; không đổi trạng thái. Khi chuyển sự cố, những người này thành người tham gia xử lý (IncidentFromAlert.addHelpers).'
+      x-fr: [FR-047j, FR-041]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' } }
   /alerts/{id}/call-115-info:
     get:
       tags: [emergency]
@@ -800,6 +869,14 @@ paths:
       x-fr: [FR-049]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TransferOutInfo' } } } } }
+  /residents/{residentId}/handover-staff:
+    get:
+      tags: [emergency]
+      summary: Nhân viên đang trong ca ở tầng của người cao tuổi, để chọn người bàn giao cho lệnh Chuyển viện (Điều dưỡng, Bác sĩ)
+      description: 'Bổ sung 2026-11-22 (Đổi api, chờ chủ dự án duyệt): 004 bắt buộc handoverStaffId; GET /staff của 008 chỉ trả người cùng ca với người xem nên Bác sĩ trực toàn viện thấy rỗng. Chỉ đọc, qua ShiftApi công khai, không đổi quy tắc xem hồ sơ nhân viên của 008. Không có vị trí hiện tại thì trả mảng rỗng.'
+      x-fr: [FR-049]
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/HandoverStaff' } } } } }, '403': { $ref: '#/components/responses/Problem' }, '404': { $ref: '#/components/responses/Problem' } }
   /transfer-summaries/{id}/document:
     get:
       tags: [emergency]
@@ -853,6 +930,8 @@ components:
         sendLocation: { type: boolean, description: 'Bổ sung 2026-10-22 (FR-047h): app gửi vị trí khi true' }
         locationIntervalSeconds: { type: integer, description: 'CFG-M05-09' }
         contacts: { $ref: '#/components/schemas/FallbackContacts' }
+        sentAt: { type: [string, 'null'], format: date-time, description: 'Lần bấm đầu, để hiện số phút đã chờ; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
+        helperNames: { type: array, items: { type: string }, description: 'Người đã bấm Tôi đến giúp; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
     FallbackContacts:
       type: object
       properties:
@@ -902,6 +981,11 @@ components:
         pressedAt: { type: string, format: date-time }
         pressedBy: { type: string }
         result: { type: [string, 'null'], enum: [CONNECTED, NOT_CONNECTED, null] }
+    HandoverStaff:
+      type: object
+      required: [id, fullName]
+      description: 'Bổ sung 2026-11-22 (FR-049; Đổi api, chờ chủ dự án duyệt)'
+      properties: { id: { type: integer, format: int64 }, fullName: { type: string }, position: { type: string } }
     TransferOutInfo:
       type: object
       description: Bổ sung 2026-10-22 (FR-049); bản đọc từ 001 NguyenVongApi.dieuTriHieuLuc, active
@@ -1044,15 +1128,76 @@ components:
         pressedBy: { type: [string, 'null'], description: 'Nút hỗ trợ: họ tên người bấm' }
         eventType: { type: [string, 'null'] }
         chosenPlace: { type: [string, 'null'] }
+        placeNote: { type: [string, 'null'], description: 'Nơi người bấm nút hỗ trợ gõ tự do; Đổi api 2026-11-23, chờ chủ dự án duyệt' }
+        description: { type: [string, 'null'], description: 'Mô tả lúc tạo; Đổi api 2026-11-23, chờ chủ dự án duyệt' }
+        floorName: { type: [string, 'null'], description: 'Tên tầng; Đổi api 2026-11-23, chờ chủ dự án duyệt' }
+        reports: { type: array, description: 'Các lần báo sau đã gộp vào cảnh báo thủ công (FR-030); Đổi api 2026-11-23, chờ chủ dự án duyệt', items: { type: object, properties: { reportedBy: { type: string }, description: { type: string }, at: { type: string, format: date-time } } } }
         latestLocation: { oneOf: [ { $ref: '#/components/schemas/LocationView' }, { type: 'null' } ] }
         arrivedAt: { type: [string, 'null'], format: date-time }
         skipArrivalTime: { type: boolean }
         sources: { type: array, items: { type: object, properties: { sourceType: { type: string }, sourceId: { type: integer, format: int64 }, level: { $ref: '#/components/schemas/IncidentLevel' }, occurredAt: { type: string, format: date-time }, resolvedAt: { type: string, format: date-time } } } }
-        allowedCommands: { type: array, items: { type: string } }
+        allowedCommands: { type: array, items: { type: string }, description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh): thêm assist-details, send-message, change-floor, withdraw, join-help; người gửi không có receive; người gửi có quyền xử lý có close, convert-to-incident ngay từ Mới, Leo thang, Đã tiếp nhận (một lệnh ghi cả Tiếp nhận, Bắt đầu xử lý)' }
+        floorAreaId: { type: [integer, 'null'], format: int64, description: 'Tầng; rỗng là khu vực chung hoặc không theo tầng; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
+        closedBy: { type: [string, 'null'], description: 'Họ tên người đóng; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
+        resolution: { type: [string, 'null'], description: 'Kết quả xử lý khi đóng; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
+        pressedByMe: { type: boolean, description: 'Người xem là người gửi yêu cầu hỗ trợ; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
+        senderOffShift: { type: boolean, description: 'Người gửi không trong ca lúc bấm; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
+        helpers: { type: array, items: { type: string }, description: 'Người đã bấm Tôi đến giúp; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }
+        senderMessages: { type: array, description: 'Tin người gửi nhắn thêm; Đổi api 2026-11-23, A duyệt (qua Đức Anh)', items: { type: object, properties: { by: { type: string }, text: { type: string }, at: { type: string, format: date-time } } } }
         followUps: { type: array, description: 'Bổ sung 2026-11-22 (FR-087, Q-443): kết quả theo dõi, cũ trước', items: { type: object, properties: { content: { type: string }, at: { type: string, format: date-time }, recordedBy: { type: string } } } }
     IncidentFromAlert:
       type: object
-      properties: { incidentTypeId: { type: integer, format: int64 }, description: { type: string }, initialResponse: { type: string }, residentId: { type: integer, format: int64, description: "Bổ sung 2026-10-22 (FR-047i): bắt buộc khi cảnh báo STAFF_ASSIST_REQUEST chưa gắn người cao tuổi (422 RESIDENT_REQUIRED)" } }
+      properties: { incidentTypeId: { type: integer, format: int64 }, description: { type: string }, initialResponse: { type: string }, residentId: { type: integer, format: int64, description: "Bổ sung 2026-10-22 (FR-047i): bắt buộc khi cảnh báo STAFF_ASSIST_REQUEST chưa gắn người cao tuổi (422 RESIDENT_REQUIRED)" }, createDespiteOpen: { type: [boolean, 'null'], description: 'Khác vụ: tạo sự cố riêng dù đang có sự cố Khẩn cấp mở (FR-041); Đổi api 2026-11-23, chờ chủ dự án duyệt' }, existingIncidentId: { type: [integer, 'null'], format: int64, description: 'Cùng vụ: gắn cảnh báo vào sự cố đang mở này, không tạo sự cố mới (FR-029); Đổi api 2026-11-23, chờ chủ dự án duyệt' }, location: { type: [string, 'null'], maxLength: 500, description: 'Nơi xảy ra của sự cố mới, màn điền sẵn từ yêu cầu hỗ trợ; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' }, addHelpers: { type: [boolean, 'null'], description: 'Người đã bấm Tôi đến giúp thành người tham gia xử lý; mặc định true; Đổi api 2026-11-23, A duyệt (qua Đức Anh)' } }
+    AssistFloor:
+      type: object
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh). Một tầng đang có ca hoặc khu vực chung, không chọn cả hai'
+      properties:
+        floorAreaId: { type: [integer, 'null'], format: int64 }
+        commonArea: { type: [boolean, 'null'], description: 'Sân, sảnh, cầu thang: báo Người phụ trách ca của mọi tầng đang có ca' }
+    AssistMessage:
+      type: object
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh)'
+      required: [text]
+      properties:
+        text: { type: string, maxLength: 200 }
+    AssistWithdraw:
+      type: object
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh)'
+      properties:
+        reason: { type: [string, 'null'], maxLength: 200 }
+    IncidentResident:
+      type: object
+      description: 'Đổi api 2026-11-23, A duyệt (qua Đức Anh). Chỉ để chọn người khi báo khẩn, không phải hồ sơ'
+      properties:
+        id: { type: integer, format: int64 }
+        fullName: { type: string }
+        profileCode: { type: string }
+        status: { type: string }
+        roomName: { type: [string, 'null'] }
+        floorAreaId: { type: [integer, 'null'], format: int64 }
+        floorName: { type: [string, 'null'] }
+    IncidentFollowUpTask:
+      type: object
+      description: 'Đổi api 2026-11-23, chờ chủ dự án duyệt (FR-045b)'
+      properties:
+        id: { type: integer, format: int64 }
+        basisType: { type: string }
+        shiftId: { type: integer, format: int64 }
+        taskType: { type: string }
+        content: { type: string }
+        plannedAt: { type: string, format: date-time }
+        dueAt: { type: string, format: date-time }
+        importance: { type: string, enum: [NORMAL, IMPORTANT, MANDATORY] }
+        performer: { type: [string, 'null'] }
+        shared: { type: boolean, description: 'Việc chung của tầng, chưa có người nhận' }
+        status: { type: string, enum: [NOT_YET_DUE, DUE, OVERDUE, COMPLETED, COMPLETED_LATE, NOT_PERFORMED, CANCELLED] }
+        closedAt: { type: [string, 'null'], format: date-time }
+        resultNote: { type: [string, 'null'] }
+        closureReason: { type: [string, 'null'] }
+    IncidentFloor:
+      type: object
+      description: 'Đổi api 2026-11-23, chờ chủ dự án duyệt'
+      properties: { id: { type: integer, format: int64 }, name: { type: string }, buildingName: { type: string }, current: { type: boolean, description: 'Tầng của ca đang trực' } }
     RecordIncident:
       type: object
       required: [incidentTypeId, discoveredAt, description, level]
@@ -1112,17 +1257,18 @@ components:
         snapshotAt: { type: string, format: date-time }
     TransferOut:
       type: object
-      required: [transferUnit, transferAt, companion]
+      required: [transferUnit, companion]
       description: 'Bổ sung 2026-10-22 (FR-049, Q-383, Q-384): companion bắt buộc; requiredContactReached bắt buộc khi phiếu nguyện vọng khi điều trị có askFamilyFirst; notAskedFirstReason bắt buộc khi requiredContactReached = false và sự cố không ở mức Khẩn cấp (plan điểm báo lại 11); attachmentIds chuyển cho lệnh TRANSFER_OUT của 001.'
       properties:
         transferUnit: { type: string }
-        transferAt: { type: string, format: date-time }
+        transferAt: { type: [string, 'null'], format: date-time, description: 'Không gửi thì là lúc thực hiện lệnh; không trước lúc xảy ra sự cố, không sau hiện tại (Đổi api 2026-11-23 lượt 3, chờ A duyệt)' }
         expectedReturnAt: { type: string, format: date-time }
         handoverStaffId: { type: integer, format: int64 }
         companion: { type: string, minLength: 1, description: 'Họ tên và quan hệ hoặc chức danh' }
         requiredContactReached: { type: boolean }
         notAskedFirstReason: { $ref: '#/components/schemas/Reason' }
         attachmentIds: { type: array, maxItems: 10, items: { type: integer, format: int64 } }
+        includeWishes: { type: boolean, description: 'Đổi api 2026-11-22, chờ chủ dự án duyệt: nhân viên chọn gửi kèm mục "Nguyện vọng liên quan đến ca này" trên phiếu tóm tắt; không gửi hoặc false thì phiếu không in nguyện vọng.' }
     TransferSummary:
       type: object
       properties: { id: { type: integer, format: int64 }, receivingFacility: { type: string }, allergies: { type: array, items: { type: object } }, currentMedications: { type: array, items: { type: object } }, latestVitalSigns: { type: array, items: { type: object } }, progressions: { type: array, items: { type: object } }, endOfLifeWish: { type: object }, treatmentWish: { type: object, description: 'Bổ sung 2026-10-22 (FR-050)' }, primaryContact: { type: object, description: 'Bổ sung 2026-10-22' }, companion: { type: string }, documentFileId: { type: integer, format: int64, description: 'Phiếu PDF (FR-050h)' }, preparedBy: { type: string }, preparedAt: { type: string, format: date-time } }

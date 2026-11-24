@@ -93,5 +93,10 @@ public record HandoverBody(
             String currentStatus,
             boolean critical,
             boolean hasItem,
-            boolean dataUnavailable) {}
+            boolean dataUnavailable,
+
+            @Schema(
+                    types = {"boolean", "null"},
+                    description = "Sự cố đang mở chưa ghi việc tiếp theo (007 FR-045b); null với nguồn khác")
+            Boolean nextStepMissing) {}
 }

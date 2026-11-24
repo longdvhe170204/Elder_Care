@@ -40,6 +40,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class IncidentProgressionService {
     private static final String ENTITY = "M05.INCIDENT";
+    private static final String TRANSFERRED_OUT = "TRANSFERRED_OUT";
+    private static final String RETURNED = "RETURNED_FROM_HOSPITAL";
     private static final Set<String> OPEN = Set.of("NEW", "IN_PROGRESS", "MONITORING");
 
     private final IncidentStore incidents;
@@ -136,6 +138,41 @@ public class IncidentProgressionService {
         return incidents
                 .assignee(incidentId)
                 .map(staffId -> IncidentNotices.sourceResolved(
+                        incidentId, incident.residentId(), incident.floorAreaId(), staffId, at))
+                .orElse(List.of());
+    }
+
+    /**
+     * Diễn biến hệ thống "Đã về viện" khi người cao tuổi được Ghi nhận trở về sau lần chuyển viện của sự cố còn mở (đề xuất
+     * 2026-11-23 lượt 3; tác động kèm lệnh Ghi nhận trở về của người thực hiện, Q-307). Sự cố chưa chuyển viện, hoặc đã có
+     * diễn biến về sau lần chuyển viện mới nhất, thì bỏ qua. Trả thông báo (Nhẹ) cho người xử lý hiện tại.
+     */
+    @Transactional
+    public List<NotificationRequest> addResidentReturned(long incidentId, Instant at) {
+        var incident = incidents.lock(incidentId).orElse(null);
+        if (incident == null || !OPEN.contains(incident.status())) return List.of();
+        Instant transferred = null;
+        boolean returned = false;
+        for (var p : progressions.list(incidentId)) {
+            Object code = p.get("typeCode");
+            if (TRANSFERRED_OUT.equals(code)) {
+                transferred = (Instant) p.get("occurredAt");
+                returned = false;
+            } else if (RETURNED.equals(code) && transferred != null) {
+                returned = true;
+            }
+        }
+        if (transferred == null || returned) return List.of();
+        progressions.addBySystem(
+                incidentId,
+                typeIdByCode(RETURNED),
+                RETURNED,
+                "Người cao tuổi đã về viện (Ghi nhận trở về)",
+                at,
+                incident.floorAreaId());
+        return incidents
+                .assignee(incidentId)
+                .map(staffId -> IncidentNotices.residentReturned(
                         incidentId, incident.residentId(), incident.floorAreaId(), staffId, at))
                 .orElse(List.of());
     }

@@ -141,6 +141,17 @@ public class CareTaskStore {
                 "SELECT * FROM care_task WHERE basis_type=? AND basis_id=? ORDER BY id", this::row, type.name(), id);
     }
 
+    public Set<Long> sourcesWithOpenTask(Set<SourceType> types, Collection<Long> sourceIds) {
+        var args = new ArrayList<Object>(types.stream().map(Enum::name).toList());
+        args.addAll(sourceIds);
+        return new HashSet<>(jdbc.queryForList(
+                "SELECT DISTINCT basis_id FROM care_task WHERE status IN('NOT_YET_DUE','DUE','OVERDUE') AND basis_type IN ("
+                        + String.join(",", Collections.nCopies(types.size(), "?")) + ") AND basis_id IN ("
+                        + String.join(",", Collections.nCopies(sourceIds.size(), "?")) + ")",
+                Long.class,
+                args.toArray()));
+    }
+
     public List<CareTask> waiting(Instant now) {
         return jdbc.query(
                 "SELECT * FROM care_task WHERE status IN('NOT_YET_DUE','DUE','OVERDUE') AND window_from<=? ORDER BY resident_id,id",

@@ -81,4 +81,15 @@ class AlertStaffLookup implements AlertStaffPort {
     public List<Long> floorsWithShift(Instant at) {
         return query.floors(at);
     }
+
+    public List<com.eldercare.backend.incident.api.dto.HandoverCandidateView> handoverCandidates(
+            long floor, Instant at) {
+        return query.staffOnShift(floor, at).stream()
+                .map(query::staff)
+                .flatMap(Optional::stream)
+                .filter(s -> s.status() == com.eldercare.backend.administration.account.api.spi.StaffStatus.WORKING)
+                .map(s -> new com.eldercare.backend.incident.api.dto.HandoverCandidateView(
+                        s.id(), s.fullName(), s.position()))
+                .toList();
+    }
 }

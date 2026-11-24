@@ -115,7 +115,7 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM work_shift s JOIN shift_schedule h ON h.id=s.schedule_id"
                                 + " AND h.status='PUBLISHED' WHERE s.scope_type='FLOOR' AND s.scope_id=9002"
-                                + " AND s.status='PUBLISHED' AND s.lead_staff_id=9011",
+                                + " AND s.status='PUBLISHED' AND s.lead_staff_id=9011 AND s.template_id=9001",
                         Integer.class))
                 .isEqualTo(7);
         assertThat(jdbc.queryForList(

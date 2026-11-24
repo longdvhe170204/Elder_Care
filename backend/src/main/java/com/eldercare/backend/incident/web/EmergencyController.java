@@ -3,11 +3,13 @@ package com.eldercare.backend.incident.web;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.incident.internal.emergency.domain.TransferOutCommand;
 import com.eldercare.backend.incident.internal.emergency.service.EmergencyCardService;
+import com.eldercare.backend.incident.internal.emergency.service.HandoverStaffService;
 import com.eldercare.backend.incident.internal.emergency.service.TransferOutCoordinator;
 import com.eldercare.backend.incident.internal.emergency.service.TransferOutService;
 import com.eldercare.backend.incident.internal.emergency.service.WishCheckService;
 import com.eldercare.backend.incident.web.request.TransferOutBody;
 import com.eldercare.backend.incident.web.response.ActivationResultResponse.ActivationEmergencyCard;
+import com.eldercare.backend.incident.web.response.HandoverStaffResponse;
 import com.eldercare.backend.incident.web.response.M05ProblemBody;
 import com.eldercare.backend.incident.web.response.TransferOutInfoResponse;
 import com.eldercare.backend.incident.web.response.TransferSummaryResponse;
@@ -39,6 +41,7 @@ public class EmergencyController {
     private final WishCheckService wishChecks;
     private final TransferOutCoordinator transferOut;
     private final TransferOutService transfers;
+    private final HandoverStaffService handoverStaff;
     private final CurrentUser currentUser;
 
     public EmergencyController(
@@ -46,11 +49,13 @@ public class EmergencyController {
             WishCheckService wishChecks,
             TransferOutCoordinator transferOut,
             TransferOutService transfers,
+            HandoverStaffService handoverStaff,
             CurrentUser currentUser) {
         this.cards = cards;
         this.wishChecks = wishChecks;
         this.transferOut = transferOut;
         this.transfers = transfers;
+        this.handoverStaff = handoverStaff;
         this.currentUser = currentUser;
     }
 
@@ -99,7 +104,8 @@ public class EmergencyController {
                         body.notAskedFirstReason() == null
                                 ? null
                                 : body.notAskedFirstReason().value(),
-                        body.attachmentIds()),
+                        body.attachmentIds(),
+                        body.includeWishes()),
                 currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(TransferSummaryResponse.of(transfers.summary(summaryId, currentUser)));
@@ -109,6 +115,28 @@ public class EmergencyController {
     @ApiResponses({@ApiResponse(responseCode = "200", description = "OK")})
     public TransferOutInfoResponse transferOutInfo(@PathVariable long id) {
         return TransferOutInfoResponse.of(transfers.info(id, currentUser));
+    }
+
+    @GetMapping("/residents/{residentId}/handover-staff")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = M05ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "404",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public java.util.List<HandoverStaffResponse> handoverStaff(@PathVariable long residentId) {
+        return handoverStaff.forResident(residentId, currentUser).stream()
+                .map(HandoverStaffResponse::of)
+                .toList();
     }
 
     @GetMapping("/transfer-summaries/{id}")

@@ -303,8 +303,11 @@ public class CareTaskValidator {
                 .filter(a -> roleMatches(role, a.role()) && port.onShift(a.staffId(), d.plannedAt()))
                 .toList();
         if (d.shared()) {
-            if (d.performerId() != null || (d.basisType() != SourceType.REWORK && !matching.isEmpty()))
-                errors.add("INVALID_PERFORMER");
+            // Làm lại, việc tiếp theo của sự cố (007 FR-045b): giao cho ca sau khi chưa biết ai nhận nên được là việc
+            // chung
+            boolean sharedAllowed =
+                    d.basisType() == SourceType.REWORK || d.basisType() == SourceType.INCIDENT_FOLLOW_UP;
+            if (d.performerId() != null || (!sharedAllowed && !matching.isEmpty())) errors.add("INVALID_PERFORMER");
             return;
         }
         if (d.performerId() == null || matching.stream().noneMatch(a -> Objects.equals(a.staffId(), d.performerId())))

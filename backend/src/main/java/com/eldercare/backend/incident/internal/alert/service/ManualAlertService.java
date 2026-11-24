@@ -56,7 +56,9 @@ public class ManualAlertService {
     public record Created(AlertRecord alert, boolean merged) {}
 
     @Transactional
-    public Created create(long residentId, long incidentTypeId, String level, String description, CurrentUser user) {
+    public Created create(Long residentId, Long incidentTypeId, String level, String description, CurrentUser user) {
+        if (residentId == null) throw new InvalidValueException("Thiếu người cao tuổi của cảnh báo");
+        if (incidentTypeId == null) throw new InvalidValueException("Thiếu loại sự cố của cảnh báo");
         if (description == null || description.isBlank()) throw new InvalidValueException("Thiếu mô tả cảnh báo");
         var type = catalog.incidentTypes().stream()
                 .filter(item -> item.id() == incidentTypeId && item.active())

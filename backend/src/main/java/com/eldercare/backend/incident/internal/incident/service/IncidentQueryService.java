@@ -16,6 +16,7 @@ import com.eldercare.backend.incident.api.spi.NotificationLogPort;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentDetails;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentView;
+import com.eldercare.backend.incident.internal.incident.persistence.FallMonitoringStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentProgressionStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import java.util.Collection;
@@ -49,6 +50,7 @@ public class IncidentQueryService {
     private final ScopeApi scopes;
     private final AccountApi accounts;
     private final Optional<NotificationLogPort> notifications;
+    private final FallMonitoringStore windows;
 
     public IncidentQueryService(
             IncidentStore incidents,
@@ -56,13 +58,15 @@ public class IncidentQueryService {
             PermissionApi permissions,
             ScopeApi scopes,
             AccountApi accounts,
-            @Autowired(required = false) NotificationLogPort notifications) {
+            @Autowired(required = false) NotificationLogPort notifications,
+            FallMonitoringStore windows) {
         this.incidents = incidents;
         this.progressions = progressions;
         this.permissions = permissions;
         this.scopes = scopes;
         this.accounts = accounts;
         this.notifications = Optional.ofNullable(notifications);
+        this.windows = windows;
     }
 
     @Transactional(readOnly = true)
@@ -127,10 +131,29 @@ public class IncidentQueryService {
         if (status.equals("MONITORING") && handler) commands.add("reopen");
         var closers = incident.level() == IncidentLevel.LOW ? HANDLER_ROLES : SERIOUS_CLOSER_ROLES;
         if (!status.equals("NEW") && handler && closers.stream().anyMatch(roles::contains)) commands.add("close");
+        if (handler
+                && (status.equals("NEW") || status.equals("IN_PROGRESS"))
+                && (roles.contains(Role.NURSING_STAFF) || roles.contains(Role.DOCTOR))) {
+            commands.add("transfer-out");
+        }
+        // FR-041: "Tham gia xử lý" chỉ để ghi tên vào danh sách người xử lý, nên không trả cho người đã có tên
         if (incident.level() == IncidentLevel.CRITICAL
                 && !manager
+                && !current
+                && !progressions.handlerAccountIds(incident.id()).contains(user.accountId())
                 && permissions.hasPermission(user, CREATE, target).allowed()) {
             commands.add("join-handling");
+        }
+        // FR-047k, BR-M05-31 (Q-376): nút "Gọi 115" ở sự cố Khẩn cấp đang mở, như màn cảnh báo
+        if (handler && incident.level() == IncidentLevel.CRITICAL) commands.add("call-115");
+        // FR-052, BR-M05-07: chỉ Bác sĩ kết thúc sớm khoảng theo dõi sau ngã của chính sự cố này
+        if (handler
+                && roles.contains(Role.DOCTOR)
+                && incident.residentId() != null
+                && windows.active(incident.residentId())
+                        .filter(window -> window.content().incidentId() == incident.id())
+                        .isPresent()) {
+            commands.add("end-post-fall-monitoring");
         }
         return commands;
     }

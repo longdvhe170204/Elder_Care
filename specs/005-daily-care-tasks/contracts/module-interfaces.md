@@ -129,6 +129,15 @@ void nguonBiHuy(LoaiCanCu loai, long canCuId, long nctId, LyDo lyDo);   // như 
 void nguonDaDoi(LoaiCanCu loai, long canCuId);              // FR-022: chỉ báo Người phụ trách ca, Trưởng tầng; không hủy
 ```
 
+### 1.6a. `SourceTaskReadApi` (007; đọc; đề xuất 2026-11-23, chờ chủ dự án duyệt)
+
+```java
+List<SourceTaskView> bySource(Set<SourceType> types, long sourceId);       // công việc chưa hủy của một căn cứ, theo thời điểm dự kiến
+Set<Long> withOpenTask(Set<SourceType> types, Collection<Long> sourceIds); // căn cứ còn công việc chưa đóng
+```
+
+Module giữ căn cứ kiểm quyền xem trước khi gọi. Bản cài `SourceTaskQueries`. `SourceType` thêm `INCIDENT_FOLLOW_UP` (007 FR-045b; migration `V005_102` chỉ thêm giá trị cuối ENUM `care_task.basis_type`); lệnh công việc phát sinh (FR-025) nhận căn cứ `AD_HOC` hoặc `INCIDENT_FOLLOW_UP`; căn cứ này được là việc chung của tầng kể cả khi người cao tuổi đã có người phụ trách trong ca (như REWORK), vì ca trước chưa biết ca sau ai nhận. `CareTask` của api-005 thêm `shiftId` chỉ đọc.
+
 ### 1.7. `CongViecVangMatApi` (014; MANDATORY)
 
 ```java

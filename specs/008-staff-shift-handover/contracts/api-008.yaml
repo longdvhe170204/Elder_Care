@@ -984,6 +984,7 @@ components:
         critical: { type: boolean }
         hasItem: { type: boolean }
         dataUnavailable: { type: boolean }
+        nextStepMissing: { type: [boolean, 'null'], description: 'Sự cố đang mở chưa ghi việc tiếp theo (007 FR-045b); null với nguồn khác; Đổi api 2026-11-23, chờ chủ dự án duyệt' }
     HandoverItem:
       type: object
       description: 'TASK, DOSE, ALERT, INCIDENT phải chọn bản ghi nguồn; nội dung tự ghi không có nguồn dùng FOLLOW_UP_ISSUE (chủ dự án duyệt 2026-10-24).'

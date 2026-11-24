@@ -103,7 +103,8 @@ class HandoverController {
                             health ? r.currentStatus() : null,
                             health && r.critical(),
                             r.hasItem(),
-                            r.dataUnavailable());
+                            r.dataUnavailable(),
+                            r.nextStepMissing());
                 })
                 .toList();
     }
