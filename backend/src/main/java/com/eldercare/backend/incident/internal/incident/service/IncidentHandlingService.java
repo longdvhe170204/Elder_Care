@@ -132,6 +132,9 @@ public class IncidentHandlingService {
         var closers = incident.level() == IncidentLevel.LOW ? HANDLER_ROLES : SERIOUS_CLOSER_ROLES;
         requireHandler(incident, user, closers);
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
+        if (resolution.length() > IncidentRecordService.MAX_TEXT) {
+            throw new InvalidValueException("Kết quả xử lý tối đa " + IncidentRecordService.MAX_TEXT + " ký tự");
+        }
         requireStatus(incident, "IN_PROGRESS", "MONITORING");
         boolean infection = SUSPECTED_INFECTION.equals(incidents.currentTypeCode(incidentId));
         String outcome = null;

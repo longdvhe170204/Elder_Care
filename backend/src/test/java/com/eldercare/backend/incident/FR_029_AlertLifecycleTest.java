@@ -24,6 +24,7 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
@@ -127,15 +128,26 @@ class FR_029_AlertLifecycleTest {
         when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
         lockOfType("LOW_WATER_INTAKE", AlertStatus.NEW, IncidentLevel.LOW, null, "LOW_WATER_INTAKE:101");
 
-        service.close(ID, "Đã cho cụ uống nước", null, user);
+        service.close(ID, "Đã cho cụ uống nước", new Reason("Đã bù lúc 9h10"), user);
 
         verify(alerts).close(eq(ID), eq("Đã cho cụ uống nước"), any(), eq(900L), any(), anyInt());
     }
 
     @Test
-    void BF_06_caregiverCannotCloseMediumReminderOrOtherTypes() {
+    void BF_06_caregiverClosesMediumOverdueTaskWithReasonOnly() {
         when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
-        lockOfType("LOW_WATER_INTAKE", AlertStatus.NEW, IncidentLevel.MEDIUM, null, "LOW_WATER_INTAKE:101");
+        lockOfType("OVERDUE_CARE_TASK", AlertStatus.NEW, IncidentLevel.MEDIUM, null, "OVERDUE_CARE_TASK:7");
+        assertThatThrownBy(() -> service.close(ID, "Đã làm bù", null, user)).isInstanceOf(ReasonRequiredException.class);
+
+        service.close(ID, "Đã làm bù", new Reason("Làm bù lúc 9h10"), user);
+
+        verify(alerts).close(eq(ID), eq("Đã làm bù"), any(), eq(900L), any(), anyInt());
+    }
+
+    @Test
+    void BF_06_caregiverCannotCloseCriticalReminderOrOtherTypes() {
+        when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
+        lockOfType("LOW_WATER_INTAKE", AlertStatus.NEW, IncidentLevel.CRITICAL, null, "LOW_WATER_INTAKE:101");
         assertThatThrownBy(() -> service.close(ID, "Đã làm", null, user)).isInstanceOf(PermissionDeniedException.class);
 
         lockOfType("CHI_SO", AlertStatus.NEW, IncidentLevel.LOW, null, "VUOT_NGUONG:5");

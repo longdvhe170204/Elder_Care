@@ -162,11 +162,21 @@ public class TransferOutService {
         }
         if (blank(command.transferUnit())) throw new InvalidValueException("Thiếu cơ sở tiếp nhận");
         if (blank(command.companion())) throw new InvalidValueException("Thiếu người đi kèm");
+        if (command.transferUnit().length() > 200) {
+            throw new InvalidValueException("Tên cơ sở tiếp nhận tối đa 200 ký tự");
+        }
+        if (command.companion().length() > 200) throw new InvalidValueException("Người đi kèm tối đa 200 ký tự");
+        if (command.handoverStaffId() != null && accounts.fullName(command.handoverStaffId()).isEmpty()) {
+            throw new InvalidValueException("Nhân viên bàn giao không tồn tại");
+        }
         // Đề xuất 2026-11-23 lượt 3: không gửi thời điểm thì là lúc thực hiện lệnh; gửi thì không trước lúc xảy ra sự
         // cố
         // và không sau hiện tại (diễn biến "Đã chuyển viện" không được đứng trước sự cố, không ghi trước một việc chưa
         // xảy ra)
         command = command.withTransferAt(transferTime(command.transferAt(), incident, time.now()));
+        if (command.expectedReturnAt() != null && command.expectedReturnAt().isBefore(command.transferAt())) {
+            throw new InvalidValueException("Dự kiến về không được trước thời điểm chuyển");
+        }
         var treatment = wishes.currentTreatmentWish(residentId);
         boolean mustAskFirst = treatment.map(TreatmentWishView::askFamilyFirst).orElse(false);
         String notAskedReason = null;

@@ -62,6 +62,9 @@ public class IncidentResidentQueries {
         String needle = normalize(query == null ? "" : query.trim());
         if (needle.length() < MIN_QUERY) throw new InvalidValueException("Gõ ít nhất " + MIN_QUERY + " ký tự để tìm");
         if (residents.isEmpty()) return List.of();
+        // "P101", "phòng 101": bỏ tiền tố để khớp số phòng
+        String stripped = needle.replaceFirst("^(phong|p)\s*", "");
+        final String roomNeedle = stripped.equals(needle) ? "" : stripped;
         var api = residents.get();
         var active = api.byStatus(ACTIVE).stream().map(api::identity).toList();
         // Phòng hiện tại của mọi người đang ở viện, để gõ số phòng ("P101") cũng tìm ra các cụ trong phòng đó (BF-06)
@@ -74,7 +77,8 @@ public class IncidentResidentQueries {
                     var place = where.get(identity.residentId());
                     String room = place == null || place.roomName() == null ? "" : place.roomName();
                     return normalize(identity.fullName() + " " + identity.profileCode() + " " + room)
-                            .contains(needle);
+                                    .contains(needle)
+                            || (!roomNeedle.isEmpty() && normalize(room).contains(roomNeedle));
                 })
                 .sorted(Comparator.comparing(identity -> identity.fullName()))
                 .limit(MAX_RESULTS)

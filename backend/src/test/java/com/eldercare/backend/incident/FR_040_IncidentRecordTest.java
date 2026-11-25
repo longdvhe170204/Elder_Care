@@ -296,6 +296,32 @@ class FR_040_IncidentRecordTest {
         verify(incidents, never()).insert(any());
     }
 
+    /** BF-06: giờ xảy ra/phát hiện không ở tương lai, xảy ra không sau phát hiện, mô tả tối đa 2000 ký tự. */
+    @Test
+    void BF_06_rejectsFutureOrReversedTimesAndLongDescription() {
+        var invalid = com.eldercare.backend.common.error.InvalidValueException.class;
+        assertThatThrownBy(() -> service.record(timed(NOW.plusSeconds(3600), NOW, "Mô tả"), user)).isInstanceOf(invalid);
+        assertThatThrownBy(() -> service.record(timed(NOW.minusSeconds(60), NOW.plusSeconds(3600), "Mô tả"), user))
+                .isInstanceOf(invalid);
+        assertThatThrownBy(() -> service.record(timed(NOW, NOW.minusSeconds(600), "Mô tả"), user)).isInstanceOf(invalid);
+        assertThatThrownBy(() -> service.record(timed(NOW.minusSeconds(60), NOW, "x".repeat(2001)), user))
+                .isInstanceOf(invalid);
+        verify(incidents, never()).insert(any());
+    }
+
+    @Test
+    void BF_06_rejectsFamilyNoticeInTheFuture() {
+        var later = new com.eldercare.backend.incident.api.dto.FamilyNotice("INFORMED", NOW.plusSeconds(86400), "PHONE", null);
+        assertThatThrownBy(() -> service.record(recordedLater(RESIDENT, 2, "MEDIUM", later), user))
+                .isInstanceOf(com.eldercare.backend.common.error.InvalidValueException.class);
+    }
+
+    private static RecordIncidentCommand timed(java.time.Instant occurredAt, java.time.Instant detectedAt, String description) {
+        return new RecordIncidentCommand(
+                RESIDENT, 2L, null, occurredAt, detectedAt, null, "Phòng 101", null, description, "MEDIUM", null, null, false, false,
+                null, true, false, null);
+    }
+
     private static RecordIncidentCommand autoReceiving(Long residentId, long typeId, String level) {
         return new RecordIncidentCommand(
                 residentId, typeId, null, null, NOW, null, "Phòng 101", null, "Mô tả sự cố", level, null, null, false, false, null,

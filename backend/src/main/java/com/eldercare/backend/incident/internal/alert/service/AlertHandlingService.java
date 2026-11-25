@@ -207,7 +207,9 @@ public class AlertHandlingService {
             requireStatus(alert, AlertStatus.IN_PROGRESS);
         }
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
-        if (reason == null && alert.typeLock().startsWith(OVERDUE_TASK_PREFIX)) throw new ReasonRequiredException();
+        if (reason == null && (careOnly || alert.typeLock().startsWith(OVERDUE_TASK_PREFIX))) {
+            throw new ReasonRequiredException();
+        }
         if (alert.criticalFlagId() != null) requireCriticalOutcome(alertId);
         var now = time.now();
         int version = startAsSender(alert, user, now, alert.version());
@@ -222,9 +224,9 @@ public class AlertHandlingService {
         return user.roles().contains(Role.CAREGIVER) && user.roles().stream().noneMatch(CLOSERS::contains);
     }
 
-    /** Cảnh báo nhắc việc chăm sóc mức Nhẹ: nhân viên chăm sóc có người cao tuổi trong phạm vi đóng được (BF-06). */
+    /** Cảnh báo nhắc việc chăm sóc (uống nước, việc quá hạn; không phải Khẩn cấp): nhân viên chăm sóc có người cao tuổi trong phạm vi đóng được, kèm lý do (BF-06). */
     static boolean isCareReminder(AlertRecord alert) {
-        return alert.level() == IncidentLevel.LOW && CARE_REMINDER_TYPES.contains(alert.type());
+        return alert.level() != IncidentLevel.CRITICAL && CARE_REMINDER_TYPES.contains(alert.type());
     }
 
     /** Khóa cảnh báo cho nhân viên chăm sóc đóng: chỉ cần quyền xem trong phạm vi, như ghi theo dõi (FR-087). */
@@ -237,7 +239,7 @@ public class AlertHandlingService {
         }
         if (!isCareReminder(alert)) {
             throw new PermissionDeniedException(
-                    "Nhân viên chăm sóc chỉ đóng cảnh báo nhắc việc chăm sóc mức Nhẹ (uống nước, việc chăm sóc quá hạn)");
+                    "Nhân viên chăm sóc chỉ đóng cảnh báo nhắc việc chăm sóc (uống nước, việc chăm sóc quá hạn)");
         }
         if (!OPEN.contains(alert.status())) throw blocked("FR-029", "Cảnh báo đã kết thúc");
         return alert;

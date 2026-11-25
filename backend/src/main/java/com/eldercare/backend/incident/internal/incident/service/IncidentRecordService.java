@@ -66,6 +66,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class IncidentRecordService {
     private static final String ENTITY = "M05.INCIDENT";
     private static final String FACILITY = "FACILITY";
+    /** Giới hạn độ dài văn bản tự do (khớp ô nhập trên web) và độ lệch đồng hồ cho phép khi so với hiện tại. */
+    static final int MAX_TEXT = 2000;
+
+    static final java.time.Duration CLOCK_SKEW = java.time.Duration.ofMinutes(5);
     private static final String FALL = "FALL";
     private static final String SUSPECTED_INFECTION = "SUSPECTED_INFECTION";
     /** FR-043 (b) sửa theo spec 013 FR-022: không báo đánh giá lại ở mọi mức. */
@@ -145,12 +149,19 @@ public class IncidentRecordService {
         if (command.description() == null || command.description().isBlank()) {
             throw new InvalidValueException("Thiếu mô tả sự cố");
         }
+        if (command.description().length() > MAX_TEXT) {
+            throw new InvalidValueException("Mô tả sự cố tối đa " + MAX_TEXT + " ký tự");
+        }
+        checkTimes(command, time.now());
         IncidentLevel level = level(command.level());
-        var familyNotice = checkedFamilyNotice(command);
+        var familyNotice = checkedFamilyNotice(command, time.now());
         if (command.closeNow()) {
             if (!command.recordedLater()) throw new InvalidValueException("Chỉ ghi nhận sau mới đóng luôn được");
             if (command.resolution() == null || command.resolution().isBlank()) {
                 throw new InvalidValueException("Thiếu kết quả xử lý");
+            }
+            if (command.resolution().length() > MAX_TEXT) {
+                throw new InvalidValueException("Kết quả xử lý tối đa " + MAX_TEXT + " ký tự");
             }
             if (user.roles().stream().noneMatch(RECORD_CLOSERS::contains)) {
                 throw new PermissionDeniedException("Chỉ Điều dưỡng, Trưởng tầng, Bác sĩ đóng sự cố khi ghi nhận");
@@ -177,7 +188,8 @@ public class IncidentRecordService {
             }
             monitoringLock.lock(residentId);
             var open = incidents.openEmergency(residentId);
-            if (open.isPresent() && !command.createDespiteExisting()) {
+            // Ghi nhận sau: việc đã xong, không hỏi tham gia hay tạo riêng như sự cố đang diễn ra (BF-06)
+            if (open.isPresent() && !command.createDespiteExisting() && !command.recordedLater()) {
                 throw new BusinessException(
                         HttpStatus.CONFLICT,
                         "OPEN_EMERGENCY_INCIDENT_EXISTS",
@@ -337,7 +349,23 @@ public class IncidentRecordService {
     }
 
     /** Ghi nhận sau phải nói rõ đã báo người nhà chưa (BF-06); ghi thường thì không bắt buộc. */
-    static FamilyNotice checkedFamilyNotice(RecordIncidentCommand command) {
+    /** Giờ xảy ra, giờ phát hiện không ở tương lai; giờ xảy ra không sau giờ phát hiện (BF-06). */
+    static void checkTimes(RecordIncidentCommand command, Instant now) {
+        var limit = now.plus(CLOCK_SKEW);
+        if (command.occurredAt() != null && command.occurredAt().isAfter(limit)) {
+            throw new InvalidValueException("Giờ xảy ra không được sau hiện tại");
+        }
+        if (command.detectedAt() != null && command.detectedAt().isAfter(limit)) {
+            throw new InvalidValueException("Giờ phát hiện không được sau hiện tại");
+        }
+        if (command.occurredAt() != null
+                && command.detectedAt() != null
+                && command.occurredAt().isAfter(command.detectedAt())) {
+            throw new InvalidValueException("Giờ xảy ra không được sau giờ phát hiện");
+        }
+    }
+
+    static FamilyNotice checkedFamilyNotice(RecordIncidentCommand command, Instant now) {
         var notice = command.familyNotice();
         if (notice == null) {
             if (command.recordedLater() && command.residentId() != null) {
@@ -350,6 +378,9 @@ public class IncidentRecordService {
         }
         if (FamilyNotice.INFORMED.equals(notice.state()) && !FamilyNoticeMethods.VALID.contains(notice.method())) {
             throw new InvalidValueException("Cách báo người nhà không hợp lệ");
+        }
+        if (notice.at() != null && notice.at().isAfter(now.plus(CLOCK_SKEW))) {
+            throw new InvalidValueException("Thời điểm báo người nhà không được sau hiện tại");
         }
         return notice;
     }
