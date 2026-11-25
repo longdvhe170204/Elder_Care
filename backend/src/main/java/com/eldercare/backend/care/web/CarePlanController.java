@@ -65,8 +65,8 @@ public class CarePlanController {
             @PathVariable long residentId,
             @RequestHeader("Idempotency-Key") String key,
             @RequestBody CarePlanCreate body) {
-        var row = service.create(
-                CarePlanService.residentTarget(residentId, 0), residentId, !Boolean.FALSE.equals(body.copyCurrent()));
+        // Q-447: luôn chép bản Chờ hiệu lực hoặc Hiệu lực; copyCurrent giữ trong hợp đồng cho client cũ, bị bỏ qua.
+        var row = service.create(CarePlanService.residentTarget(residentId, 0), residentId);
         return ResponseEntity.status(201).eTag(VersionEtag.of(row.version())).body(response(row));
     }
 
@@ -139,8 +139,28 @@ public class CarePlanController {
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = CareProblemBody.class)))
     public void submit(
-            @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CarePlanSubmit body) {
-        service.submit(service.target(id), id, body.effectiveFrom(), body.changeReason());
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody(required = false) CarePlanSubmit body) {
+        service.submit(service.target(id), id, body == null ? null : body.changeReason());
+    }
+
+    @PostMapping("/care-plans/{id}/retract")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public void retract(@PathVariable long id, @RequestHeader("Idempotency-Key") String key) {
+        service.retract(service.target(id), id);
     }
 
     @PostMapping("/care-plans/{id}/approve")
@@ -194,19 +214,6 @@ public class CarePlanController {
     public void cancel(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
         service.cancel(service.target(id), id, body.reason());
-    }
-
-    @PostMapping("/care-plans/{id}/withdraw-approval")
-    @ApiResponse(responseCode = "200", description = "OK")
-    @ApiResponse(
-            responseCode = "409",
-            content =
-                    @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = CareProblemBody.class)))
-    public void withdraw(
-            @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
-        service.withdraw(service.target(id), id, body.reason());
     }
 
     private String actor(Long accountId) {
@@ -280,8 +287,8 @@ public class CarePlanController {
                 commands.put("return", key(Operation.APPROVE));
                 commands.put(
                         "cancel", row.createdBy() == user.accountId() ? key(Operation.VIEW) : key(Operation.APPROVE));
+                if (row.createdBy() == user.accountId()) commands.put("retract", key(Operation.UPDATE));
             }
-            case PENDING_EFFECT -> commands.put("withdrawApproval", key(Operation.APPROVE));
             default -> {}
         }
         return new CarePlanResponse(

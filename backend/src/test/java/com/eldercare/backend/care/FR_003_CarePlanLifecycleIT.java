@@ -126,13 +126,52 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                 + ",\"content\":\"Nội dung kiểm thử\",\"frequencyType\":\"ONCE_PER_SHIFT\",\"performerRole\":\"CAREGIVER\",\"resultType\":\"PERFORMED\",\"importance\":\"NORMAL\",\"billable\":false}]";
     }
 
+    private String etag(long id) throws Exception {
+        return mvc.perform(get("/api/v1/care-plans/" + id))
+                .andReturn()
+                .getResponse()
+                .getHeader("ETag");
+    }
+
     private void submit(long id) throws Exception {
-        mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", "\"0\""), items()))
+        submit(id, "{}");
+    }
+
+    private void submit(long id, String body) throws Exception {
+        mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", etag(id)), items()))
                 .andExpect(status().isOk());
-        mvc.perform(write(
-                        post("/api/v1/care-plans/" + id + "/submit"),
-                        "{\"effectiveFrom\":\"" + time.today().plusDays(1) + "\"}"))
-                .andExpect(status().isOk());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/submit"), body)).andExpect(status().isOk());
+    }
+
+    private long createCopy() throws Exception {
+        var result = mvc.perform(write(post("/api/v1/residents/" + residentId + "/care-plans"), "{}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return json.readTree(result.getResponse().getContentAsString())
+                .get("id")
+                .asLong();
+    }
+
+    private void approveAsDoctor(long id) throws Exception {
+        user.set(doctor.user());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{}")).andExpect(status().isOk());
+        user.set(nurse.user());
+    }
+
+    /** Kế hoạch Hiệu lực đầu tiên của người cao tuổi, lập và duyệt qua API. */
+    private long effectivePlan() throws Exception {
+        long id = create();
+        submit(id);
+        approveAsDoctor(id);
+        return id;
+    }
+
+    private String column(String name, long id) {
+        return jdbc.queryForObject("SELECT " + name + " FROM care_plan WHERE id=?", String.class, id);
+    }
+
+    private com.eldercare.backend.care.internal.careplan.service.CarePlanActivation activation() {
+        return context.getBean(com.eldercare.backend.care.internal.careplan.service.CarePlanActivation.class);
     }
 
     @Test
@@ -141,35 +180,137 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
         mvc.perform(write(post("/api/v1/residents/" + residentId + "/care-plans"), "{}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("OPEN_REVISION_EXISTS"));
-        mvc.perform(write(
-                        post("/api/v1/care-plans/" + id + "/submit"),
-                        "{\"effectiveFrom\":\"" + time.today().plusDays(1) + "\"}"))
-                .andExpect(status().isConflict());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/submit"), "{}")).andExpect(status().isConflict());
     }
 
     @Test
-    void FR_003_submitApproveAndWithdrawKeepItemsLockedAndAuditAtomic() throws Exception {
+    void Q447_firstApprovalTakesEffectToday() throws Exception {
         long id = create();
         submit(id);
-        mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", "\"2\""), items()))
+        mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", etag(id)), items()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("REVISION_LOCKED"));
-        user.set(doctor.user());
-        mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{}")).andExpect(status().isOk());
-        mvc.perform(get("/api/v1/care-plans/" + id))
+        approveAsDoctor(id);
+        assertThat(column("status", id)).isEqualTo("EFFECTIVE");
+        assertThat(column("effective_from", id)).isEqualTo(time.today().toString());
+        assertThat(column("self_approved", id)).isEqualTo("0");
+        mvc.perform(get("/api/v1/residents/" + residentId + "/care-plans"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("PENDING_EFFECT"))
-                .andExpect(jsonPath("$.selfApproved").value(false));
-        mvc.perform(write(post("/api/v1/care-plans/" + id + "/withdraw-approval"), "{\"reason\":\"Cần xem lại\"}"))
+                .andExpect(jsonPath("$[0].noEffectivePlan").value(false));
+        assertThat(recorded.stream(com.eldercare.backend.care.api.events.CarePlanChanged.class)
+                        .filter(e -> e.residentId() == residentId))
+                .hasSize(1);
+    }
+
+    @Test
+    void Q447_selfApprovalOfFirstPlanNeedsReason() throws Exception {
+        var both = new TestUsers(jdbc, time).staff(Role.NURSING_STAFF, Role.DOCTOR);
+        assignments.assign(
+                both.staffId(),
+                new AssignmentView(
+                        AssignmentKind.SHIFT_MEMBER,
+                        null,
+                        null,
+                        residentId,
+                        null,
+                        time.now().minus(Duration.ofDays(1)),
+                        null));
+        user.set(both.user());
+        long id = create();
+        submit(id);
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{}"))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{\"reason\":\"Tự duyệt khi Bác sĩ vắng\"}"))
                 .andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT status FROM care_plan WHERE id=?", String.class, id))
-                .isEqualTo("CANCELLED");
-        assertThat(jdbc.queryForObject("SELECT approved_by FROM care_plan WHERE id=?", Long.class, id))
-                .isEqualTo(doctor.accountId());
+        assertThat(column("status", id)).isEqualTo("EFFECTIVE");
+        assertThat(column("self_approved", id)).isEqualTo("1");
+    }
+
+    @Test
+    void Q447_revisionApprovedStartsTomorrowAndKeepsCurrentPlan() throws Exception {
+        long current = effectivePlan();
+        long revision = createCopy();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE entity_type='M04.CARE_PLAN' AND entity_id=?",
-                        Integer.class,
-                        Long.toString(id)))
-                .isEqualTo(5);
+                        "SELECT COUNT(*) FROM care_plan_item WHERE care_plan_id=?", Integer.class, revision))
+                .isEqualTo(1);
+        mvc.perform(write(post("/api/v1/care-plans/" + revision + "/submit"), "{}"))
+                .andExpect(status().isUnprocessableContent());
+        submit(revision, "{\"changeReason\":\"Sau ngã cần xoay trở dày hơn\"}");
+        approveAsDoctor(revision);
+        assertThat(column("status", revision)).isEqualTo("PENDING_EFFECT");
+        assertThat(column("effective_from", revision))
+                .isEqualTo(time.today().plusDays(1).toString());
+        assertThat(column("status", current)).isEqualTo("EFFECTIVE");
+    }
+
+    @Test
+    void Q447_secondApprovalSameDayStartsTomorrowAndActivationKeepsPeriodValid() throws Exception {
+        long current = effectivePlan();
+        long revision = createCopy();
+        submit(revision, "{\"changeReason\":\"Đổi giờ uống nước\"}");
+        approveAsDoctor(revision);
+        activation().run(time.today().plusDays(1), time.now());
+        assertThat(column("status", current)).isEqualTo("EXPIRED");
+        assertThat(column("effective_to", current)).isEqualTo(time.today().toString());
+        assertThat(column("status", revision)).isEqualTo("EFFECTIVE");
+    }
+
+    @Test
+    void Q447_editWhilePendingEffectSupersedesIt() throws Exception {
+        effectivePlan();
+        long first = createCopy();
+        submit(first, "{\"changeReason\":\"Lần sửa thứ nhất\"}");
+        approveAsDoctor(first);
+        long second = createCopy();
+        assertThat(jdbc.queryForObject("SELECT previous_plan_id FROM care_plan WHERE id=?", Long.class, second))
+                .isEqualTo(first);
+        submit(second, "{\"changeReason\":\"Lần sửa thứ hai\"}");
+        approveAsDoctor(second);
+        assertThat(column("status", first)).isEqualTo("CANCELLED");
+        assertThat(column("end_reason", first)).isEqualTo("SUPERSEDED");
+        assertThat(column("status", second)).isEqualTo("PENDING_EFFECT");
+    }
+
+    @Test
+    void Q447_approveCancelsStalePendingEffectEvenWithoutEffective() throws Exception {
+        var now = java.time.LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE);
+        jdbc.update(
+                "INSERT INTO care_plan(resident_id,revision,status,effective_from,created_by,created_at,approved_by,approved_at)"
+                        + " VALUES(?,1,'PENDING_EFFECT',?,?,?,?,?)",
+                residentId,
+                time.today().plusDays(30),
+                nurse.accountId(),
+                now,
+                doctor.accountId(),
+                now);
+        long stale = jdbc.queryForObject(
+                "SELECT id FROM care_plan WHERE resident_id=? AND revision=1", Long.class, residentId);
+        long id = createCopy();
+        submit(id, "{\"changeReason\":\"Lập lại theo luật mới\"}");
+        approveAsDoctor(id);
+        assertThat(column("status", id)).isEqualTo("EFFECTIVE");
+        assertThat(column("effective_from", id)).isEqualTo(time.today().toString());
+        assertThat(column("status", stale)).isEqualTo("CANCELLED");
+    }
+
+    @Test
+    void Q447_retractOnlyByCreator() throws Exception {
+        long id = create();
+        submit(id);
+        user.set(doctor.user());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/retract"), "{}")).andExpect(status().isForbidden());
+        user.set(nurse.user());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/retract"), "{}")).andExpect(status().isOk());
+        assertThat(column("status", id)).isEqualTo("DRAFT");
+        mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", etag(id)), items()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void Q447_withdrawEndpointIsGone() throws Exception {
+        long id = create();
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/withdraw-approval"), "{\"reason\":\"Cần xem lại\"}"))
+                .andExpect(status().isNotFound());
     }
 }

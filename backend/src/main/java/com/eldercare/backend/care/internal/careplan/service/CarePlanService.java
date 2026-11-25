@@ -46,6 +46,7 @@ public class CarePlanService {
     private final CareRiskStore risks;
     private final CarePlanNotices notices;
     private final AccountApi accounts;
+    private final CarePlanActivation activation;
 
     public CarePlanService(
             CarePlanStore store,
@@ -60,7 +61,8 @@ public class CarePlanService {
             BusinessTime time,
             CareRiskStore risks,
             CarePlanNotices notices,
-            AccountApi accounts) {
+            AccountApi accounts,
+            CarePlanActivation activation) {
         this.store = store;
         this.locks = locks;
         this.catalogs = catalogs;
@@ -74,6 +76,7 @@ public class CarePlanService {
         this.risks = risks;
         this.notices = notices;
         this.accounts = accounts;
+        this.activation = activation;
     }
 
     public Target target(long id) {
@@ -99,24 +102,27 @@ public class CarePlanService {
     @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.CREATE)
     @BusinessCommand(requiresReason = false)
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public CarePlan create(Target target, long residentId, boolean copyCurrent) {
+    public CarePlan create(Target target, long residentId) {
         locks.lock(List.of(residentId));
         writable(residentId);
         var revisions = store.list(residentId, true);
         if (revisions.stream()
-                .anyMatch(p -> Set.of(
-                                CarePlanStatus.DRAFT, CarePlanStatus.PENDING_APPROVAL, CarePlanStatus.PENDING_EFFECT)
+                .anyMatch(p -> Set.of(CarePlanStatus.DRAFT, CarePlanStatus.PENDING_APPROVAL)
                         .contains(p.status()))) throw conflict("OPEN_REVISION_EXISTS", "Đã có phiên bản đang mở");
+        // Q-447: bản sửa luôn chép bản mới nhất còn dùng, Chờ hiệu lực trước rồi tới Hiệu lực.
         var previous = revisions.stream()
-                .filter(p -> p.status() == CarePlanStatus.EFFECTIVE)
-                .findFirst();
+                .filter(p -> p.status() == CarePlanStatus.PENDING_EFFECT)
+                .findFirst()
+                .or(() -> revisions.stream()
+                        .filter(p -> p.status() == CarePlanStatus.EFFECTIVE)
+                        .findFirst());
         var plan = store.create(
                 residentId,
                 revisions.stream().mapToInt(CarePlan::revision).max().orElse(0) + 1,
                 previous.map(CarePlan::id).orElse(null),
                 user.accountId(),
                 time.now());
-        if (copyCurrent && previous.isPresent()) {
+        if (previous.isPresent()) {
             store.saveItems(
                     plan.id(),
                     store.lockedItems(previous.get().id()).stream()
@@ -219,10 +225,10 @@ public class CarePlanService {
     @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void submit(Target target, long id, LocalDate effectiveFrom, Reason reason) {
+    public void submit(Target target, long id, Reason reason) {
         var plan = locked(id);
         writable(plan.residentId());
-        var status = CarePlanTransitions.next(plan.status(), "SUBMIT", effectiveFrom, time.today());
+        var status = CarePlanTransitions.next(plan.status(), "SUBMIT");
         var items = store.lockedItems(id);
         if (items.isEmpty()) throw conflict("EMPTY_PLAN", "Kế hoạch cần ít nhất một mục công việc");
         if (plan.previousPlanId() != null && reason == null) throw new ReasonRequiredException();
@@ -249,15 +255,7 @@ public class CarePlanService {
         }
         store.saveItems(id, frozen);
         store.transition(
-                plan,
-                status,
-                effectiveFrom,
-                reason == null ? null : reason.value(),
-                null,
-                null,
-                false,
-                time.now(),
-                null);
+                plan, status, null, reason == null ? null : reason.value(), null, null, false, time.now(), null);
         var after = store.locked(id);
         log("SUBMITTED", plan, after, reason);
         notices.submitted(after, time.now());
@@ -269,20 +267,44 @@ public class CarePlanService {
     public void approve(Target target, long id, Reason reason) {
         var plan = locked(id);
         writable(plan.residentId());
-        var status = CarePlanTransitions.next(plan.status(), "APPROVE", plan.effectiveFrom(), time.today());
+        CarePlanTransitions.next(plan.status(), "APPROVE");
         boolean self = plan.createdBy() == user.accountId();
         if (self && reason == null) throw new ReasonRequiredException();
+        // Q-447: hiệu lực ngay khi chưa có kế hoạch Hiệu lực, không thì từ ngày mai; bản Chờ hiệu lực cũ bị thay.
+        var revisions = store.list(plan.residentId(), true);
+        boolean hasEffective = revisions.stream().anyMatch(p -> p.status() == CarePlanStatus.EFFECTIVE);
+        for (var pending : revisions) {
+            if (pending.status() != CarePlanStatus.PENDING_EFFECT || pending.id() == id) continue;
+            store.supersede(pending.id());
+            log("SUPERSEDED", pending, store.locked(pending.id()), null);
+        }
+        var today = time.today();
+        var now = time.now();
         store.transition(
                 plan,
-                status,
-                plan.effectiveFrom(),
+                CarePlanTransitions.approvedStatus(hasEffective),
+                CarePlanTransitions.effectiveFromOnApproval(hasEffective, today),
                 plan.changeReason(),
                 user.accountId(),
-                time.now(),
+                now,
                 self,
                 plan.submittedAt(),
                 null);
-        log(self ? "SELF_APPROVED" : "APPROVED", plan, store.locked(id), reason);
+        var after = store.locked(id);
+        log(self ? "SELF_APPROVED" : "APPROVED", plan, after, reason);
+        if (!hasEffective) activation.announce(after, Optional.empty(), today, now);
+    }
+
+    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.UPDATE)
+    @BusinessCommand(requiresReason = false)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void retract(Target target, long id) {
+        var plan = locked(id);
+        if (plan.createdBy() != user.accountId()) throw new PermissionDeniedException("Chỉ người lập được rút lại");
+        writable(plan.residentId());
+        var next = CarePlanTransitions.next(plan.status(), "RETRACT");
+        store.transition(plan, next, null, plan.changeReason(), null, null, false, null, null);
+        log("RETRACT", plan, store.locked(id), null);
     }
 
     @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.APPROVE)
@@ -305,13 +327,6 @@ public class CarePlanService {
         changeLocked(plan, "CANCEL", reason);
     }
 
-    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.APPROVE)
-    @BusinessCommand
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void withdraw(Target target, long id, Reason reason) {
-        change(id, "WITHDRAW", reason);
-    }
-
     private void change(long id, String command, Reason reason) {
         changeLocked(locked(id), command, reason);
     }
@@ -319,24 +334,20 @@ public class CarePlanService {
     private void changeLocked(CarePlan plan, String command, Reason reason) {
         if (reason == null) throw new ReasonRequiredException();
         writable(plan.residentId());
-        var next = CarePlanTransitions.next(plan.status(), command, plan.effectiveFrom(), time.today());
+        var next = CarePlanTransitions.next(plan.status(), command);
         store.transition(
                 plan,
                 next,
                 plan.effectiveFrom(),
                 plan.changeReason(),
-                command.equals("WITHDRAW") ? plan.approvedBy() : null,
-                command.equals("WITHDRAW") ? plan.approvedAt() : null,
-                command.equals("WITHDRAW") && plan.selfApproved(),
+                null,
+                null,
+                false,
                 command.equals("RETURN") ? null : plan.submittedAt(),
-                switch (command) {
-                    case "RETURN" -> "RETURNED";
-                    case "WITHDRAW" -> "WITHDRAWN";
-                    default -> "CANCELLED";
-                });
+                command.equals("RETURN") ? "RETURNED" : "CANCELLED");
         var after = store.locked(plan.id());
         log(command, plan, after, reason);
-        if (!command.equals("CANCEL")) {
+        if (command.equals("RETURN")) {
             long creatorStaff = accounts.byId(plan.createdBy())
                     .map(account -> account.staffId())
                     .orElseThrow(() -> new BusinessException(
@@ -344,10 +355,7 @@ public class CarePlanService {
                             "CARE_SOURCE_UNAVAILABLE",
                             "Chưa tra cứu được người lập kế hoạch"));
             var context = context(after, command, List.of(new RecipientGroup.Staff(creatorStaff, "CARE_PLAN_CREATOR")));
-            if (command.equals("RETURN"))
-                events.publishEvent(new CarePlanReturned(plan.id(), plan.residentId(), context, reason.value()));
-            if (command.equals("WITHDRAW"))
-                events.publishEvent(new CarePlanApprovalWithdrawn(plan.id(), plan.residentId(), context));
+            events.publishEvent(new CarePlanReturned(plan.id(), plan.residentId(), context, reason.value()));
         }
     }
 

@@ -71,7 +71,7 @@ paths:
       operationId: createCarePlan
       tags: [ke-hoach]
       summary: Lập phiên bản Nháp (Điều dưỡng)
-      description: 'Nội dung khởi đầu là bản sao phiên bản Hiệu lực (copyCurrent = true) hoặc trống. Đã có phiên bản Nháp/Chờ duyệt/Chờ hiệu lực thì 409 OPEN_REVISION_EXISTS. Không có đường tạo tự động từ đánh giá (Q-280).'
+      description: 'Q-447: "Lập kế hoạch" / "Sửa kế hoạch". Nội dung khởi đầu luôn là bản sao phiên bản Chờ hiệu lực, không có thì phiên bản Hiệu lực, không có thì trống; copyCurrent giữ cho client cũ, bị bỏ qua. Đã có phiên bản Nháp/Chờ duyệt thì 409 OPEN_REVISION_EXISTS. Không có đường tạo tự động từ đánh giá (Q-280).'
       x-fr: [FR-001, FR-003, FR-004]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { copyCurrent: { type: boolean, default: true } } } } } }
@@ -118,24 +118,33 @@ paths:
       x-implementation-phase: 3
       operationId: submitCarePlan
       tags: [ke-hoach]
-      summary: Gửi duyệt kèm ngày hiệu lực đề xuất
-      description: 'Có ít nhất một mục, mọi mục đủ trường FR-002; ngày hiệu lực muộn hơn hôm nay; bắt buộc changeReason khi đã có phiên bản trước.'
+      summary: Gửi Bác sĩ duyệt
+      description: 'Q-447: không nhập ngày hiệu lực. Có ít nhất một mục, mọi mục đủ trường FR-002; bắt buộc changeReason khi đã có phiên bản trước (422 REASON_REQUIRED).'
       x-fr: [FR-003, FR-005]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [effectiveFrom], properties: { effectiveFrom: { type: string, format: date }, changeReason: { $ref: '#/components/schemas/Reason' } } } } } }
+      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { changeReason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: Chờ duyệt }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plans/{id}/retract:
+    post:
+      x-implementation-phase: 3
+      operationId: retractCarePlan
+      tags: [ke-hoach]
+      summary: Rút lại bản Chờ duyệt về Nháp (chỉ người lập, Q-447)
+      x-fr: [FR-003]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: Nháp }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/{id}/approve:
     post:
       x-implementation-phase: 3
       operationId: approveCarePlan
       tags: [ke-hoach]
       summary: Duyệt (Bác sĩ; Điều dưỡng được gán quyền)
-      description: 'Ngày hiệu lực phải muộn hơn ngày duyệt, ngược lại 409 INVALID_EFFECTIVE_DATE và người duyệt dùng Trả lại (Q-34, FR-004). Người lập tự duyệt: bắt buộc reason, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
+      description: 'Q-447: người cao tuổi chưa có phiên bản Hiệu lực thì chuyển Hiệu lực từ ngày duyệt; đã có thì chuyển Chờ hiệu lực từ ngày hôm sau ngày duyệt (Q-34); phiên bản Chờ hiệu lực trước (nếu có) chuyển Đã hủy. Người lập tự duyệt: bắt buộc reason, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
       x-fr: [FR-003, FR-004, FR-005]
       x-br: [BR-M04-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
-      responses: { '200': { description: Chờ hiệu lực }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+      responses: { '200': { description: Hiệu lực hoặc Chờ hiệu lực }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/{id}/return:
     post:
       x-implementation-phase: 3
@@ -156,22 +165,12 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
       responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
-  /care-plans/{id}/withdraw-approval:
-    post:
-      x-implementation-phase: 3
-      operationId: withdrawCarePlanApproval
-      tags: [ke-hoach]
-      summary: Thu hồi duyệt trước ngày hiệu lực
-      x-fr: [FR-003]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
-      responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/compare:
     get:
       x-implementation-phase: 3
       operationId: compareCarePlans
       tags: [ke-hoach]
-      summary: So sánh hai phiên bản (mục thêm, bớt, đổi)
+      summary: Thay đổi của bản sửa so với kế hoạch Hiệu lực (mục thêm, bớt, đổi; Q-447)
       x-fr: [FR-008]
       parameters:
         - { name: from, in: query, required: true, schema: { type: integer, format: int64 } }
@@ -870,7 +869,7 @@ components:
       description: Lỗi kế hoạch theo RFC 9457
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/CareCatalogProblem' } } }
     CarePlanConditionProblem:
-      description: 'OPEN_REVISION_EXISTS, REVISION_LOCKED, INVALID_EFFECTIVE_DATE và điều kiện chuyển trạng thái không thỏa'
+      description: 'OPEN_REVISION_EXISTS, REVISION_LOCKED và điều kiện chuyển trạng thái không thỏa'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/CareCatalogProblem' } } }
 
     CareCatalogProblem:

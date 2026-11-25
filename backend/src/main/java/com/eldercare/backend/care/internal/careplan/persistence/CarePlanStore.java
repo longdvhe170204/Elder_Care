@@ -198,6 +198,13 @@ public class CarePlanStore {
                     plan.id());
     }
 
+    /** Q-447: bản Chờ hiệu lực bị bản sau được duyệt thay thế. */
+    public void supersede(long id) {
+        jdbc.update(
+                "UPDATE care_plan SET status='CANCELLED',end_reason='SUPERSEDED',version=version+1 WHERE id=? AND status='PENDING_EFFECT'",
+                id);
+    }
+
     public void activate(long id) {
         jdbc.update(
                 "UPDATE care_plan SET status='EFFECTIVE',version=version+1 WHERE id=? AND status='PENDING_EFFECT'", id);
