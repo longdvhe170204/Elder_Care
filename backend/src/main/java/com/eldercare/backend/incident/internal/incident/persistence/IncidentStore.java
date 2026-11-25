@@ -370,25 +370,31 @@ public class IncidentStore {
 
     /** BF-06: trạng thái báo người nhà và các mốc để tính hạn (mức, thời điểm ghi, còn mở hay không). */
     public Optional<FamilyNoticeRow> familyNoticeRow(long id) {
-        return jdbc.query("""
+        return jdbc
+                .query(
+                        """
                 SELECT resident_id, level, status, created_at, recorded_later, family_notice_state, family_notified_by,
                   family_notified_at, family_notice_method, family_notice_note
                 FROM incident WHERE id=?
-                """, (rs, n) -> {
-            var notified = rs.getTimestamp("family_notified_at");
-            long by = rs.getLong("family_notified_by");
-            return new FamilyNoticeRow(
-                    (Long) rs.getObject("resident_id"),
-                    IncidentLevel.valueOf(rs.getString("level")),
-                    rs.getString("status"),
-                    rs.getTimestamp("created_at").toInstant(),
-                    rs.getBoolean("recorded_later"),
-                    rs.getString("family_notice_state"),
-                    rs.wasNull() ? null : by,
-                    notified == null ? null : notified.toInstant(),
-                    rs.getString("family_notice_method"),
-                    rs.getString("family_notice_note"));
-        }, id).stream().findFirst();
+                """,
+                        (rs, n) -> {
+                            var notified = rs.getTimestamp("family_notified_at");
+                            long by = rs.getLong("family_notified_by");
+                            return new FamilyNoticeRow(
+                                    (Long) rs.getObject("resident_id"),
+                                    IncidentLevel.valueOf(rs.getString("level")),
+                                    rs.getString("status"),
+                                    rs.getTimestamp("created_at").toInstant(),
+                                    rs.getBoolean("recorded_later"),
+                                    rs.getString("family_notice_state"),
+                                    rs.wasNull() ? null : by,
+                                    notified == null ? null : notified.toInstant(),
+                                    rs.getString("family_notice_method"),
+                                    rs.getString("family_notice_note"));
+                        },
+                        id)
+                .stream()
+                .findFirst();
     }
 
     /** BF-06 "Ghi nhận sau" kèm đóng luôn: Mới → Đã đóng ngay khi ghi, kết quả bắt buộc, dừng leo thang. */

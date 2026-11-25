@@ -37,10 +37,14 @@ public class IncidentFamilyNoticeController {
         @ApiResponse(responseCode = "200", description = "Đã ghi nhận việc báo người nhà"),
         @ApiResponse(
                 responseCode = "409",
-                content = @io.swagger.v3.oas.annotations.media.Content(
-                        mediaType = "application/problem+json",
-                        schema = @io.swagger.v3.oas.annotations.media.Schema(
-                                implementation = com.eldercare.backend.incident.web.response.M05ProblemBody.class)))
+                content =
+                        @io.swagger.v3.oas.annotations.media.Content(
+                                mediaType = "application/problem+json",
+                                schema =
+                                        @io.swagger.v3.oas.annotations.media.Schema(
+                                                implementation =
+                                                        com.eldercare.backend.incident.web.response.M05ProblemBody
+                                                                .class)))
     })
     public ResponseEntity<Void> record(
             @PathVariable long id,

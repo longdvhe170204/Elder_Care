@@ -21,10 +21,10 @@ import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.TypeLock;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

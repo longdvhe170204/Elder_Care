@@ -34,16 +34,22 @@ public record RecordIncidentRequest(
         String lowerLevelReason,
         String initialResponse,
         @Schema(defaultValue = "false") Boolean createDespiteOpen,
+
         @Schema(
-                        defaultValue = "false",
-                        description =
-                                "Ghi nhận sau: việc đã xảy ra và đã xử lý xong, chỉ lưu hồ sơ; không báo khẩn, không leo thang")
-                Boolean recordedLater,
-        @Schema(description = "Báo người nhà: INFORMED (ai, lúc nào, cách nào) hoặc NOT_YET") FamilyNoticeBody familyNotice,
+                defaultValue = "false",
+                description =
+                        "Ghi nhận sau: việc đã xảy ra và đã xử lý xong, chỉ lưu hồ sơ; không báo khẩn, không leo thang")
+        Boolean recordedLater,
+
+        @Schema(description = "Báo người nhà: INFORMED (ai, lúc nào, cách nào) hoặc NOT_YET")
+        FamilyNoticeBody familyNotice,
+
         @Schema(
-                        defaultValue = "false",
-                        description = "Chỉ với recordedLater: ghi xong đóng luôn (Điều dưỡng, Trưởng tầng, Bác sĩ), bắt buộc resolution")
-                Boolean closeNow,
+                defaultValue = "false",
+                description =
+                        "Chỉ với recordedLater: ghi xong đóng luôn (Điều dưỡng, Trưởng tầng, Bác sĩ), bắt buộc resolution")
+        Boolean closeNow,
+
         @Schema(description = "Kết quả xử lý khi closeNow") String resolution) {
 
     public record FamilyNoticeBody(String state, Instant at, String method, String note) {}

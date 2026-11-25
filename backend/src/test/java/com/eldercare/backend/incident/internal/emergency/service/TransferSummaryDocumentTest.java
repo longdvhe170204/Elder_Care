@@ -56,8 +56,7 @@ class TransferSummaryDocumentTest {
 
         assertThat(text).contains("V. NGUYỆN VỌNG LIÊN QUAN ĐẾN CA NÀY");
         assertThat(text).contains("Nguyện vọng cuối đời: Đưa về nhà");
-        assertThat(text)
-                .contains("Bệnh viện ưu tiên theo hồ sơ: Bệnh viện Bạch Mai (khác nơi tiếp nhận ở mục IV)");
+        assertThat(text).contains("Bệnh viện ưu tiên theo hồ sơ: Bệnh viện Bạch Mai (khác nơi tiếp nhận ở mục IV)");
         assertThat(text).contains("Nơi tiếp nhận Bệnh viện X");
         assertThat(text).contains("Có ghi mong muốn hỏi ý kiến gia đình trước");
     }
@@ -90,7 +89,8 @@ class TransferSummaryDocumentTest {
         }
         var medications = new java.util.ArrayList<Map<String, Object>>();
         for (int i = 0; i < 15; i++) {
-            medications.add(Map.<String, Object>of("name", "Thuốc số " + i, "strength", "500mg", "dosage", "2 lần/ngày"));
+            medications.add(
+                    Map.<String, Object>of("name", "Thuốc số " + i, "strength", "500mg", "dosage", "2 lần/ngày"));
         }
         byte[] big = TransferSummaryDocument.render(
                 content(
@@ -101,7 +101,11 @@ class TransferSummaryDocumentTest {
                         medications,
                         progressions,
                         Map.of("choice", "RETURN_HOME", "note", longText),
-                        Map.of("preferredHospitals", List.of(Map.of("name", "Bệnh viện Bạch Mai")), "askFamilyFirst", true),
+                        Map.of(
+                                "preferredHospitals",
+                                List.of(Map.of("name", "Bệnh viện Bạch Mai")),
+                                "askFamilyFirst",
+                                true),
                         new EmergencyCard.Contact("Nguyễn Văn Rạng", "0911000001")),
                 null);
 
@@ -195,9 +199,23 @@ class TransferSummaryDocumentTest {
                         ? null
                         : List.of(
                                 Map.<String, Object>of(
-                                        "indicatorName", "Huyết áp", "values", Map.of("DIASTOLIC", 95, "SYSTOLIC", 150), "unit", "mmHg", "measuredAt", AT),
+                                        "indicatorName",
+                                        "Huyết áp",
+                                        "values",
+                                        Map.of("DIASTOLIC", 95, "SYSTOLIC", 150),
+                                        "unit",
+                                        "mmHg",
+                                        "measuredAt",
+                                        AT),
                                 Map.<String, Object>of(
-                                        "indicatorName", "Nhịp tim", "values", Map.of("VALUE", 92.0), "unit", "nhịp/phút", "measuredAt", AT)),
+                                        "indicatorName",
+                                        "Nhịp tim",
+                                        "values",
+                                        Map.of("VALUE", 92.0),
+                                        "unit",
+                                        "nhịp/phút",
+                                        "measuredAt",
+                                        AT)),
                 progressions,
                 endOfLife,
                 treatment,

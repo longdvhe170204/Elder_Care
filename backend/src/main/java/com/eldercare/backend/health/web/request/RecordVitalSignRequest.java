@@ -18,8 +18,8 @@ public record RecordVitalSignRequest(
         return new RecordVitalSignCommand(
                 residentId,
                 indicatorId != null ? indicatorId : 0L,
-                // Spec cho phép bỏ trống: lấy giờ ghi (trước đây NullPointerException, trả 500)
-                measuredAt != null ? measuredAt : java.time.Instant.now(),
+                // Spec cho phép bỏ trống: service lấy giờ ghi (trước đây NullPointerException, trả 500)
+                measuredAt,
                 actorId,
                 values != null ? values : Map.of(),
                 Boolean.TRUE.equals(immediateAction),

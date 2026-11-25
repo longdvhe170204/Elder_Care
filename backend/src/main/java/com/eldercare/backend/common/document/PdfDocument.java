@@ -235,7 +235,8 @@ public final class PdfDocument {
             Paragraph paragraph = new Paragraph();
             paragraph.setLeading(0, 1.45f);
             paragraph.add(new Chunk(labelValuePairs[i], label));
-            paragraph.add(new Chunk("\n" + (labelValuePairs[i + 1] == null ? "" : labelValuePairs[i + 1]), style.text()));
+            paragraph.add(
+                    new Chunk("\n" + (labelValuePairs[i + 1] == null ? "" : labelValuePairs[i + 1]), style.text()));
             PdfPCell cell = new PdfPCell(paragraph);
             cell.setPadding(style.cellPadding() + 1.5f);
             if (borderless) cell.setBorder(Rectangle.NO_BORDER);

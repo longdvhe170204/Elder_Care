@@ -24,11 +24,11 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
+import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
@@ -137,7 +137,8 @@ class FR_029_AlertLifecycleTest {
     void BF_06_caregiverClosesMediumOverdueTaskWithReasonOnly() {
         when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
         lockOfType("OVERDUE_CARE_TASK", AlertStatus.NEW, IncidentLevel.MEDIUM, null, "OVERDUE_CARE_TASK:7");
-        assertThatThrownBy(() -> service.close(ID, "Đã làm bù", null, user)).isInstanceOf(ReasonRequiredException.class);
+        assertThatThrownBy(() -> service.close(ID, "Đã làm bù", null, user))
+                .isInstanceOf(ReasonRequiredException.class);
 
         service.close(ID, "Đã làm bù", new Reason("Làm bù lúc 9h10"), user);
 

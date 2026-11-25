@@ -19,7 +19,6 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.care.api.CarePlanReviewApi;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
@@ -30,6 +29,7 @@ import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeView;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
 import com.eldercare.backend.incident.internal.incident.domain.FallMonitoringSetting;
+import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
 import com.eldercare.backend.incident.internal.incident.persistence.FallMonitoringStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.incident.service.IncidentRecordService;
@@ -196,13 +196,14 @@ class FR_040_IncidentRecordTest {
                 com.eldercare.backend.incident.internal.incident.domain.NewIncident.class);
         verify(incidents).insert(inserted.capture());
         assertThat(inserted.getValue().acknowledgementDeadline()).isNull();
-        verify(incidents).saveFamilyNotice(41L, true, "INFORMED", 900L, NOW.minusSeconds(600), "PHONE", "Đã gọi con gái");
+        verify(incidents)
+                .saveFamilyNotice(41L, true, "INFORMED", 900L, NOW.minusSeconds(600), "PHONE", "Đã gọi con gái");
         verify(events, never())
                 .publishEvent(org.mockito.ArgumentMatchers.any(
                         com.eldercare.backend.incident.internal.incident.domain.EmergencyActivationRequested.class));
         verify(events)
-                .publishEvent(org.mockito.ArgumentMatchers.argThat(
-                        (Object e) -> e instanceof com.eldercare.backend.incident.api.events.IncidentNotificationCreated n
+                .publishEvent(org.mockito.ArgumentMatchers.argThat((Object e) ->
+                        e instanceof com.eldercare.backend.incident.api.events.IncidentNotificationCreated n
                                 && n.level().equals("LOW")
                                 && n.eventKey().endsWith(":RECORDED_LATER")
                                 && n.notificationRequests().size() == 1));
@@ -216,8 +217,8 @@ class FR_040_IncidentRecordTest {
 
         verify(incidents).saveFamilyNotice(41L, true, "NOT_YET", null, null, null, null);
         verify(events)
-                .publishEvent(org.mockito.ArgumentMatchers.argThat(
-                        (Object e) -> e instanceof com.eldercare.backend.incident.api.events.IncidentNotificationCreated n
+                .publishEvent(org.mockito.ArgumentMatchers.argThat((Object e) ->
+                        e instanceof com.eldercare.backend.incident.api.events.IncidentNotificationCreated n
                                 && n.notificationRequests().size() == 2));
     }
 
@@ -258,10 +259,17 @@ class FR_040_IncidentRecordTest {
     /** BF-06: Bác sĩ, Điều dưỡng ghi sự cố đang xảy ra (từ web) thì tự tiếp nhận; lệnh cũ của module khác thì không. */
     @Test
     void BF_06_nurseRecordingFromWebAutoReceives_butLegacyCommandDoesNot() {
-        when(incidents.lock(41L)).thenReturn(Optional.of(new IncidentState(41L, RESIDENT, FLOOR, "NEW", IncidentLevel.MEDIUM, false, 0)));
+        when(incidents.lock(41L))
+                .thenReturn(
+                        Optional.of(new IncidentState(41L, RESIDENT, FLOOR, "NEW", IncidentLevel.MEDIUM, false, 0)));
 
         service.record(command(RESIDENT, 2, "MEDIUM", null, false), user);
-        verify(incidents, never()).receive(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong(), any(), org.mockito.ArgumentMatchers.anyInt());
+        verify(incidents, never())
+                .receive(
+                        org.mockito.ArgumentMatchers.anyLong(),
+                        org.mockito.ArgumentMatchers.anyLong(),
+                        any(),
+                        org.mockito.ArgumentMatchers.anyInt());
 
         service.record(autoReceiving(RESIDENT, 2, "MEDIUM"), user);
         verify(incidents).receive(41L, 900L, NOW, 0);
@@ -273,13 +281,19 @@ class FR_040_IncidentRecordTest {
 
         service.record(autoReceiving(RESIDENT, 2, "MEDIUM"), user);
 
-        verify(incidents, never()).receive(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong(), any(), org.mockito.ArgumentMatchers.anyInt());
+        verify(incidents, never())
+                .receive(
+                        org.mockito.ArgumentMatchers.anyLong(),
+                        org.mockito.ArgumentMatchers.anyLong(),
+                        any(),
+                        org.mockito.ArgumentMatchers.anyInt());
     }
 
     /** BF-06: ghi nhận sau kèm đóng luôn: Đã đóng ngay với kết quả; chỉ Điều dưỡng, Trưởng tầng, Bác sĩ. */
     @Test
     void BF_06_recordedLaterCloseNowClosesImmediately_onlyForClosers() {
-        var informed = new com.eldercare.backend.incident.api.dto.FamilyNotice("INFORMED", NOW.minusSeconds(60), "PHONE", null);
+        var informed = new com.eldercare.backend.incident.api.dto.FamilyNotice(
+                "INFORMED", NOW.minusSeconds(60), "PHONE", null);
         service.record(closeNow(RESIDENT, 2, "MEDIUM", informed, "Đã kiểm tra, không đau"), user);
         verify(incidents).closeRecordedLater(41L, "Đã kiểm tra, không đau", 900L, NOW);
 
@@ -300,10 +314,12 @@ class FR_040_IncidentRecordTest {
     @Test
     void BF_06_rejectsFutureOrReversedTimesAndLongDescription() {
         var invalid = com.eldercare.backend.common.error.InvalidValueException.class;
-        assertThatThrownBy(() -> service.record(timed(NOW.plusSeconds(3600), NOW, "Mô tả"), user)).isInstanceOf(invalid);
+        assertThatThrownBy(() -> service.record(timed(NOW.plusSeconds(3600), NOW, "Mô tả"), user))
+                .isInstanceOf(invalid);
         assertThatThrownBy(() -> service.record(timed(NOW.minusSeconds(60), NOW.plusSeconds(3600), "Mô tả"), user))
                 .isInstanceOf(invalid);
-        assertThatThrownBy(() -> service.record(timed(NOW, NOW.minusSeconds(600), "Mô tả"), user)).isInstanceOf(invalid);
+        assertThatThrownBy(() -> service.record(timed(NOW, NOW.minusSeconds(600), "Mô tả"), user))
+                .isInstanceOf(invalid);
         assertThatThrownBy(() -> service.record(timed(NOW.minusSeconds(60), NOW, "x".repeat(2001)), user))
                 .isInstanceOf(invalid);
         verify(incidents, never()).insert(any());
@@ -311,28 +327,82 @@ class FR_040_IncidentRecordTest {
 
     @Test
     void BF_06_rejectsFamilyNoticeInTheFuture() {
-        var later = new com.eldercare.backend.incident.api.dto.FamilyNotice("INFORMED", NOW.plusSeconds(86400), "PHONE", null);
+        var later = new com.eldercare.backend.incident.api.dto.FamilyNotice(
+                "INFORMED", NOW.plusSeconds(86400), "PHONE", null);
         assertThatThrownBy(() -> service.record(recordedLater(RESIDENT, 2, "MEDIUM", later), user))
                 .isInstanceOf(com.eldercare.backend.common.error.InvalidValueException.class);
     }
 
-    private static RecordIncidentCommand timed(java.time.Instant occurredAt, java.time.Instant detectedAt, String description) {
+    private static RecordIncidentCommand timed(
+            java.time.Instant occurredAt, java.time.Instant detectedAt, String description) {
         return new RecordIncidentCommand(
-                RESIDENT, 2L, null, occurredAt, detectedAt, null, "Phòng 101", null, description, "MEDIUM", null, null, false, false,
-                null, true, false, null);
+                RESIDENT,
+                2L,
+                null,
+                occurredAt,
+                detectedAt,
+                null,
+                "Phòng 101",
+                null,
+                description,
+                "MEDIUM",
+                null,
+                null,
+                false,
+                false,
+                null,
+                true,
+                false,
+                null);
     }
 
     private static RecordIncidentCommand autoReceiving(Long residentId, long typeId, String level) {
         return new RecordIncidentCommand(
-                residentId, typeId, null, null, NOW, null, "Phòng 101", null, "Mô tả sự cố", level, null, null, false, false, null,
-                true, false, null);
+                residentId,
+                typeId,
+                null,
+                null,
+                NOW,
+                null,
+                "Phòng 101",
+                null,
+                "Mô tả sự cố",
+                level,
+                null,
+                null,
+                false,
+                false,
+                null,
+                true,
+                false,
+                null);
     }
 
     private static RecordIncidentCommand closeNow(
-            Long residentId, long typeId, String level, com.eldercare.backend.incident.api.dto.FamilyNotice notice, String resolution) {
+            Long residentId,
+            long typeId,
+            String level,
+            com.eldercare.backend.incident.api.dto.FamilyNotice notice,
+            String resolution) {
         return new RecordIncidentCommand(
-                residentId, typeId, null, NOW.minusSeconds(3600), NOW, null, "Phòng 101", null, "Đã xử lý xong", level, null, null,
-                false, true, notice, true, true, resolution);
+                residentId,
+                typeId,
+                null,
+                NOW.minusSeconds(3600),
+                NOW,
+                null,
+                "Phòng 101",
+                null,
+                "Đã xử lý xong",
+                level,
+                null,
+                null,
+                false,
+                true,
+                notice,
+                true,
+                true,
+                resolution);
     }
 
     private static RecordIncidentCommand recordedLater(

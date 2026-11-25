@@ -2,6 +2,7 @@ package com.eldercare.backend.incident.internal.incident.service;
 
 import static com.eldercare.backend.incident.internal.incident.domain.IncidentActions.FAMILY_NOTICE_RECORDED;
 
+import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
@@ -21,7 +22,6 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.FamilyNotice;
 import com.eldercare.backend.incident.internal.incident.domain.FamilyNoticeStatus;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
-import com.eldercare.backend.administration.account.api.AccountApi;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -58,7 +58,6 @@ public class IncidentFamilyNoticeService {
         this.time = time;
     }
 
-
     /**
      * Hạn báo người nhà theo mức (đề xuất BF-06, nhóm A và viện chỉnh): Khẩn cấp 30 phút, Trung bình 4 giờ, Nhẹ 24 giờ, tính
      * từ lúc ghi nhận.
@@ -87,7 +86,9 @@ public class IncidentFamilyNoticeService {
         boolean remindable = Set.of("MONITORING", "CLOSED").contains(row.status());
         boolean informed = FamilyNotice.INFORMED.equals(row.state());
         boolean overdue = remindable && !informed && due != null && time.now().isAfter(due);
-        String by = row.notifiedBy() == null ? null : accounts.fullName(row.notifiedBy()).orElse(null);
+        String by = row.notifiedBy() == null
+                ? null
+                : accounts.fullName(row.notifiedBy()).orElse(null);
         return new FamilyNoticeStatus(
                 row.recordedLater(),
                 row.state(),
@@ -124,7 +125,8 @@ public class IncidentFamilyNoticeService {
         if (notice == null
                 || !FamilyNotice.INFORMED.equals(notice.state())
                 || !FamilyNoticeMethods.VALID.contains(notice.method())) {
-            throw new InvalidValueException("Cần ghi cách báo (gọi điện, trực tiếp, nhắn tin) của lần đã báo người nhà");
+            throw new InvalidValueException(
+                    "Cần ghi cách báo (gọi điện, trực tiếp, nhắn tin) của lần đã báo người nhà");
         }
         if (incidents.familyNoticeState(incidentId).equals(FamilyNotice.INFORMED)) {
             throw new BusinessException(

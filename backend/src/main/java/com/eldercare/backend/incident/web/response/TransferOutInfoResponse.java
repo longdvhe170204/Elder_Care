@@ -18,6 +18,7 @@ public record TransferOutInfoResponse(
         @JsonProperty("isEmergency")
         @Schema(name = "isEmergency", description = "Sự cố mức Khẩn cấp: không bắt notAskedFirstReason")
         Boolean isEmergency,
+
         @Schema(description = "Mã phiếu tóm tắt chuyển viện gần nhất của sự cố; null khi chưa chuyển viện")
         Long summaryId) {
 

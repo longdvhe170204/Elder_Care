@@ -69,7 +69,7 @@ public class IncidentRecordService {
     /** Giới hạn độ dài văn bản tự do (khớp ô nhập trên web) và độ lệch đồng hồ cho phép khi so với hiện tại. */
     static final int MAX_TEXT = 2000;
 
-    static final java.time.Duration CLOCK_SKEW = java.time.Duration.ofMinutes(5);
+    static final long CLOCK_SKEW_MINUTES = 5;
     private static final String FALL = "FALL";
     private static final String SUSPECTED_INFECTION = "SUSPECTED_INFECTION";
     /** FR-043 (b) sửa theo spec 013 FR-022: không báo đánh giá lại ở mọi mức. */
@@ -186,7 +186,8 @@ public class IncidentRecordService {
             if (residents.isPresent() && residents.get().isFinalStatus(residentId)) {
                 throw blocked("FR-041", "Người cao tuổi đã ở trạng thái cuối");
             }
-            // Cụ đang ở bệnh viện: không ghi sự cố mới đang diễn ra; ghi nhận sau (việc đã xảy ra trước đó) vẫn được (BF-06)
+            // Cụ đang ở bệnh viện: không ghi sự cố mới đang diễn ra; ghi nhận sau (việc đã xảy ra trước đó) vẫn được
+            // (BF-06)
             if (!command.recordedLater()
                     && residents.isPresent()
                     && residents.get().status(residentId)
@@ -237,7 +238,9 @@ public class IncidentRecordService {
                     id,
                     command.recordedLater(),
                     familyNotice == null ? "NONE" : familyNotice.state(),
-                    familyNotice != null && FamilyNotice.INFORMED.equals(familyNotice.state()) ? user.accountId() : null,
+                    familyNotice != null && FamilyNotice.INFORMED.equals(familyNotice.state())
+                            ? user.accountId()
+                            : null,
                     familyNotice != null && FamilyNotice.INFORMED.equals(familyNotice.state())
                             ? familyNotice.at() == null ? now : familyNotice.at()
                             : null,
@@ -254,7 +257,8 @@ public class IncidentRecordService {
                     .after(Map.of("status", "CLOSED", "recordedLater", true))
                     .build());
             if (residentId != null) {
-                events.publishEvent(new com.eldercare.backend.incident.internal.governance.domain.ResidentItemClosed(residentId));
+                events.publishEvent(
+                        new com.eldercare.backend.incident.internal.governance.domain.ResidentItemClosed(residentId));
             }
         } else if (command.autoReceive()
                 && !command.recordedLater()
@@ -302,7 +306,8 @@ public class IncidentRecordService {
                     level.name(),
                     ENTITY + ":" + id + ":RECORDED",
                     now,
-                    IncidentNotices.recorded(id, residentId, floorAreaId, level, noOnDutyDoctor, user.accountId(), now)));
+                    IncidentNotices.recorded(
+                            id, residentId, floorAreaId, level, noOnDutyDoctor, user.accountId(), now)));
         }
         if (!command.recordedLater() && residentId != null && level == IncidentLevel.CRITICAL) {
             events.publishEvent(new EmergencyActivationRequested(
@@ -358,7 +363,7 @@ public class IncidentRecordService {
     /** Ghi nhận sau phải nói rõ đã báo người nhà chưa (BF-06); ghi thường thì không bắt buộc. */
     /** Giờ xảy ra, giờ phát hiện không ở tương lai; giờ xảy ra không sau giờ phát hiện (BF-06). */
     static void checkTimes(RecordIncidentCommand command, Instant now) {
-        var limit = now.plus(CLOCK_SKEW);
+        var limit = now.plus(java.time.Duration.ofMinutes(CLOCK_SKEW_MINUTES));
         if (command.occurredAt() != null && command.occurredAt().isAfter(limit)) {
             throw new InvalidValueException("Giờ xảy ra không được sau hiện tại");
         }
@@ -386,7 +391,7 @@ public class IncidentRecordService {
         if (FamilyNotice.INFORMED.equals(notice.state()) && !FamilyNoticeMethods.VALID.contains(notice.method())) {
             throw new InvalidValueException("Cách báo người nhà không hợp lệ");
         }
-        if (notice.at() != null && notice.at().isAfter(now.plus(CLOCK_SKEW))) {
+        if (notice.at() != null && notice.at().isAfter(now.plus(java.time.Duration.ofMinutes(CLOCK_SKEW_MINUTES)))) {
             throw new InvalidValueException("Thời điểm báo người nhà không được sau hiện tại");
         }
         return notice;

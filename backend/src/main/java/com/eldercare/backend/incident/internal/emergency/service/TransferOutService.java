@@ -24,7 +24,6 @@ import com.eldercare.backend.common.document.PdfDocument;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
-import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
@@ -33,6 +32,7 @@ import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.file.FileService;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.health.api.VitalSignApi;
+import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.emergency.domain.TransferOutCommand;
 import com.eldercare.backend.incident.internal.emergency.domain.TransferOutInfo;
@@ -172,7 +172,8 @@ public class TransferOutService {
         }
         if (command.companion().length() > 200) throw new InvalidValueException("Người đi kèm tối đa 200 ký tự");
         final Long handoverId = command.handoverStaffId();
-        if (handoverId != null && staff.map(port -> !port.staffExists(handoverId)).orElse(false)) {
+        if (handoverId != null
+                && staff.map(port -> !port.staffExists(handoverId)).orElse(false)) {
             throw new InvalidValueException("Nhân viên bàn giao không tồn tại");
         }
         // Đề xuất 2026-11-23 lượt 3: không gửi thời điểm thì là lúc thực hiện lệnh; gửi thì không trước lúc xảy ra sự

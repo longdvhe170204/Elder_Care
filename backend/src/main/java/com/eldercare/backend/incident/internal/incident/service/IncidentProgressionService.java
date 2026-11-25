@@ -79,7 +79,9 @@ public class IncidentProgressionService {
         if (content.length() > IncidentRecordService.MAX_TEXT) {
             throw new InvalidValueException("Nội dung diễn biến tối đa " + IncidentRecordService.MAX_TEXT + " ký tự");
         }
-        if (occurredAt != null && occurredAt.isAfter(time.now().plus(IncidentRecordService.CLOCK_SKEW))) {
+        if (occurredAt != null
+                && occurredAt.isAfter(
+                        time.now().plus(java.time.Duration.ofMinutes(IncidentRecordService.CLOCK_SKEW_MINUTES)))) {
             throw new InvalidValueException("Giờ diễn biến không được sau hiện tại");
         }
         var type = type(progressionTypeId);
@@ -88,7 +90,8 @@ public class IncidentProgressionService {
                 || progressions.isHandler(incidentId, user.accountId());
         // Chỉ vai trò xử lý hoặc người ghi nhận/phụ trách sự cố mới ghi diễn biến (BF-06)
         if (!recorder && user.roles().stream().noneMatch(PROGRESSION_ROLES::contains)) {
-            throw new PermissionDeniedException("Chỉ Điều dưỡng, Trưởng tầng, Bác sĩ hoặc người phụ trách ghi diễn biến");
+            throw new PermissionDeniedException(
+                    "Chỉ Điều dưỡng, Trưởng tầng, Bác sĩ hoặc người phụ trách ghi diễn biến");
         }
         var permission = permissions.hasPermission(
                 user,
