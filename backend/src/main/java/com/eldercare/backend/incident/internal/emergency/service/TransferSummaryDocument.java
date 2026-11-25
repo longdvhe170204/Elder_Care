@@ -27,7 +27,7 @@ final class TransferSummaryDocument {
     private static final DateTimeFormatter TIME =
             DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy").withZone(BusinessTime.ZONE);
     private static final DateTimeFormatter ROW_TIME =
-            DateTimeFormatter.ofPattern("HH:mm · dd/MM/yyyy").withZone(BusinessTime.ZONE);
+            DateTimeFormatter.ofPattern("HH:mm\ndd/MM/yyyy").withZone(BusinessTime.ZONE);
 
     /** Nhãn tiếng Việt cho mã loại diễn biến (danh mục M05.PROGRESSION_TYPE); mã lạ thì ghi chung, không in mã. */
     private static final Map<String, String> PROGRESSION = Map.ofEntries(
@@ -56,10 +56,15 @@ final class TransferSummaryDocument {
     private TransferSummaryDocument() {}
 
     /** Giới hạn độ dài từng mục để phiếu luôn vừa một trang; thử từ rộng tới chặt cho tới khi chỉ còn một trang. */
-    private record Caps(int progressions, int chars, int items) {}
+    private record Caps(boolean compact, int progressions, int chars, int items) {}
 
     private static final List<Caps> ATTEMPTS =
-            List.of(new Caps(8, 400, 6), new Caps(5, 260, 4), new Caps(3, 160, 3), new Caps(2, 100, 2));
+            List.of(
+                    new Caps(false, 8, 400, 6), // chữ thoáng khi nội dung ngắn
+                    new Caps(true, 8, 400, 6),
+                    new Caps(true, 5, 260, 4),
+                    new Caps(true, 3, 160, 3),
+                    new Caps(true, 2, 100, 2));
 
     static byte[] render(TransferSummaryContent s, FacilityInfo facility) {
         byte[] last = null;
@@ -84,7 +89,7 @@ final class TransferSummaryDocument {
     private static byte[] renderOnce(TransferSummaryContent s, FacilityInfo facility, Caps caps) {
         // Một trang A4, bố cục theo trình tự bàn giao chuẩn (SBAR): hành chính (hai cột) → tình trạng, lý do → thông tin cần
         // lưu ý (ba cột) → diễn biến, xử trí → liên hệ, bàn giao (hai cột) → nguyện vọng (khi chọn gửi kèm) → ký hai bên.
-        var pdf = PdfDocument.a4Compact(facility, null, TITLE)
+        var pdf = (caps.compact() ? PdfDocument.a4Compact(facility, null, TITLE) : PdfDocument.a4(facility, null, TITLE))
                 .note("(Bàn giao kèm người cao tuổi khi chuyển đến cơ sở khám bệnh, chữa bệnh)", true)
                 .heading("I. HÀNH CHÍNH");
         var admin = new java.util.ArrayList<String>(List.of(
@@ -113,7 +118,8 @@ final class TransferSummaryDocument {
         if (progressions.rows().isEmpty()) {
             pdf.field("Diễn biến và xử trí", MISSING);
         } else {
-            pdf.table(List.of("Thời điểm", "Diễn biến và xử trí"), progressions.rows());
+            // Cột thời điểm hẹp, cột diễn biến rộng để có chỗ ghi chữ
+            pdf.table(List.of("Thời điểm", "Diễn biến và xử trí"), progressions.rows(), new float[] {1f, 6f});
             if (progressions.hidden() > 0) {
                 pdf.note("(Còn " + progressions.hidden() + " diễn biến cũ hơn trong hồ sơ sự cố.)", false);
             }

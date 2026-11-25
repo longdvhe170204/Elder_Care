@@ -191,7 +191,15 @@ public final class PdfDocument {
 
     /** Bảng có dòng tiêu đề lặp lại ở mỗi trang; mỗi dòng có đủ số ô như {@code headers}. */
     public PdfDocument table(List<String> headers, List<List<String>> rows) {
-        PdfPTable table = new PdfPTable(headers.size());
+        return table(headers, rows, null);
+    }
+
+    /**
+     * Như {@link #table(List, List)} nhưng chia độ rộng cột theo tỉ lệ {@code relativeWidths} (ví dụ {1, 5}: cột đầu hẹp,
+     * cột sau rộng); {@code null} thì các cột đều nhau.
+     */
+    public PdfDocument table(List<String> headers, List<List<String>> rows, float[] relativeWidths) {
+        PdfPTable table = relativeWidths == null ? new PdfPTable(headers.size()) : new PdfPTable(relativeWidths);
         table.setWidthPercentage(100);
         table.setHeaderRows(1);
         table.setSpacingAfter(style.tableAfter());
