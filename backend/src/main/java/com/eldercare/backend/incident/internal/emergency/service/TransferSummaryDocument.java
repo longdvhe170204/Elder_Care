@@ -182,10 +182,25 @@ final class TransferSummaryDocument {
         var pairs = new java.util.ArrayList<String>();
         items.stream().limit(caps.items()).forEach(i -> {
             pairs.add(text(i.get("indicatorName")));
-            pairs.add((value(i.get("values")) + (blank(i.get("unit")) ? "" : " " + i.get("unit")))
+            pairs.add((vitalValue(i.get("values")) + (blank(i.get("unit")) ? "" : " " + i.get("unit")))
                     + (i.get("measuredAt") instanceof Instant t ? "\nđo " + HOUR.format(t) : ""));
         });
         pdf.cells(Math.min(4, Math.max(1, pairs.size() / 2)), pairs.toArray(String[]::new));
+    }
+
+    /** Giá trị chỉ số cho người đọc: huyết áp "150/95", chỉ số một thành phần chỉ ghi số (không in mã thành phần). */
+    private static String vitalValue(Object values) {
+        if (!(values instanceof Map<?, ?> map)) return value(values);
+        if (map.containsKey("SYSTOLIC") && map.containsKey("DIASTOLIC")) {
+            return number(map.get("SYSTOLIC")) + "/" + number(map.get("DIASTOLIC"));
+        }
+        return map.values().stream().map(TransferSummaryDocument::number).collect(Collectors.joining(" / "));
+    }
+
+    /** Bỏ phần thập phân thừa: 150.0 thành 150, 36.8 giữ nguyên. */
+    private static String number(Object v) {
+        String t = text(v);
+        return t.matches("-?\\d+\\.0+") ? t.substring(0, t.indexOf('.')) : t;
     }
 
     private static String wishLine(Map<String, Object> end, Caps caps) {
@@ -208,12 +223,21 @@ final class TransferSummaryDocument {
         var shown = items.stream()
                 .limit(caps.items())
                 .map(i -> "• "
-                        + Stream.of("name", "strength", "dosage", "route")
+                        + Stream.of("name", "strength")
                                 .map(k -> text(i.get(k)).trim())
                                 .filter(v -> !v.isEmpty())
-                                .collect(Collectors.joining(" ")))
+                                .collect(Collectors.joining(" "))
+                        + Stream.of(dose(text(i.get("dosage"))), text(i.get("route")).trim().toLowerCase())
+                                .filter(v -> !v.isEmpty())
+                                .collect(Collectors.collectingAndThen(
+                                        Collectors.joining(", "), v -> v.isEmpty() ? "" : " · " + v)))
                 .collect(Collectors.joining("\n"));
         return items.size() > caps.items() ? shown + "\n… (còn " + (items.size() - caps.items()) + " thuốc)" : shown;
+    }
+
+    /** "1.00 viên" thành "1 viên". */
+    private static String dose(String dosage) {
+        return dosage.trim().replaceAll("(\\d+)\\.0+(\\s|$)", "$1$2");
     }
 
     /** Người đi cùng: web ghép các người bằng dấu chấm phẩy; mỗi người một dòng. */

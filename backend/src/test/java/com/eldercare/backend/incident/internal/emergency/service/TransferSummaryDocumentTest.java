@@ -34,7 +34,9 @@ class TransferSummaryDocumentTest {
         assertThat(text).contains("Sơ cứu, chăm sóc tại chỗ", "Băng ép vết thương");
         assertThat(text).doesNotContain("Đã chuyển viện sang").doesNotContain("Đã chuyển viện: Đã chuyển viện");
         assertThat(text).doesNotContain("FIRST_AID").doesNotContain("TRANSFERRED_OUT");
-        assertThat(text).contains("Dị ứng Sữa bò, phấn hoa", "• Tăng huyết áp", "Paracetamol 500mg");
+        assertThat(text).contains("Dị ứng Sữa bò, phấn hoa", "• Tăng huyết áp", "Paracetamol 500mg · 1 viên, uống");
+        assertThat(text).contains("Huyết áp 150/95 mmHg", "Nhịp tim 92 nhịp/phút", "đo 19:16");
+        assertThat(text).doesNotContain("SYSTOLIC").doesNotContain("DIASTOLIC").doesNotContain("VALUE");
         assertThat(text).contains("Nơi tiếp nhận Bệnh viện X", "Liên hệ gia đình Nguyễn Văn Rạng · 0911000001");
         assertThat(text).contains("Người đi cùng Nguyễn Văn Hùng");
         assertThat(text).doesNotContain("Liên hệ gia đình Chưa có thông tin");
@@ -131,7 +133,8 @@ class TransferSummaryDocumentTest {
                         "Ngã trong nhà vệ sinh",
                         List.of(Map.<String, Object>of("name", "Sữa bò"), Map.<String, Object>of("name", "phấn hoa")),
                         List.of(Map.<String, Object>of("name", "Tăng huyết áp")),
-                        List.of(Map.<String, Object>of("name", "Paracetamol", "strength", "500mg")),
+                        List.of(Map.<String, Object>of(
+                                "name", "Paracetamol", "strength", "500mg", "dosage", "1.00 viên", "route", "Uống")),
                         List.of(
                                 Map.<String, Object>of(
                                         "typeCode", "FIRST_AID", "content", "Băng ép vết thương", "occurredAt", AT),
@@ -188,7 +191,13 @@ class TransferSummaryDocumentTest {
                 null,
                 allergies,
                 medications,
-                null,
+                condition == null
+                        ? null
+                        : List.of(
+                                Map.<String, Object>of(
+                                        "indicatorName", "Huyết áp", "values", Map.of("DIASTOLIC", 95, "SYSTOLIC", 150), "unit", "mmHg", "measuredAt", AT),
+                                Map.<String, Object>of(
+                                        "indicatorName", "Nhịp tim", "values", Map.of("VALUE", 92.0), "unit", "nhịp/phút", "measuredAt", AT)),
                 progressions,
                 endOfLife,
                 treatment,
