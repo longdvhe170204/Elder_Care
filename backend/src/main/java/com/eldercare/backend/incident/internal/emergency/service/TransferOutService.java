@@ -24,6 +24,7 @@ import com.eldercare.backend.common.document.PdfDocument;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
+import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
@@ -92,6 +93,7 @@ public class TransferOutService {
     private final AuditLogApi audit;
     private final BusinessTime time;
     private final Optional<VitalSignApi> vitalSigns;
+    private final Optional<AlertStaffPort> staff;
 
     public TransferOutService(
             IncidentStore incidents,
@@ -108,7 +110,8 @@ public class TransferOutService {
             AccountApi accounts,
             AuditLogApi audit,
             BusinessTime time,
-            @Autowired(required = false) VitalSignApi vitalSigns) {
+            @Autowired(required = false) VitalSignApi vitalSigns,
+            @Autowired(required = false) AlertStaffPort staff) {
         this.incidents = incidents;
         this.progressions = progressions;
         this.progressionTypes = progressionTypes;
@@ -124,6 +127,7 @@ public class TransferOutService {
         this.audit = audit;
         this.time = time;
         this.vitalSigns = Optional.ofNullable(vitalSigns);
+        this.staff = Optional.ofNullable(staff);
     }
 
     /** {@code GET /incidents/{id}/transfer-out/info} (FR-049): chỉ hiển thị, không gợi ý cơ sở (Q-306). */
@@ -166,7 +170,8 @@ public class TransferOutService {
             throw new InvalidValueException("Tên cơ sở tiếp nhận tối đa 200 ký tự");
         }
         if (command.companion().length() > 200) throw new InvalidValueException("Người đi kèm tối đa 200 ký tự");
-        if (command.handoverStaffId() != null && accounts.fullName(command.handoverStaffId()).isEmpty()) {
+        final Long handoverId = command.handoverStaffId();
+        if (handoverId != null && staff.map(port -> !port.staffExists(handoverId)).orElse(false)) {
             throw new InvalidValueException("Nhân viên bàn giao không tồn tại");
         }
         // Đề xuất 2026-11-23 lượt 3: không gửi thời điểm thì là lúc thực hiện lệnh; gửi thì không trước lúc xảy ra sự

@@ -60,6 +60,7 @@ public class ManualAlertService {
         if (residentId == null) throw new InvalidValueException("Thiếu người cao tuổi của cảnh báo");
         if (incidentTypeId == null) throw new InvalidValueException("Thiếu loại sự cố của cảnh báo");
         if (description == null || description.isBlank()) throw new InvalidValueException("Thiếu mô tả cảnh báo");
+        if (description.length() > 2000) throw new InvalidValueException("Mô tả cảnh báo tối đa 2000 ký tự");
         var type = catalog.incidentTypes().stream()
                 .filter(item -> item.id() == incidentTypeId && item.active())
                 .findFirst()
