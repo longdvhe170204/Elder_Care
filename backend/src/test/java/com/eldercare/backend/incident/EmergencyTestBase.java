@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.administration.account.api.FieldVisibilityApi;
 import com.eldercare.backend.administration.account.api.dto.Visibility;
+import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.medication.api.PrescriptionApi;
 import com.eldercare.backend.medication.api.dto.ActiveMedicationView;
 import com.eldercare.backend.medication.api.dto.MedicationSummary;
@@ -63,10 +64,16 @@ abstract class EmergencyTestBase extends CriticalCareTestBase {
     @MockitoSpyBean
     ReassessmentApi reassessments;
 
+    // Người dùng thử có mã nhân viên nhưng không có hồ sơ ở module nhân sự; lệnh chuyển viện kiểm người bàn giao có hồ
+    // sơ (BF-06)
+    @MockitoSpyBean
+    AlertStaffPort alertStaff;
+
     long penicillin;
 
     @BeforeEach
     void prepareEmergencySources() {
+        doReturn(true).when(alertStaff).staffExists(org.mockito.ArgumentMatchers.anyLong());
         penicillin = TestUsers.nextId();
         when(residents.identity(resident))
                 .thenReturn(new IdentityView(resident, "NCT-" + resident, "Nguyễn Thị An", Optional.empty()));

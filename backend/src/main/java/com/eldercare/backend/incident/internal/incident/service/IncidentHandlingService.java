@@ -58,8 +58,8 @@ public class IncidentHandlingService {
     private static final Set<String> OPEN = Set.of("NEW", "IN_PROGRESS", "MONITORING");
     private static final Set<String> INFECTION_OUTCOMES = Set.of("CONFIRMED_INFECTION", "RULED_OUT", "UNDETERMINED");
     private static final Set<Role> HANDLER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
-    /** BR-M05-09: sự cố Trung bình, Khẩn cấp chỉ Điều dưỡng hoặc Bác sĩ đóng. */
-    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.DOCTOR);
+    /** BR-M05-09 sửa theo chốt BF-06 (2026-11-25): sự cố Trung bình, Khẩn cấp do Điều dưỡng, Trưởng tầng hoặc Bác sĩ đóng. */
+    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
 
     private final IncidentStore incidents;
     private final IncidentProgressionStore progressions;
@@ -132,6 +132,9 @@ public class IncidentHandlingService {
         var closers = incident.level() == IncidentLevel.LOW ? HANDLER_ROLES : SERIOUS_CLOSER_ROLES;
         requireHandler(incident, user, closers);
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
+        if (resolution.length() > IncidentRecordService.MAX_TEXT) {
+            throw new InvalidValueException("Kết quả xử lý tối đa " + IncidentRecordService.MAX_TEXT + " ký tự");
+        }
         requireStatus(incident, "IN_PROGRESS", "MONITORING");
         boolean infection = SUSPECTED_INFECTION.equals(incidents.currentTypeCode(incidentId));
         String outcome = null;

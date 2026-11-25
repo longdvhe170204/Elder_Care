@@ -71,8 +71,13 @@ public class AlertHandlingService {
     private static final PermissionKey HANDLING = new PermissionKey(Function.ALERT_HANDLING, Operation.UPDATE);
     /** Khóa loại của cảnh báo công việc Bắt buộc quá hạn (research S-08): đóng phải có lý do (BR-M04-06). */
     private static final String OVERDUE_TASK_PREFIX = "QUA_HAN:";
-    /** Q-442: chỉ Trưởng tầng (trong phạm vi tầng) và Bác sĩ đóng cảnh báo. */
-    static final Set<Role> CLOSERS = Set.of(Role.FLOOR_MANAGER, Role.DOCTOR);
+    /**
+     * Q-442, sửa theo chốt BF-06 (2026-11-25): Điều dưỡng, Trưởng tầng (trong phạm vi tầng) và Bác sĩ đóng cảnh báo; Quản lý
+     * viện không đóng (chỉ giao người). Nhân viên chăm sóc đóng riêng cảnh báo nhắc việc chăm sóc mức Nhẹ ({@link #isCareReminder}).
+     */
+    static final Set<Role> CLOSERS = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
+    /** Loại cảnh báo nhắc việc chăm sóc (uống nước thiếu, việc chăm sóc quá hạn): nhân viên chăm sóc đóng được khi mức Nhẹ. */
+    private static final Set<String> CARE_REMINDER_TYPES = Set.of("LOW_WATER_INTAKE", "OVERDUE_CARE_TASK");
     /** Cảnh báo từ nút SOS, nút hỗ trợ khẩn cấp: luồng khẩn cấp gác lại, giữ người đóng như FR-036 (2026-11-22). */
     static final Set<String> PRESSED_TYPES = Set.of("RESIDENT_HELP_REQUEST", "STAFF_ASSIST_REQUEST");
     /** FR-087: người ghi kết quả theo dõi. */
@@ -192,8 +197,9 @@ public class AlertHandlingService {
      */
     @Transactional
     public void close(long alertId, String resolution, Reason reason, CurrentUser user) {
-        var alert = lockForHandler(alertId, user);
-        if (!senderShortcut(alert, user)) {
+        boolean careOnly = isCareOnly(user);
+        var alert = careOnly ? lockForCareReminder(alertId, user) : lockForHandler(alertId, user);
+        if (!careOnly && !senderShortcut(alert, user)) {
             if (!mayClose(alert, user)) {
                 throw new PermissionDeniedException(
                         "Chỉ Trưởng tầng của tầng người cao tuổi và Bác sĩ đóng cảnh báo (Q-442)");
@@ -201,7 +207,9 @@ public class AlertHandlingService {
             requireStatus(alert, AlertStatus.IN_PROGRESS);
         }
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
-        if (reason == null && alert.typeLock().startsWith(OVERDUE_TASK_PREFIX)) throw new ReasonRequiredException();
+        if (reason == null && (careOnly || alert.typeLock().startsWith(OVERDUE_TASK_PREFIX))) {
+            throw new ReasonRequiredException();
+        }
         if (alert.criticalFlagId() != null) requireCriticalOutcome(alertId);
         var now = time.now();
         int version = startAsSender(alert, user, now, alert.version());
@@ -211,7 +219,33 @@ public class AlertHandlingService {
         if (alert.residentId() != null) events.publishEvent(new ResidentItemClosed(alert.residentId()));
     }
 
-    /** Q-442: Trưởng tầng, Bác sĩ; cảnh báo nút SOS, nút hỗ trợ giữ người đóng của FR-036 (gác lại). */
+    /** Tài khoản chỉ có vai trò Nhân viên chăm sóc (không có vai trò xử lý nào khác). */
+    static boolean isCareOnly(CurrentUser user) {
+        return user.roles().contains(Role.CAREGIVER) && user.roles().stream().noneMatch(CLOSERS::contains);
+    }
+
+    /** Cảnh báo nhắc việc chăm sóc (uống nước, việc quá hạn; không phải Khẩn cấp): nhân viên chăm sóc có người cao tuổi trong phạm vi đóng được, kèm lý do (BF-06). */
+    static boolean isCareReminder(AlertRecord alert) {
+        return alert.level() != IncidentLevel.CRITICAL && CARE_REMINDER_TYPES.contains(alert.type());
+    }
+
+    /** Khóa cảnh báo cho nhân viên chăm sóc đóng: chỉ cần quyền xem trong phạm vi, như ghi theo dõi (FR-087). */
+    private AlertRecord lockForCareReminder(long alertId, CurrentUser user) {
+        var alert = alerts.lock(alertId).orElseThrow(NotFoundException::new);
+        var permission = permissions.hasPermission(user, VIEW, target(alert));
+        if (!permission.allowed()) {
+            if (permission.failedLayer().orElse(null) == FailedLayer.SCOPE) throw new NotFoundException();
+            throw new PermissionDeniedException("Không có quyền xem cảnh báo");
+        }
+        if (!isCareReminder(alert)) {
+            throw new PermissionDeniedException(
+                    "Nhân viên chăm sóc chỉ đóng cảnh báo nhắc việc chăm sóc (uống nước, việc chăm sóc quá hạn)");
+        }
+        if (!OPEN.contains(alert.status())) throw blocked("FR-029", "Cảnh báo đã kết thúc");
+        return alert;
+    }
+
+    /** Q-442 sửa BF-06: Điều dưỡng, Trưởng tầng, Bác sĩ; cảnh báo nút SOS, nút hỗ trợ giữ người đóng của FR-036 (gác lại). */
     static boolean mayClose(AlertRecord alert, CurrentUser user) {
         return PRESSED_TYPES.contains(alert.type()) || user.roles().stream().anyMatch(CLOSERS::contains);
     }

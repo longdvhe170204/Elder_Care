@@ -349,6 +349,64 @@ public class IncidentStore {
         if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
     }
 
+    /** BF-06: đánh dấu ghi nhận sau và việc báo người nhà ngay sau khi ghi (cột mới, không thuộc bộ kích hoạt khóa dòng). */
+    public void saveFamilyNotice(
+            long id, boolean recordedLater, String state, Long by, Instant at, String method, String note) {
+        jdbc.update("""
+                UPDATE incident SET recorded_later=?, family_notice_state=?, family_notified_by=?,
+                  family_notified_at=?, family_notice_method=?, family_notice_note=?
+                WHERE id=?
+                """, recordedLater, state, by, at == null ? null : Timestamp.from(at), method, note, id);
+    }
+
+    public String familyNoticeState(long id) {
+        return jdbc.queryForObject("SELECT family_notice_state FROM incident WHERE id=?", String.class, id);
+    }
+
+    public boolean isRecordedLater(long id) {
+        return Boolean.TRUE.equals(
+                jdbc.queryForObject("SELECT recorded_later FROM incident WHERE id=?", Boolean.class, id));
+    }
+
+    /** BF-06: trạng thái báo người nhà và các mốc để tính hạn (mức, thời điểm ghi, còn mở hay không). */
+    public Optional<FamilyNoticeRow> familyNoticeRow(long id) {
+        return jdbc
+                .query(
+                        """
+                SELECT resident_id, level, status, created_at, recorded_later, family_notice_state, family_notified_by,
+                  family_notified_at, family_notice_method, family_notice_note
+                FROM incident WHERE id=?
+                """,
+                        (rs, n) -> {
+                            var notified = rs.getTimestamp("family_notified_at");
+                            long by = rs.getLong("family_notified_by");
+                            return new FamilyNoticeRow(
+                                    (Long) rs.getObject("resident_id"),
+                                    IncidentLevel.valueOf(rs.getString("level")),
+                                    rs.getString("status"),
+                                    rs.getTimestamp("created_at").toInstant(),
+                                    rs.getBoolean("recorded_later"),
+                                    rs.getString("family_notice_state"),
+                                    rs.wasNull() ? null : by,
+                                    notified == null ? null : notified.toInstant(),
+                                    rs.getString("family_notice_method"),
+                                    rs.getString("family_notice_note"));
+                        },
+                        id)
+                .stream()
+                .findFirst();
+    }
+
+    /** BF-06 "Ghi nhận sau" kèm đóng luôn: Mới → Đã đóng ngay khi ghi, kết quả bắt buộc, dừng leo thang. */
+    public void closeRecordedLater(long id, String resolution, long closedBy, Instant at) {
+        int changed = jdbc.update("""
+                UPDATE incident SET status = 'CLOSED', resolution = ?, closed_by = ?, closed_at = ?,
+                  escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status = 'NEW'
+                """, resolution, closedBy, Timestamp.from(at), id);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
     public void receive(long id, long receiverId, Instant at, int expectedVersion) {
         int changed = jdbc.update("""
                 UPDATE incident SET status='IN_PROGRESS', received_at=?, received_by=?, assignee_id=?,

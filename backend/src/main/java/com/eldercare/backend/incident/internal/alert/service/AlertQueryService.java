@@ -279,6 +279,14 @@ public class AlertQueryService {
                 && (shortcut || (status == AlertStatus.IN_PROGRESS && AlertHandlingService.mayClose(alert, user)))) {
             commands.add("close");
         }
+        // Nhân viên chăm sóc đóng cảnh báo nhắc việc chăm sóc mức Nhẹ của người trong phạm vi (BF-06)
+        if (open
+                && !commands.contains("close")
+                && AlertHandlingService.isCareOnly(user)
+                && AlertHandlingService.isCareReminder(alert)
+                && permissions.hasPermission(user, VIEW, target(alert)).allowed()) {
+            commands.add("close");
+        }
         if (open
                 && !manager
                 && user.roles().stream().anyMatch(AlertHandlingService.FOLLOWERS::contains)

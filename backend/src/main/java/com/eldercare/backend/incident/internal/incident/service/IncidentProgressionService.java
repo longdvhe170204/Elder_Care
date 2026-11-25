@@ -42,6 +42,7 @@ public class IncidentProgressionService {
     private static final String ENTITY = "M05.INCIDENT";
     private static final String TRANSFERRED_OUT = "TRANSFERRED_OUT";
     private static final String RETURNED = "RETURNED_FROM_HOSPITAL";
+    private static final Set<Role> PROGRESSION_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
     private static final Set<String> OPEN = Set.of("NEW", "IN_PROGRESS", "MONITORING");
 
     private final IncidentStore incidents;
@@ -75,10 +76,23 @@ public class IncidentProgressionService {
             throw new PermissionDeniedException("Quản lý viện không ghi diễn biến sự cố");
         }
         if (content == null || content.isBlank()) throw new InvalidValueException("Thiếu nội dung diễn biến");
+        if (content.length() > IncidentRecordService.MAX_TEXT) {
+            throw new InvalidValueException("Nội dung diễn biến tối đa " + IncidentRecordService.MAX_TEXT + " ký tự");
+        }
+        if (occurredAt != null
+                && occurredAt.isAfter(
+                        time.now().plus(java.time.Duration.ofMinutes(IncidentRecordService.CLOCK_SKEW_MINUTES)))) {
+            throw new InvalidValueException("Giờ diễn biến không được sau hiện tại");
+        }
         var type = type(progressionTypeId);
         var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
         boolean recorder = incidents.recordedBy(incidentId) == user.accountId()
                 || progressions.isHandler(incidentId, user.accountId());
+        // Chỉ vai trò xử lý hoặc người ghi nhận/phụ trách sự cố mới ghi diễn biến (BF-06)
+        if (!recorder && user.roles().stream().noneMatch(PROGRESSION_ROLES::contains)) {
+            throw new PermissionDeniedException(
+                    "Chỉ Điều dưỡng, Trưởng tầng, Bác sĩ hoặc người phụ trách ghi diễn biến");
+        }
         var permission = permissions.hasPermission(
                 user,
                 new PermissionKey(Function.INCIDENT_EMERGENCY, Operation.UPDATE),
