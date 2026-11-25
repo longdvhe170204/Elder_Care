@@ -81,6 +81,8 @@ class BR_65_RightChangeRequestIT extends FamilyCommandTestBase {
         assertThat(column(x, "pickup_allowed")).isTrue();
         assertThat(pickupNames()).contains("Lê X");
         assertThat(requestJson(request).get("confirmationMethod").asString()).isEqualTo("PORTAL");
+        // Test BF-12 (2026-11-24): thẻ xác nhận trên cổng nêu tên người bị tác động
+        assertThat(requestJson(request).get("familyMemberName").asString()).isEqualTo("Lê X");
     }
 
     private JsonNode requestJson(long requestId) throws Exception {

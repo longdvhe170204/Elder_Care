@@ -398,6 +398,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | đăng nhập: `tenDangNhap`, `matKhau`, `kenh`, `tokenThietBi`, `buocDoiMatKhau`, `nguoiDung` | `username`, `password`, `channel`, `deviceToken`, `mustChangePassword`, `user` |
 | `matKhauHienTai`, `matKhauMoi`, `matKhauTam`, `moKhoaLuc` | `currentPassword`, `newPassword`, `temporaryPassword`, `unlocksAt` |
 | `NguoiDung` (`taiKhoanId`, `loai`, `hoTen`, `vaiTro`) | `UserInfo` (`accountId`, `type`, `fullName`, `roles`) |
+| `NguoiDung.nhanVienId` (hồ sơ nhân viên liên kết, chỉ `GET /me`; thêm 2026-11-24, test BF-12) | `UserInfo.staffId` |
 | `TaiKhoan` (`tenDangNhap`, `nhanVienId`, `nguoiThanId`, `nguoiCaoTuoiId`, `trangThai`, `nguyenNhanKhoa`, `khoaTamDen`, `lanDangNhapCuoi`, `vaiTro`, `lenhDuocPhep`) | `Account` (`username`, `staffId`, `familyMemberId`, `residentId`, `status`, `lockCause`, `lockedUntil`, `lastLoginAt`, `roles`, `allowedCommands`) |
 | `thietBiGan` (`ganLuc`, `maThietBi`) | `boundDevice` (`boundAt`, `deviceId`) |
 | `TaiKhoanVaMatKhauTam`, `TrangTaiKhoan` | `AccountWithTemporaryPassword`, `AccountPage` (`items`, `nextCursor`) |
@@ -3423,9 +3424,11 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `/nguoi-cao-tuoi/{nctId}/phieu-dang-ky`, `…/danh-sach-don` (tham số `t`), `…/mong-muon` | `/residents/{residentId}/family-registration-forms`, `…/pickup-list` (`at`), `…/visit-pickup-wishes` |
 | `/yeu-cau-quyen`, `/yeu-cau-quyen/{id}/{lenh}` (`xac-nhan`, `duyet`, `tu-choi`, `huy`) | `/right-change-requests`, `/right-change-requests/{id}/{command}` (`confirm`, `approve`, `reject`, `cancel`) |
 | `/nguoi-cao-tuoi/{nctId}/don`, `…/ban-ghi-don`, `…/ngoai-le-don`; `/ngoai-le-don/{id}/{lenh}` | `/residents/{residentId}/pickups`, `…/pickup-records`, `…/pickup-exceptions`; `/pickup-exceptions/{id}/{command}` |
+| `/ngoai-le-don` (đọc danh sách, lọc `nctId`, `trangThai`; thêm 2026-11-24, test BF-12 C-2, C-5) | `/pickup-exceptions` (`residentId`, `status`) |
 | `/khung-tham` (`ngay`), `/luot-tham`, `/luot-tham/{id}/{lenh}` (`huy`, `vao`, `ra`) | `/visit-slots` (`date`), `/visits`, `/visits/{id}/{command}` (`cancel`, `check-in`, `check-out`) |
 | `/luot-o-lai`, `/luot-o-lai/{id}/{lenh}` (`xac-nhan`, `tu-choi`, `bat-dau`, `huy`, `gia-han`, `ket-thuc`) | `/family-stays`, `/family-stays/{id}/{command}` (`confirm`, `reject`, `start`, `cancel`, `extend`, `end`) |
 | `/cong/nguoi-cao-tuoi`, `…/{nctId}/chung`, `…/{nctId}/suc-khoe/{phan}`, `…/{nctId}/hop-dong` | `/family-portal/residents`, `…/{residentId}/general`, `…/{residentId}/health/{section}`, `…/{residentId}/contract` |
+| `/cong/nguoi-cao-tuoi/{nctId}/nguoi-than` (thêm 2026-11-24, test BF-12): `quanHeId`, `hoTen`, `quanHe`, `laNguoiDaiDien`, `laLienHeChinh`, `laMinh`, `quyen` | `/family-portal/residents/{residentId}/family-members`: `relationshipId`, `fullName`, `relationship`, `representative`, `primaryContact`, `self`, `rights` |
 | phần sức khỏe `di-ung-benh-nen`, `chi-so`, `can-nang`, `thuoc`, `su-co`, `ket-qua-cham-soc`, `an-uong`, `che-do-an`, `lich-kham` | `allergies-conditions`, `vital-signs`, `weight`, `medications`, `incidents`, `care-results`, `eating`, `diet`, `medical-appointments` |
 | `/nhat-ky-xem-suc-khoe` | `/health-view-logs` |
 | `/phan-hoi`, `/phan-hoi/{id}`, `/phan-hoi/{id}/{lenh}` (`nhan-xu-ly`, `tra-loi`, `ghi-chu`, `giao-lai`, `doi-muc`, `dong-y-dong`, `mo-lai`, `doi-loai`, `gan-y-kien`) | `/feedback`, `/feedback/{id}`, `/feedback/{id}/{command}` (`start-handling`, `reply`, `add-note`, `reassign`, `change-priority`, `agree-to-close`, `reopen`, `change-type`, `link-opinion`) |
@@ -3443,14 +3446,17 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `PhieuDangKy` (`nguoiDaiDienId`, `tepScanId`, `dong` {`quanHeId`, `quyen`}) | `FamilyRegistrationForm` (`representativeId`, `scanFileId`, `lines` {`relationshipId`, `right`}) |
 | `LapYeuCauQuyen` (`nctId`, `loai`, `quanHeId`, `quyen`, `giaTriMoi`, `nguoiDonMoi` {`hoTen`, `soGiayTo`, `quanHe`}, `kemBanKy`, `tepBangChungId`, `lyDo`) | `CreateRightChangeRequest` (`residentId`, `type`, `relationshipId`, `right`, `newValue`, `newPicker` {`fullName`, `idDocumentNumber`, `relationship`}, `withSignedForm`, `evidenceFileId`, `reason`) |
 | `YeuCauQuyen` thêm `trangThai`, `cachXacNhan`, `nguon`, `apNgayKhiLap` | `RightChangeRequest` thêm `status`, `confirmationMethod`, `source`, `appliedOnCreation` |
+| `YeuCauQuyen.hoTenNguoiThan` (họ tên người thân bị tác động, chỉ hiển thị; thêm 2026-11-24, test BF-12) | `RightChangeRequest.familyMemberName` |
 | `GhiDon` (`loai`, `nguoiThanId`, `ngoaiLeId`, `giayToXuatTrinh` {`loai`, `so`}, `nhanVienBanGiaoId`) | `RecordPickup` (`type`, `familyMemberId`, `exceptionId`, `presentedIdDocument` {`type`, `number`}, `handoverStaffId`) |
 | `BanGhiDon` (`loai`, `nguoiThanId`, `canCu`, `thoiDiem`, `trangThai`, `hetHieuLucLuc`); `banGhiDonId` | `PickupRecord` (`type`, `familyMemberId`, `basis`, `at`, `status`, `expiresAt`); `pickupRecordId` |
 | thân ngoại lệ đón (`hoTen`, `soGiayTo`, `quanHe`, `lyDo`) | `fullName`, `idDocumentNumber`, `relationship`, `reason` |
+| `YeuCauNgoaiLeDon` (`nctId`, `hoTen`, `soGiayTo`, `quanHe`, `lyDo`, `trangThai`, `lapLuc`, `cachHieuLuc`, `lyDoQuyetDinh`, `hieuLucLuc`, `hetHanLuc`, `banGhiDonId`; thêm 2026-11-24, test BF-12 C-2, C-5) | `PickupException` (`residentId`, `fullName`, `idDocumentNumber`, `relationship`, `reason`, `status`, `createdAt`, `method`, `decisionReason`, `effectiveAt`, `expiresAt`, `pickupRecordId`) |
 | `NguoiDiCung` (`hoTen`, `quanHe`, `soDienThoai`) | `Companion` (`fullName`, `relationship`, `phoneNumber`) |
 | `DangKyTham` (`nctId`, `nguoiThanId`, `ngay`, `gioBatDau`, `gioKetThuc`, `diCung`) | `VisitRegistration` (`residentId`, `familyMemberId`, `date`, `startTime`, `endTime`, `companions`) |
 | `LuotTham` thêm `soNguoi`, `trangThai`, `vaoLuc`, `raLuc`, `lyDoHuy`; thân lệnh `nguoiThucTe`, `gioRa` | `Visit` thêm `visitorCount`, `status`, `checkedInAt`, `checkedOutAt`, `cancellationReason`; `actualVisitors`, `checkOutAt` |
 | `DangKyOLai` (`nguoiThanId`, `nctId`, `batDauDuKien`, `ketThucDuKien`, `viTri`, `lyDo`, `dangKyAn`) | `FamilyStayRegistration` (`familyMemberId`, `residentId`, `expectedStartAt`, `expectedEndAt`, `location`, `reason`, `mealRegistered`) |
 | `LuotOLai` thêm `trangThai`, `batDauThucTe`, `ketThucThucTe`, `soDem`; thân lệnh `yKienCungPhong`, `ketThucDuKienMoi`, `thoiDiem` | `FamilyStay` thêm `status`, `actualStartAt`, `actualEndAt`, `nightCount`; `roommateOpinion`, `newExpectedEndAt`, `at` |
+| `LuotOLai.hoTenNguoiThan` (họ tên người thân ở lại, chỉ hiển thị; thêm 2026-11-24, test BF-12) | `FamilyStay.familyMemberName` |
 | `GuiPhanHoi` (`nctId`, `nguoiGuiLoai`, `nguoiThanId`, `loai`, `nhom`, `chuDeMongMuon`, `noiDung`, `tepIds`) | `SubmitFeedback` (`residentId`, `senderType`, `familyMemberId`, `type`, `group`, `wishTopic`, `content`, `fileIds`) |
 | `PhanHoi` thêm `trangThai`, `muc`, `hanXuLy`, `quaHan`, `nguoiPhuTrach`; thân lệnh `huongXuLy`, `nguoiPhuTrachId`, `loaiMoi`, `yKien` {`loaiMuc`, `mucId`} | `Feedback` thêm `status`, `priority`, `dueAt`, `overdue`, `assignee`; `handlingDirection`, `assigneeId`, `newType`, `opinion` {`itemType`, `itemId`} |
 | `MongMuon` (`quanHeId`, `hoTen`, `loai`, `muon`, `nguon`, `nguoiGhi`, `thoiDiem`, `trangThai`, `thayTheBoiId`); đọc (`hieuLuc`, `lichSu`, `quyenTraiMongMuon` {`quanHeId`, `quyen`, `mongMuonId`}); thân ghi thêm `soGiayTo` | `VisitPickupWish` (`relationshipId`, `fullName`, `type`, `wanted`, `source`, `recordedBy`, `at`, `status`, `supersededById`); (`effective`, `history`, `conflictingRights` {`relationshipId`, `right`, `wishId`}); `idDocumentNumber` |
@@ -4246,6 +4252,7 @@ Gói `billing.balance.internal.<chức năng>.{domain, service}` (mục 23.5; ch
 | họ tên người lập, người duyệt giao dịch | `createdBy`, `approvedBy` mang họ tên ("Hệ thống" với giao dịch kèm lệnh chốt bảng); `ledger.service.AccountNames` (đọc `AccountApi.fullName`) |
 | job số dư chạy theo yêu cầu của test | giá trị `COMPUTE_BALANCE_STATUS` của `runJobs` (`/testing/clock`, `TestClockController.TestJob`) |
 | job hằng ngày, theo phút của M12 chạy theo yêu cầu của test (bổ sung 2026-11-23, test BF-14) | giá trị `M12_DAILY` (`belongings.scheduling.M12DailyJob`), `M12_MINUTE` (`M12MinuteJob`) của `runJobs` |
+| job theo phút, theo giờ, nửa đêm của M10 chạy theo yêu cầu của test (bổ sung 2026-11-24, test BF-12) | giá trị `M10_MINUTE`, `M10_HOURLY`, `M10_MIDNIGHT` (`family.scheduling.M10MinuteJob`, `M10HourlyJob`, `M10MidnightJob`) của `runJobs` |
 
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 

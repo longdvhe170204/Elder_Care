@@ -69,4 +69,32 @@ class BR_65_PortalByRightsIT extends FamilyCommandTestBase {
             assertThat(i.get("text").asString()).isEqualTo("Tăng huyết áp");
         });
     }
+
+    /**
+     * Test BF-12 (2026-11-24, FR-014, FR-050): người đại diện thấy mọi người thân Hiệu lực để lập yêu cầu đổi quyền trên
+     * cổng; người thân khác chỉ thấy chính mình; không có số điện thoại, giấy tờ; người cao tuổi không liên quan bị chặn.
+     */
+    @Test
+    void FR_014_familyMembers_representativeSeesAll_othersSeeSelf() throws Exception {
+        JsonNode all =
+                json(portalGet(rMember, "/residents/" + a + "/family-members").andExpect(status().isOk()));
+        assertThat(all).extracting(m -> m.get("fullName").asString()).containsExactly("Trần R", "Lê M", "Phạm N");
+        JsonNode m = all.get(1);
+        assertThat(m.get("rights").get("VIEW_HEALTH").get("enabled").asBoolean())
+                .isTrue();
+        assertThat(m.get("rights").get("VIEW_HEALTH").get("effective").asBoolean())
+                .isFalse();
+        assertThat(m.get("self").asBoolean()).isFalse();
+        assertThat(m.has("phoneNumber")).isFalse();
+        assertThat(all.get(0).get("self").asBoolean()).isTrue();
+
+        JsonNode own =
+                json(portalGet(nMember, "/residents/" + a + "/family-members").andExpect(status().isOk()));
+        assertThat(own).singleElement().satisfies(row -> {
+            assertThat(row.get("relationshipId").asLong()).isEqualTo(n);
+            assertThat(row.get("self").asBoolean()).isTrue();
+        });
+
+        portalGet(rMember, "/residents/" + b + "/family-members").andExpect(status().isForbidden());
+    }
 }

@@ -97,7 +97,12 @@ public class TestClockController {
         // Hai job của M12 (nhắc đồ chưa trả, kiểm kê; hạn xác nhận người nhận khác; chủ dự án duyệt 2026-11-23, test
         // BF-14)
         M12_DAILY,
-        M12_MINUTE
+        M12_MINUTE,
+        // Ba job của M10 (đêm người thân ở lại, nhắc yêu cầu đổi quyền, việc theo phút; chủ dự án duyệt 2026-11-24,
+        // test BF-12)
+        M10_MINUTE,
+        M10_HOURLY,
+        M10_MIDNIGHT
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}

@@ -55,10 +55,12 @@ import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -372,6 +374,33 @@ public class PickupService {
                 representatives,
                 now));
         return created;
+    }
+
+    /**
+     * Danh sách yêu cầu ngoại lệ đón (FR-024, FR-050; thêm 2026-11-24, test BF-12 C-2, C-5): nhân viên theo quyền xem
+     * "Quy trình đón" trong phạm vi; người thân chỉ thấy ngoại lệ của người cao tuổi mình làm người đại diện. Theo mẫu
+     * {@code RightChangeRequestService.list}.
+     */
+    @Transactional(readOnly = true)
+    public List<SimpleRecord<PickupException>> listExceptions(Long residentId, Status status) {
+        CurrentUser user = currentUser.getObject();
+        Set<String> statuses = status == null
+                ? Arrays.stream(Status.values()).map(Enum::name).collect(Collectors.toSet())
+                : Set.of(status.name());
+        if (user.type() == AccountType.FAMILY_MEMBER) {
+            return relationships.activeOfFamilyMember(user.familyMemberId().orElseThrow()).stream()
+                    .filter(FamilyRelationship::representative)
+                    .filter(own -> residentId == null || own.residentId() == residentId)
+                    .flatMap(own -> records.listByResident(PickupException.KIND, own.residentId(), statuses).stream())
+                    .toList();
+        }
+        requireStaff(user);
+        if (residentId == null) {
+            authorize(user, Operation.VIEW, Target.UNSPECIFIED);
+            return records.listByStatus(PickupException.KIND, statuses);
+        }
+        authorize(user, Operation.VIEW, residentTarget(residentId));
+        return records.listByResident(PickupException.KIND, residentId, statuses);
     }
 
     /** Đối tượng kiểm quyền của ngoại lệ: người cao tuổi của nó. */
