@@ -160,6 +160,12 @@ Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại củ
 - **Q-394**: danh sách chờ không có điểm ưu tiên. Danh sách phù hợp xếp hồ sơ có dấu "Ưu tiên" trước, rồi theo ngày đăng ký; Hành chính đánh dấu, gỡ dấu kèm lý do. Bỏ CFG-M02-08, tính lại hằng ngày, lịch sử điểm, đề nghị điều chỉnh điểm. Sửa User Story 2, FR-007, FR-009 → FR-011, FR-013, FR-015, FR-077, bảng loại yêu cầu, Key Entities, SC-003, SC-004, Edge Cases.
 - **Q-395**: phí khi vắng không có bảng hệ số. Nội trú: ngày vắng tính như ngày lưu trú, giữ giường; vắng tới CFG-M02-05 ngày thì báo Quản lý viện một lần; lệnh "Giải phóng giường"; từ ngày giải phóng không tính phí lưu trú; giảm phí bằng khoản điều chỉnh của 010. Bán trú giữ tỷ lệ có báo, không báo. Bỏ ghi đè theo hợp đồng, tra chính sách từng ngày, quyết định giữ giường, "chờ quyết định". Sửa User Story 6, FR-025a, FR-050 → FR-056, FR-061, FR-077, FR-078, Key Entities, SC-006, Edge Cases.
 
+### Cập nhật 2026-11-25 (góp ý demo BF-10 của nhóm; E làm, **chờ B, chủ dự án duyệt khi review PR**)
+
+- **Bổ sung FR-026**: nhắc Hành chính (`CONTRACT_EXPIRING`, `SHORT_TERM_CONTRACT`, `CONTRACT_OVERDUE`) nêu người cao tuổi, ngày hết hạn, số ngày còn lại hoặc đã quá hạn và việc cần làm ("Lập hồ sơ kết thúc lưu trú hoặc điều chỉnh hợp đồng"). Người đại diện được báo thêm mức Trung bình, phần "hợp đồng", một lần ở ngày đầu của khoảng CFG-M02-04 (dài hạn, bán trú), ngày kết thúc (ngắn ngày) và ngày đầu quá hạn; không lặp mỗi ngày. Không đổi API, data-model; vẫn không tự gia hạn.
+- **Kết thúc lưu trú (US7)**: bỏ xin ngoại lệ trên màn; nút Xác nhận kết thúc ghi bàn giao (người nhận là người thân) rồi gửi lệnh Kết thúc lưu trú của 001; điều kiện hiện dạng bảng, dòng chưa đạt có nút mở màn xử lý. API ngoại lệ, bàn giao cho cơ sở tiếp nhận vẫn còn ở backend.
+- Web: thông báo nhắc hợp đồng mở thẳng hợp đồng (`ContractsPage` nhận `contractId`).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 02, mục 6; UC-08 phần điều kiện, UC-09 → UC-18):

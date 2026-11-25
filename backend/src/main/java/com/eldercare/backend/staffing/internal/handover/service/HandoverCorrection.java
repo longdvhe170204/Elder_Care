@@ -165,12 +165,14 @@ public class HandoverCorrection implements CorrectableRecordProvider, ScopeAssig
         return user.accountId() == originalRecorder(id)
                 || Objects.equals(confirmed, user.accountId())
                 || Objects.equals(s.leadStaffId(), staffId)
-                || duties.assignedFloorManager(s.scopeId(), time.now())
-                        .filter(staffId::equals)
-                        .isPresent()
-                || duties.floorManagerSubstitute(s.scopeId(), time.now())
-                        .filter(staffId::equals)
-                        .isPresent();
+                // Ca toàn viện không có tầng (scopeId rỗng) nên không có Trưởng tầng (team-plan mục 8, 2026-11-18)
+                || s.scopeId() != null
+                        && (duties.assignedFloorManager(s.scopeId(), time.now())
+                                        .filter(staffId::equals)
+                                        .isPresent()
+                                || duties.floorManagerSubstitute(s.scopeId(), time.now())
+                                        .filter(staffId::equals)
+                                        .isPresent());
     }
 
     public void afterCorrection(CorrectionView correction) {
