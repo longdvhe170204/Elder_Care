@@ -250,6 +250,14 @@ public class FamilyStayService {
     }
 
     /**
+     * Ý kiến người cùng phòng ghi lúc xác nhận (FR-040), để nhân viên xem lại; người thân nhận {@code null} vì có tên người
+     * cùng phòng (góp ý test BF-12 2026-11-25, chủ dự án duyệt).
+     */
+    public Map<String, Object> roommateOpinion(FamilyStay stay) {
+        return currentUser.getObject().type() == AccountType.FAMILY_MEMBER ? null : stay.roommateOpinion();
+    }
+
+    /**
      * Xác nhận (FR-040, FR-041, FR-045): Trưởng tầng được giao của tầng, tầng không có thì Quản lý viện; kiểm lại FR-041
      * và giới hạn CFG-M10-10; phòng có từ hai giường đang dùng thì bắt buộc ý kiến người cùng phòng.
      */
