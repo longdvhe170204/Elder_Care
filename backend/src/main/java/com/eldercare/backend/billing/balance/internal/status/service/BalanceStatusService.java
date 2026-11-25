@@ -153,7 +153,8 @@ public class BalanceStatusService implements PaymentService.PaymentRecordedHook 
                                     .orElse(null),
                             cycle.inDebtSince(),
                             trigger == Trigger.DAILY ? today.toString() : source,
-                            time.now()),
+                            time.now(),
+                            ledger.status() == computed.status()),
                     decision.notices()));
         }
     }
