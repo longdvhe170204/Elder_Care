@@ -358,6 +358,7 @@ public class ContractService {
     /**
      * Ghi nhận đã ký (FR-021, FR-022, FR-036): ngày ký, người đại diện hiệu lực (DBR-02), bản scan; không chồng thời gian
      * với hợp đồng Hiệu lực khác; ghi phiên bản nội dung 0 với đơn giá của mọi khoản và đánh dấu phiên bản giá đã tham chiếu.
+     * Ngày ký không sau hôm nay, không trước ngày lập hợp đồng (422 {@code SIGNED_DATE_INVALID}, như phụ lục FR-043d).
      */
     @BusinessCommand(requiresReason = false)
     @RequiresPermission(function = Function.ADMISSION_CONTRACT_DEPOSIT, operation = Operation.UPDATE)
@@ -367,6 +368,15 @@ public class ContractService {
         requireOffice();
         Contract contract = lockedContract(contractId);
         requireStatus(contract, ContractStatus.PENDING_SIGNATURE);
+        LocalDate createdOn = contract.createdAt().atZone(BusinessTime.ZONE).toLocalDate();
+        if (signedDate.isAfter(time.today()) || signedDate.isBefore(createdOn)) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    "SIGNED_DATE_INVALID",
+                    "Ngày ký phải từ ngày lập hợp đồng "
+                            + createdOn.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                            + " tới hôm nay");
+        }
         long residentId = contract.residentId();
         RepresentativePort port = representatives.getIfAvailable();
         if (port == null || !port.isActiveRepresentative(signingRepresentativeId, residentId, signedDate)) {
