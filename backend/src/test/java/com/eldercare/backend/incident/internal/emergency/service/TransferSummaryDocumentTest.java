@@ -71,6 +71,47 @@ class TransferSummaryDocumentTest {
         assertThat(text).doesNotContain("FIRST_AID").doesNotContain("null").doesNotContain("không lấy được");
     }
 
+    /** BF-06: phiếu luôn vừa một trang A4, kể cả khi dữ liệu rất nhiều (diễn biến, thuốc, chữ dài, gửi kèm nguyện vọng). */
+    @Test
+    void BF_06_phieuLuonMotTrang_keCaKhiDuLieuRatNhieu() throws Exception {
+        assertThat(pages(full(false))).isEqualTo(1);
+        assertThat(pages(full(true))).isEqualTo(1);
+        assertThat(pages(sparse())).isEqualTo(1);
+
+        String longText = "Cụ ngã trong nhà vệ sinh, đau hông trái, huyết áp cao, ".repeat(30);
+        var progressions = new java.util.ArrayList<Map<String, Object>>();
+        for (int i = 0; i < 40; i++) {
+            progressions.add(Map.<String, Object>of(
+                    "typeCode", "OTHER_ACTION", "content", "Diễn biến số " + i + ": " + longText, "occurredAt", AT));
+        }
+        var medications = new java.util.ArrayList<Map<String, Object>>();
+        for (int i = 0; i < 15; i++) {
+            medications.add(Map.<String, Object>of("name", "Thuốc số " + i, "strength", "500mg", "dosage", "2 lần/ngày"));
+        }
+        byte[] big = TransferSummaryDocument.render(
+                content(
+                        true,
+                        longText,
+                        List.of(Map.<String, Object>of("name", longText)),
+                        List.of(Map.<String, Object>of("name", longText)),
+                        medications,
+                        progressions,
+                        Map.of("choice", "RETURN_HOME", "note", longText),
+                        Map.of("preferredHospitals", List.of(Map.of("name", "Bệnh viện Bạch Mai")), "askFamilyFirst", true),
+                        new EmergencyCard.Contact("Nguyễn Văn Rạng", "0911000001")),
+                null);
+
+        assertThat(pages(big)).isEqualTo(1);
+        assertThat(text(big)).contains("TÓM TẮT THÔNG TIN SỨC KHOẺ", "diễn biến cũ hơn trong hồ sơ sự cố");
+    }
+
+    private static int pages(byte[] pdf) throws Exception {
+        var reader = new PdfReader(pdf);
+        int pages = reader.getNumberOfPages();
+        reader.close();
+        return pages;
+    }
+
     private static String text(byte[] pdf) throws Exception {
         var reader = new PdfReader(pdf);
         var extractor = new PdfTextExtractor(reader);

@@ -55,43 +55,78 @@ final class TransferSummaryDocument {
 
     private TransferSummaryDocument() {}
 
+    /** Giới hạn độ dài từng mục để phiếu luôn vừa một trang; thử từ rộng tới chặt cho tới khi chỉ còn một trang. */
+    private record Caps(int progressions, int chars, int items) {}
+
+    private static final List<Caps> ATTEMPTS =
+            List.of(new Caps(8, 400, 6), new Caps(5, 260, 4), new Caps(3, 160, 3), new Caps(2, 100, 2));
+
     static byte[] render(TransferSummaryContent s, FacilityInfo facility) {
-        // Bố cục theo trình tự bàn giao chuẩn (SBAR): hành chính → tình trạng, lý do → tiền sử cần lưu ý → diễn biến,
-        // xử trí → liên hệ, bàn giao → nguyện vọng (khi chọn gửi kèm) → ký hai bên.
-        var pdf = PdfDocument.a4(facility, null, TITLE)
+        byte[] last = null;
+        for (var caps : ATTEMPTS) {
+            last = renderOnce(s, facility, caps);
+            if (pages(last) <= 1) return last;
+        }
+        return last;
+    }
+
+    private static int pages(byte[] pdf) {
+        try {
+            var reader = new org.openpdf.text.pdf.PdfReader(pdf);
+            int pages = reader.getNumberOfPages();
+            reader.close();
+            return pages;
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
+    private static byte[] renderOnce(TransferSummaryContent s, FacilityInfo facility, Caps caps) {
+        // Một trang A4, bố cục theo trình tự bàn giao chuẩn (SBAR): hành chính (hai cột) → tình trạng, lý do → thông tin cần
+        // lưu ý (ba cột) → diễn biến, xử trí → liên hệ, bàn giao (hai cột) → nguyện vọng (khi chọn gửi kèm) → ký hai bên.
+        var pdf = PdfDocument.a4Compact(facility, null, TITLE)
                 .note("(Bàn giao kèm người cao tuổi khi chuyển đến cơ sở khám bệnh, chữa bệnh)", true)
-                .heading("I. HÀNH CHÍNH")
-                .field("Người cao tuổi", orMissing(s.residentName()))
-                .field("Nơi chuyển đến thực tế", orMissing(s.receivingFacility()))
-                .field("Thời điểm chuyển", s.transferAt() == null ? MISSING : time(s.transferAt()));
-        if (s.expectedReturnAt() != null) pdf.field("Dự kiến về", time(s.expectedReturnAt()));
+                .heading("I. HÀNH CHÍNH");
+        var admin = new java.util.ArrayList<String>(List.of(
+                "Người cao tuổi", orMissing(s.residentName()),
+                "Nơi chuyển đến thực tế", clip(orMissing(s.receivingFacility()), caps.chars()),
+                "Thời điểm chuyển", s.transferAt() == null ? MISSING : time(s.transferAt())));
+        if (s.expectedReturnAt() != null) {
+            admin.add("Dự kiến về");
+            admin.add(time(s.expectedReturnAt()));
+        }
+        pdf.fields(2, admin.toArray(String[]::new));
 
         pdf.heading("II. TÌNH TRẠNG LÚC CHUYỂN")
-                .field("Lý do chuyển và tình trạng lúc bàn giao", orMissing(s.handoverCondition()))
-                .field("Chỉ số gần nhất", vitals(s.latestVitalSigns()));
+                .field("Lý do chuyển và tình trạng lúc bàn giao", clip(orMissing(s.handoverCondition()), caps.chars()))
+                .field("Chỉ số gần nhất", vitals(s.latestVitalSigns(), caps));
 
         pdf.heading("III. THÔNG TIN CẦN LƯU Ý")
-                .field("Dị ứng", names(s.allergies()))
-                .field("Bệnh nền", names(s.chronicConditions()))
-                .field("Thuốc đang dùng", medications(s.currentMedications()));
+                .fields(
+                        3,
+                        "Dị ứng", clip(names(s.allergies()), caps.chars()),
+                        "Bệnh nền", clip(names(s.chronicConditions()), caps.chars()),
+                        "Thuốc đang dùng", medications(s.currentMedications(), caps));
 
         pdf.heading("IV. DIỄN BIẾN VÀ XỬ TRÍ TẠI VIỆN");
-        var progressions = progressionRows(s.progressions());
-        if (progressions.isEmpty()) {
+        var progressions = progressionRows(s.progressions(), caps);
+        if (progressions.rows().isEmpty()) {
             pdf.field("Diễn biến và xử trí", MISSING);
         } else {
-            pdf.table(List.of("Thời điểm", "Diễn biến và xử trí"), progressions);
+            pdf.table(List.of("Thời điểm", "Diễn biến và xử trí"), progressions.rows());
+            if (progressions.hidden() > 0) {
+                pdf.note("(Còn " + progressions.hidden() + " diễn biến cũ hơn trong hồ sơ sự cố.)", false);
+            }
         }
 
         pdf.heading("V. LIÊN HỆ VÀ BÀN GIAO")
-                .field("Người liên hệ chính", contact(s))
-                .field("Người đi cùng", orMissing(s.companion()));
+                .fields(2, "Người liên hệ chính", contact(s), "Người đi cùng", clip(orMissing(s.companion()), caps.chars()));
         if (s.notAskedFirstReason() != null) {
-            pdf.field("Lý do chưa hỏi ý kiến gia đình trước", s.notAskedFirstReason());
+            pdf.field("Lý do chưa hỏi ý kiến gia đình trước", clip(s.notAskedFirstReason(), caps.chars()));
         }
 
         if (Boolean.TRUE.equals(s.includeWishes())) {
-            wishes(pdf, s);
+            wishes(pdf, s, caps);
         }
 
         pdf.signatures("Người lập phiếu", "Đại diện nơi nhận")
@@ -103,15 +138,22 @@ final class TransferSummaryDocument {
         return pdf.toBytes();
     }
 
+    private static String clip(String text, int max) {
+        if (text == null || text.length() <= max) return text;
+        return text.substring(0, Math.max(0, max - 1)).stripTrailing() + "…";
+    }
+
     /** Mục chỉ in khi nhân viên chọn gửi kèm; không in toàn văn phiếu nguyện vọng. */
-    private static void wishes(PdfDocument pdf, TransferSummaryContent s) {
+    private static void wishes(PdfDocument pdf, TransferSummaryContent s, Caps caps) {
         pdf.heading("VI. Nguyện vọng liên quan đến ca này");
         var end = s.endOfLifeWish();
         if (end == null || Boolean.TRUE.equals(end.get("notRecorded"))) {
             pdf.field("Nguyện vọng cuối đời", MISSING);
         } else {
             String choice = WISH_CHOICE.getOrDefault(text(end.get("choice")), MISSING);
-            pdf.field("Nguyện vọng cuối đời", choice + (blank(end.get("note")) ? "" : " (" + end.get("note") + ")"));
+            pdf.field(
+                    "Nguyện vọng cuối đời",
+                    choice + (blank(end.get("note")) ? "" : " (" + clip(text(end.get("note")), caps.chars()) + ")"));
         }
         var treatment = s.treatmentWish();
         if (treatment == null) {
@@ -127,30 +169,42 @@ final class TransferSummaryDocument {
                             .toLowerCase()
                             .contains(s.receivingFacility().trim().toLowerCase());
             pdf.field(
-                    "Bệnh viện ưu tiên theo hồ sơ", preferred + (same ? "" : " (khác nơi chuyển đến thực tế ở mục 1)"));
+                    "Bệnh viện ưu tiên theo hồ sơ",
+                    clip(preferred, caps.chars()) + (same ? "" : " (khác nơi chuyển đến thực tế ở mục 1)"));
         }
         if (Boolean.TRUE.equals(treatment.get("askFamilyFirst"))) {
             pdf.field(
                     "Ghi chú theo hồ sơ",
                     "Có ghi mong muốn hỏi ý kiến gia đình trước. Nhân viên có thể liên hệ song song với việc xử lý ca khẩn."
-                            + (blank(treatment.get("note")) ? "" : " " + treatment.get("note")));
+                            + (blank(treatment.get("note")) ? "" : " " + clip(text(treatment.get("note")), caps.chars())));
         } else if (!blank(treatment.get("note"))) {
-            pdf.field("Ghi chú theo hồ sơ", text(treatment.get("note")));
+            pdf.field("Ghi chú theo hồ sơ", clip(text(treatment.get("note")), caps.chars()));
         }
     }
 
-    private static String vitals(List<Map<String, Object>> items) {
+    private static String vitals(List<Map<String, Object>> items, Caps caps) {
         if (items == null || items.isEmpty()) return MISSING;
-        return items.stream()
+        var shown = items.stream()
+                .limit(caps.items())
                 .map(i -> text(i.get("indicatorName")) + " " + value(i.get("values"))
                         + (blank(i.get("unit")) ? "" : " " + i.get("unit"))
                         + (i.get("measuredAt") == null ? "" : " (" + value(i.get("measuredAt")) + ")"))
-                .collect(Collectors.joining("\n– ", "\n– ", ""));
+                .collect(Collectors.joining("; "));
+        return more(shown, items.size(), caps);
     }
 
-    private static List<List<String>> progressionRows(List<Map<String, Object>> items) {
-        if (items == null) return List.of();
-        return items.stream()
+    private static String more(String shown, int total, Caps caps) {
+        return total > caps.items() ? shown + "; … (còn " + (total - caps.items()) + " mục)" : shown;
+    }
+
+    /** Các dòng diễn biến mới nhất vừa chỗ; {@code hidden} là số dòng cũ hơn không in. */
+    private record ProgressionRows(List<List<String>> rows, int hidden) {}
+
+    private static ProgressionRows progressionRows(List<Map<String, Object>> items, Caps caps) {
+        if (items == null) return new ProgressionRows(List.of(), 0);
+        int skip = Math.max(0, items.size() - caps.progressions());
+        var rows = items.stream()
+                .skip(skip)
                 .map(i -> {
                     String label = PROGRESSION.getOrDefault(text(i.get("typeCode")), "diễn biến");
                     String content = text(i.get("content")).trim();
@@ -158,10 +212,12 @@ final class TransferSummaryDocument {
                             ? "Có bản ghi " + label.substring(0, 1).toLowerCase() + label.substring(1)
                                     + ", nội dung chưa rõ."
                             : content.toLowerCase().startsWith(label.toLowerCase()) ? content : label + ": " + content;
+                    detail = clip(detail, caps.chars());
                     String at = i.get("occurredAt") instanceof Instant t ? ROW_TIME.format(t) : "";
                     return List.of(at, detail);
                 })
                 .toList();
+        return new ProgressionRows(rows, skip);
     }
 
     private static String names(List<Map<String, Object>> items) {
@@ -169,14 +225,16 @@ final class TransferSummaryDocument {
         return items.stream().map(i -> text(i.get("name"))).collect(Collectors.joining(", "));
     }
 
-    private static String medications(List<Map<String, Object>> items) {
+    private static String medications(List<Map<String, Object>> items, Caps caps) {
         if (items == null || items.isEmpty()) return MISSING;
-        return items.stream()
+        var shown = items.stream()
+                .limit(caps.items())
                 .map(i -> Stream.of("name", "strength", "dosage", "route")
                         .map(k -> text(i.get(k)).trim())
                         .filter(v -> !v.isEmpty())
                         .collect(Collectors.joining(" ")))
-                .collect(Collectors.joining("\n– ", "\n– ", ""));
+                .collect(Collectors.joining("; "));
+        return more(shown, items.size(), caps);
     }
 
     private static String contact(TransferSummaryContent s) {
