@@ -242,8 +242,7 @@ public record ResidencyChangeContent(
             LocalTime arrival = time(line, "arrivalTime");
             LocalTime departure = time(line, "departureTime");
             if (!departure.isAfter(arrival)) {
-                throw new InvalidValueException(
-                        "Bán trú không qua đêm: giờ về phải sau giờ đến trong cùng ngày (Q-286)");
+                throw new InvalidValueException("Bán trú không qua đêm: giờ về phải sau giờ đến trong cùng ngày");
             }
             lines.add(new ArrivalChange(day, dated ? date(line, "date", true) : null, arrival, departure));
         }

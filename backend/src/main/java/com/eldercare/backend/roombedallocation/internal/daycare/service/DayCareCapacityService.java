@@ -42,7 +42,10 @@ public class DayCareCapacityService implements DayCareCapacityApi {
     public int capacity() {
         var value = parameters.read(ParameterCode.CFG_M03_01);
         if (!value.isSet())
-            throw new BusinessException(HttpStatus.CONFLICT, "DAY_CARE_CAPACITY_UNSET", "Viện chưa đặt CFG-M03-01");
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "DAY_CARE_CAPACITY_UNSET",
+                    "Viện chưa thiết lập sức chứa khu nghỉ bán trú. Vui lòng cấu hình tham số sức chứa trước khi duyệt yêu cầu bán trú.");
         return value.asInt();
     }
 
