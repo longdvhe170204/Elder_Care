@@ -2,6 +2,7 @@
 -- danh mục vận hành chưa có ở V900_05.
 --   1. Mốc sinh hoạt cố định của toàn viện (005 FR-056, Q-440; BF-02 bước 0): catalog_item M04.DAILY_ROUTINE, mỗi mốc một
 --      phiên bản áp dụng từ hôm trước ngày nạp (DailyRoutineAttributes.versions).
+--      Không có mốc bữa ăn hay uống thuốc: Lịch chăm sóc hằng ngày đã ghép giờ bữa của 011 và không hiện thuốc (FR-055).
 --   2. Nhóm sở thích (014): catalog_item M04.INTEREST_GROUP.
 --   3. Tài sản (019): loại tài sản ngoài hai loại hệ thống Giường, Xe; ghi tăng tài sản cho mọi giường như lệnh Tạo giường
 --      (BedAssets.recordIncreaseForBed: nguồn BED, bộ phận Chăm sóc mã CARE, vị trí phòng, dòng lịch sử LOCATION); hai xe
@@ -24,16 +25,11 @@ SELECT 'M04.DAILY_ROUTINE', 'M04', r.name, r.sort_order, 'ACTIVE',
 FROM (SELECT 'Thức dậy' AS name, '05:30' AS at, 1 AS sort_order
       UNION ALL SELECT 'Vệ sinh cá nhân', '06:00', 2
       UNION ALL SELECT 'Thể dục buổi sáng', '06:15', 3
-      UNION ALL SELECT 'Ăn sáng', '06:30', 4
-      UNION ALL SELECT 'Uống thuốc buổi sáng', '07:30', 5
-      UNION ALL SELECT 'Hoạt động buổi sáng', '09:00', 6
-      UNION ALL SELECT 'Ăn trưa', '11:00', 7
-      UNION ALL SELECT 'Ngủ trưa', '12:00', 8
-      UNION ALL SELECT 'Ăn phụ chiều', '15:00', 9
-      UNION ALL SELECT 'Hoạt động buổi chiều', '15:30', 10
-      UNION ALL SELECT 'Ăn tối', '17:30', 11
-      UNION ALL SELECT 'Sinh hoạt buổi tối', '19:00', 12
-      UNION ALL SELECT 'Đi ngủ', '21:00', 13) r;
+      UNION ALL SELECT 'Hoạt động buổi sáng', '09:00', 4
+      UNION ALL SELECT 'Ngủ trưa', '12:00', 5
+      UNION ALL SELECT 'Hoạt động buổi chiều', '15:30', 6
+      UNION ALL SELECT 'Sinh hoạt buổi tối', '19:00', 7
+      UNION ALL SELECT 'Đi ngủ', '21:00', 8) r;
 
 -- 014: nhóm sở thích
 INSERT INTO catalog_item (catalog_type, module, name, sort_order, status, attributes) VALUES

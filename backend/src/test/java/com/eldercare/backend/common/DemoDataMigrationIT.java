@@ -217,7 +217,14 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
         // V900_16: mốc sinh hoạt, nhóm sở thích; mọi giường đã ghi tăng tài sản; có xe cho Lịch xe
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM catalog_item WHERE catalog_type='M04.DAILY_ROUTINE'", Integer.class))
-                .isGreaterThanOrEqualTo(10);
+                .isGreaterThanOrEqualTo(8);
+        // Lịch chăm sóc hằng ngày (005 FR-055) đã ghép giờ bữa của 011 và không hiện thuốc: mốc không trùng bữa, không
+        // nói thuốc (góp ý kiểm demo 2026-11-25)
+        assertThat(jdbc.queryForList(
+                        "SELECT name FROM catalog_item WHERE catalog_type='M04.DAILY_ROUTINE'"
+                                + " AND (name LIKE 'Ăn%' OR name LIKE '%thuốc%')",
+                        String.class))
+                .isEmpty();
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM bed b WHERE NOT EXISTS (SELECT 1 FROM asset a WHERE a.bed_id=b.id)",
                         Integer.class))
@@ -246,5 +253,16 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                         Integer.class))
                 .containsOnly(2 * days)
                 .hasSize(10);
+        // V900_17: dòng dịch vụ của hợp đồng có quantity là số dương (ContractStore đọc bằng decimalValue,
+        // ContractRules
+        // bắt > 0); quantity JSON null làm backend dừng khi khởi động (CareDailyJob đọc hợp đồng, 2026-11-25)
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM contract_version v, JSON_TABLE(IF(v.kind='DRAFT', v.services,"
+                                + " v.content->'$.services'), '$[*]' COLUMNS (q JSON PATH '$.quantity')) s"
+                                + " WHERE v.contract_id BETWEEN 9101 AND 9199 AND v.kind IN ('DRAFT','CONTENT')"
+                                + " AND (s.q IS NULL OR JSON_TYPE(s.q) NOT IN ('INTEGER','DECIMAL','DOUBLE')"
+                                + " OR CAST(s.q AS DECIMAL(15,3)) <= 0)",
+                        Integer.class))
+                .isZero();
     }
 }
