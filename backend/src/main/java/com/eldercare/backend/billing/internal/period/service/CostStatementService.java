@@ -91,18 +91,24 @@ public class CostStatementService {
         // Quản
         // lý viện chỉ được báo. Khoản nhập tay, mua hộ, điều chỉnh vẫn phải được Quản lý viện duyệt riêng trước
         // (BR-M11-04); còn khoản như vậy chưa duyệt thì bảng đi đường cũ (Chờ chốt, Quản lý viện duyệt, chốt).
-        if (s.finalPeriod()) {
-            var all = items.lockItems(id);
-            boolean awaitingApproval = all.stream()
-                    .anyMatch(i -> i.status().equals("CHECKED") && !i.origin().equals("EVENT_BASED"));
-            if (!awaitingApproval) {
+        // Demo 2026-11-26: bảng bổ sung của kết thúc lưu trú (mọi khoản mang cờ AFFECTS_TERMINATION, thường do đổi ngày
+        // kết thúc sau khi đã chốt kỳ cuối) cũng chốt luôn như bảng kỳ cuối, để không chặn quyết toán.
+        var all = items.lockItems(id);
+        boolean terminationSupplement = s.statementType().equals("SUPPLEMENTARY")
+                && all.stream()
+                        .filter(i -> !i.status().equals("CANCELLED"))
+                        .allMatch(i -> i.flags().contains("AFFECTS_TERMINATION"));
+        if (s.finalPeriod() || terminationSupplement) {
+            if (!items.hasCheckedItemsAwaitingManager(id)) {
                 finalizeLocked(s, all);
                 notifications.staff(
                         "COST_STATEMENT_FINALIZED_BY_OFFICE",
                         id,
                         s.residentId(),
                         "M11:OFFICE_FINALIZED:" + id,
-                        "Bảng chi phí kỳ cuối đã được Hành chính chốt",
+                        s.finalPeriod()
+                                ? "Bảng chi phí kỳ cuối đã được Hành chính chốt"
+                                : "Bảng chi phí bổ sung khi kết thúc lưu trú đã được Hành chính chốt",
                         Role.NURSING_HOME_MANAGER,
                         time.now(),
                         access.user().accountId());
