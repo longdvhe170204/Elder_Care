@@ -68,9 +68,13 @@ public class ResidentLookup {
         List<Object> args = new ArrayList<>();
         if (q != null && !q.isBlank()) {
             String text = q.strip();
-            sql.append(" AND (full_name LIKE ? OR profile_code = ? OR id_document_number = ?)");
-            args.add("%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%");
-            args.add(text);
+            String contains =
+                    "%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+            // Mã hồ sơ khớp một phần như họ tên (góp ý test BF-16 2026-11-25: gõ "009004" tìm được NCT-2026-009004); số
+            // giấy tờ vẫn khớp đủ
+            sql.append(" AND (full_name LIKE ? OR profile_code LIKE ? OR id_document_number = ?)");
+            args.add(contains);
+            args.add(contains);
             args.add(text);
         }
         if (!statuses.isEmpty()) {

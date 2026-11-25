@@ -35,6 +35,11 @@ class ScopedSearchIT extends ResidentProfileTestBase {
                 .extracting(ProfileView::id)
                 .containsExactly(a.id());
         assertThat(search(b.profileCode(), Set.of(), null, 20).items()).isEmpty();
+        // Góp ý test BF-16 (2026-11-25): gõ phần số của mã hồ sơ ("009004" của NCT-2026-009004) cũng tìm được
+        String digits = a.profileCode().substring(a.profileCode().lastIndexOf('-') + 1);
+        assertThat(search(digits, Set.of(), null, 20).items())
+                .extracting(ProfileView::id)
+                .containsExactly(a.id());
         assertThat(profiles.view(ResidentProfileService.target(a.id())).id()).isEqualTo(a.id());
     }
 }
