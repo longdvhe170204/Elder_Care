@@ -761,21 +761,23 @@ Ví dụ: xoay trở mỗi 2 giờ; hỗ trợ uống nước 3 giờ/lần; tha
 
 Kế hoạch chăm sóc được quản lý theo **phiên bản**: Nháp → Hiệu lực từ ngày X → Hết hiệu lực (khi phiên bản mới có hiệu lực). Không sửa phiên bản đang hiệu lực; mọi thay đổi tạo phiên bản mới, kèm người lập, người duyệt và lý do.
 
-Vòng đời đầy đủ của phiên bản kế hoạch; bảng dưới là căn cứ khi khác câu trên.
+Vòng đời đầy đủ của phiên bản kế hoạch; bảng dưới là căn cứ khi khác câu trên. **(Sửa 2026-11-25, Q-447)** Phiên bản chỉ lưu trong dữ liệu, giao diện không hiện số phiên bản: người dùng thấy kế hoạch hiện hành và bản sửa đang xử lý; Điều dưỡng bấm "Sửa kế hoạch" rồi "Gửi Bác sĩ duyệt", không nhập ngày hiệu lực.
 
 | Trạng thái | Lệnh / sự kiện | Trạng thái mới | Người thực hiện |
 | --- | --- | --- | --- |
-| — | Lập phiên bản | Nháp | Điều dưỡng (hệ thống không tự lập bản nháp khi bác sĩ xác nhận đánh giá) |
+| — | Lập kế hoạch, Sửa kế hoạch (chép phiên bản Chờ hiệu lực, không có thì phiên bản Hiệu lực) | Nháp | Điều dưỡng (hệ thống không tự lập bản nháp khi bác sĩ xác nhận đánh giá) |
 | Nháp | Gửi duyệt | Chờ duyệt | Điều dưỡng |
-| Chờ duyệt | Duyệt; ngày hiệu lực muộn hơn ngày duyệt (Q-34) | Chờ hiệu lực | Người có quyền Duyệt kế hoạch chăm sóc (2.4) |
+| Chờ duyệt | Rút lại | Nháp | Người lập |
+| Chờ duyệt | Duyệt, người cao tuổi chưa có phiên bản Hiệu lực; ngày hiệu lực là ngày duyệt | Hiệu lực | Người có quyền Duyệt kế hoạch chăm sóc (2.4) |
+| Chờ duyệt | Duyệt, người cao tuổi đã có phiên bản Hiệu lực; ngày hiệu lực là ngày hôm sau ngày duyệt (Q-34) | Chờ hiệu lực | Người có quyền Duyệt kế hoạch chăm sóc (2.4) |
 | Chờ duyệt | Trả lại (bắt buộc lý do) | Nháp | Người có quyền duyệt |
 | Nháp, Chờ duyệt | Hủy phiên bản (bắt buộc lý do) | Đã hủy | Người lập, người có quyền duyệt |
-| Chờ hiệu lực | Thu hồi duyệt, trước ngày hiệu lực (bắt buộc lý do) | Đã hủy | Người có quyền duyệt |
+| Chờ hiệu lực | Phiên bản sau được duyệt | Đã hủy | Hệ thống |
 | Chờ hiệu lực | Tới ngày hiệu lực | Hiệu lực | Bộ lập lịch |
 | Hiệu lực | Phiên bản mới có hiệu lực; người cao tuổi chuyển trạng thái cuối | Hết hiệu lực | Hệ thống |
 | Nháp, Chờ duyệt, Chờ hiệu lực | Người cao tuổi chuyển trạng thái cuối | Đã hủy | Hệ thống |
 
-Mỗi người cao tuổi có tối đa một phiên bản Hiệu lực tại một ngày và tối đa một phiên bản ở Nháp, Chờ duyệt hoặc Chờ hiệu lực. Người duyệt không sửa nội dung hay ngày hiệu lực; nếu ngày hiệu lực đề xuất không còn hợp lệ thì dùng lệnh Trả lại.
+Mỗi người cao tuổi có tối đa một phiên bản Hiệu lực tại một ngày, tối đa một phiên bản ở Nháp hoặc Chờ duyệt và tối đa một phiên bản Chờ hiệu lực. Người duyệt không sửa nội dung; ngày hiệu lực do hệ thống đặt theo bảng trên.
 
 - **Ngày hiệu lực (Q-34):** ngày hiệu lực sớm nhất của một phiên bản là ngày hôm sau ngày duyệt (DBR-11 giữ nguyên). Việc gấp trong ngày dùng công việc phát sinh (8.3).
 - **Mục tiêu lượng nước (Q-30):** lấy từ mục tiêu ml/ngày của mục kế hoạch "hỗ trợ uống nước" trong phiên bản Hiệu lực. Người bán trú và người vắng một phần ngày được so với mục tiêu theo tỷ lệ số giờ có mặt, tính từ đầu ngày tới mốc kiểm tra. Không có mục tiêu thì không kiểm tra.
@@ -2868,6 +2870,7 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-444 | Ai lập công việc của ca | Chủ dự án 2026-11-23: chỉ Trưởng tầng, cho mọi ca của tầng được giao, kể cả lập trước. Người phụ trách ca (mọi vai trò) không lập; Điều dưỡng chỉ tạo công việc phát sinh. Thông báo "cần lập công việc" (người bán trú điểm danh đến, người cao tuổi trở về sau vắng) gửi Trưởng tầng của tầng. Phụ lục 27 ô Điều dưỡng dòng "Lập công việc tháng, công việc phát sinh" đổi T⁴¹ → P⁴¹. Sửa Q-306 (a), Q-313 phần lập công việc của ca | 19.3, Phụ lục 27, UC-24, BR-M04-02, Q-326 | 005 |
 | Q-445 | Ai lập, duyệt món ăn và thực đơn tuần; thực đơn có chia theo chế độ ăn không | Chủ dự án 2026-11-24: (a) Nhân viên bếp tạo món gồm tên, mô tả, hình ảnh, không khai thành phần dị ứng, chế độ ăn phù hợp, kết cấu; món Nháp → Hiệu lực bằng lệnh Đưa vào dùng của Bếp, không Bác sĩ xác nhận. (b) Cả viện dùng **một thực đơn chung** theo tuần, mỗi ngày, mỗi bữa (danh mục bữa, Quản lý viện thêm bữa phụ) một danh sách món; không chia theo chế độ ăn, không món thay thế, bỏ món an toàn. (c) Hệ thống tự hiện cho Bếp số suất mỗi bữa (người cao tuổi, người thân ở lại, Quản lý viện và nhân viên có ca bao trùm giờ bữa) và số người cao tuổi theo từng loại dị ứng, không kèm tên; nhân viên không khai dị ứng. Bỏ kiểm tra độ phủ, lặp món, dị ứng: món nấu thế nào do Bếp quyết. (d) Bếp Gửi duyệt, Quản lý viện được báo và duyệt (Công bố hoặc Trả lại có lý do); Bếp Rút lại được; không báo Bác sĩ. Đổi món sau công bố có lý do, báo Quản lý viện. Nhắc CFG-M08-07 gửi Bếp, báo Quản lý viện. (e) Mọi người dùng app xem thực đơn hôm nay và tuần, thấy tất cả món; Quản lý viện xem danh sách thực đơn tuần được gửi tới. (f) Dị ứng do Bác sĩ ghi ở hồ sơ sức khỏe; Điều dưỡng, Nhân viên chăm sóc đối chiếu khi phục vụ; hệ thống không xác nhận suất, không chặn ghi nhận. Bản gán chế độ ăn giữ, là ghi chú hồ sơ, không gắn thực đơn, suất ăn. (g) Chốt suất chỉ đếm tổng suất mỗi bữa; phiếu theo tầng/khu và phiếu nhân viên, ghi món và số suất; bỏ suất đặc biệt, nhãn, xác nhận phục vụ suất đặc biệt (UC-77); giữ phát sinh, lưu mẫu. Bỏ BR-M08-02, 06, 07, CFG-M08-03. Sửa Q-142, Q-147, Q-283, Q-308, Q-333, Q-307 (e) phần món thay thế, món an toàn | 2.3, 12.1 → 12.6, 19.3, BR-M08-01, 02, 06 → 10, 13 → 16, Phụ lục 25, 26, 27, 30, BF-03, BF-04 | 011 |
 | Q-446 | Nhân viên đã ghi kết quả công việc (Hoàn thành, Hoàn thành trễ) có được ghi nhận lại không | Chủ dự án 2026-11-24: có, khi ca của công việc còn diễn ra. Người đã ghi bấm "Ghi nhận lại" trên app, nhập kết quả mới và lý do; hệ thống lưu bản đính chính (cách A), bản gốc giữ nguyên (BR-M04-14). Hết ca thì người ghi không tự đính chính nữa; Người phụ trách ca, Trưởng tầng vẫn đính chính theo 19.3. Kết quả đo chỉ số không ghi nhận lại ở đây | BR-M04-14 | 005 |
+| Q-447 | Lập và duyệt kế hoạch chăm sóc quá nhiều bước (lập Nháp, lưu mục, gửi duyệt kèm ngày hiệu lực, duyệt, chờ hiệu lực; có danh sách, so sánh phiên bản, thu hồi duyệt); có tinh gọn không | Chủ dự án 2026-11-25: có. Dữ liệu vẫn lưu theo phiên bản, giao diện không hiện phiên bản. Điều dưỡng "Sửa kế hoạch" (hệ thống chép nội dung mới nhất còn dùng) rồi "Gửi Bác sĩ duyệt", không nhập ngày hiệu lực; người có quyền duyệt (mặc định Bác sĩ) duyệt hoặc trả lại. Người chưa có kế hoạch Hiệu lực thì kế hoạch có hiệu lực ngay khi duyệt; đã có thì bản sửa có hiệu lực từ ngày hôm sau ngày duyệt. Thêm lệnh Rút lại (Chờ duyệt → Nháp); bỏ Thu hồi duyệt; bản Chờ hiệu lực không chặn sửa tiếp, bản sau được duyệt thì bản Chờ hiệu lực trước bị hủy. Bỏ màn lịch sử và so sánh phiên bản; khi xem bản sửa Chờ duyệt thì hiện thay đổi so với kế hoạch Hiệu lực. Q-438 vẫn gác lại | 8.1, BR-M04-19, Q-34, BF-01, BF-08 | 005 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
