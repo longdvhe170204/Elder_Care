@@ -39,7 +39,12 @@ public record RecordIncidentRequest(
                         description =
                                 "Ghi nhận sau: việc đã xảy ra và đã xử lý xong, chỉ lưu hồ sơ; không báo khẩn, không leo thang")
                 Boolean recordedLater,
-        @Schema(description = "Báo người nhà: INFORMED (ai, lúc nào, cách nào) hoặc NOT_YET") FamilyNoticeBody familyNotice) {
+        @Schema(description = "Báo người nhà: INFORMED (ai, lúc nào, cách nào) hoặc NOT_YET") FamilyNoticeBody familyNotice,
+        @Schema(
+                        defaultValue = "false",
+                        description = "Chỉ với recordedLater: ghi xong đóng luôn (Điều dưỡng, Trưởng tầng, Bác sĩ), bắt buộc resolution")
+                Boolean closeNow,
+        @Schema(description = "Kết quả xử lý khi closeNow") String resolution) {
 
     public record FamilyNoticeBody(String state, Instant at, String method, String note) {}
 
@@ -72,6 +77,45 @@ public record RecordIncidentRequest(
                 lowerLevelReason,
                 initialResponse,
                 createDespiteOpen,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    /** Chữ ký 15 đối số (trước closeNow): giữ cho các nơi dựng thân lệnh bằng mã. */
+    public RecordIncidentRequest(
+            Long residentId,
+            Long incidentTypeId,
+            String context,
+            Instant occurredAt,
+            Instant discoveredAt,
+            Long floorAreaId,
+            String location,
+            String ongoingActivity,
+            String description,
+            IncidentLevel level,
+            String lowerLevelReason,
+            String initialResponse,
+            Boolean createDespiteOpen,
+            Boolean recordedLater,
+            FamilyNoticeBody familyNotice) {
+        this(
+                residentId,
+                incidentTypeId,
+                context,
+                occurredAt,
+                discoveredAt,
+                floorAreaId,
+                location,
+                ongoingActivity,
+                description,
+                level,
+                lowerLevelReason,
+                initialResponse,
+                createDespiteOpen,
+                recordedLater,
+                familyNotice,
                 null,
                 null);
     }

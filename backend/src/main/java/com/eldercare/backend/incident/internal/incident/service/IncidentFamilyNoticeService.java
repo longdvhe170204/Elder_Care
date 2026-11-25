@@ -60,12 +60,12 @@ public class IncidentFamilyNoticeService {
 
 
     /**
-     * Hạn báo người nhà theo mức (đề xuất BF-06, nhóm A và viện chỉnh): Khẩn cấp 15 phút, Trung bình 4 giờ, Nhẹ 24 giờ, tính
+     * Hạn báo người nhà theo mức (đề xuất BF-06, nhóm A và viện chỉnh): Khẩn cấp 30 phút, Trung bình 4 giờ, Nhẹ 24 giờ, tính
      * từ lúc ghi nhận.
      */
     static Duration dueAfter(com.eldercare.backend.incident.internal.alert.domain.IncidentLevel level) {
         return switch (level) {
-            case CRITICAL -> Duration.ofMinutes(15);
+            case CRITICAL -> Duration.ofMinutes(30);
             case MEDIUM -> Duration.ofHours(4);
             case LOW -> Duration.ofHours(24);
         };
@@ -83,9 +83,10 @@ public class IncidentFamilyNoticeService {
             throw new PermissionDeniedException("Không có quyền xem sự cố");
         }
         Instant due = row.residentId() == null ? null : row.createdAt().plus(dueAfter(row.level()));
-        boolean open = !Set.of("CLOSED", "CANCELLED").contains(row.status());
+        // Không nhắc khi sự cố còn Mới, Đang xử lý (đang cứu người); chỉ nhắc khi chuyển theo dõi hoặc đã đóng (BF-06)
+        boolean remindable = Set.of("MONITORING", "CLOSED").contains(row.status());
         boolean informed = FamilyNotice.INFORMED.equals(row.state());
-        boolean overdue = open && !informed && due != null && time.now().isAfter(due);
+        boolean overdue = remindable && !informed && due != null && time.now().isAfter(due);
         String by = row.notifiedBy() == null ? null : accounts.fullName(row.notifiedBy()).orElse(null);
         return new FamilyNoticeStatus(
                 row.recordedLater(),

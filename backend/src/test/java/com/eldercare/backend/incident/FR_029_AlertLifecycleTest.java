@@ -104,19 +104,42 @@ class FR_029_AlertLifecycleTest {
         verify(alerts).close(ID, "Đã làm", REASON.value(), 900L, NOW, 3);
     }
 
+    /** Chốt BF-06 (2026-11-25): Điều dưỡng, Trưởng tầng, Bác sĩ đóng; Quản lý và Nhân viên chăm sóc không đóng cảnh báo sức khỏe. */
     @Test
-    void Q_442_onlyFloorManagerAndDoctorClose() {
+    void BF_06_nurseFloorManagerDoctorClose_managerAndCaregiverDoNot() {
         lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
 
-        assertThatThrownBy(() -> service.close(ID, "Huyết áp ổn định", null, user))
-                .isInstanceOf(PermissionDeniedException.class);
         when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
         assertThatThrownBy(() -> service.close(ID, "Huyết áp ổn định", null, user))
                 .isInstanceOf(PermissionDeniedException.class);
+        when(user.roles()).thenReturn(Set.of(Role.NURSING_HOME_MANAGER));
+        assertThatThrownBy(() -> service.close(ID, "Huyết áp ổn định", null, user))
+                .isInstanceOf(PermissionDeniedException.class);
 
-        when(user.roles()).thenReturn(Set.of(Role.DOCTOR));
+        when(user.roles()).thenReturn(Set.of(Role.NURSING_STAFF));
         service.close(ID, "Huyết áp ổn định", null, user);
         verify(alerts).close(ID, "Huyết áp ổn định", null, 900L, NOW, 3);
+    }
+
+    /** BF-06: nhân viên chăm sóc đóng cảnh báo nhắc việc chăm sóc mức Nhẹ, kể cả khi chưa ai tiếp nhận. */
+    @Test
+    void BF_06_caregiverClosesLowCareReminder() {
+        when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
+        lockOfType("LOW_WATER_INTAKE", AlertStatus.NEW, IncidentLevel.LOW, null, "LOW_WATER_INTAKE:101");
+
+        service.close(ID, "Đã cho cụ uống nước", null, user);
+
+        verify(alerts).close(eq(ID), eq("Đã cho cụ uống nước"), any(), eq(900L), any(), anyInt());
+    }
+
+    @Test
+    void BF_06_caregiverCannotCloseMediumReminderOrOtherTypes() {
+        when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
+        lockOfType("LOW_WATER_INTAKE", AlertStatus.NEW, IncidentLevel.MEDIUM, null, "LOW_WATER_INTAKE:101");
+        assertThatThrownBy(() -> service.close(ID, "Đã làm", null, user)).isInstanceOf(PermissionDeniedException.class);
+
+        lockOfType("CHI_SO", AlertStatus.NEW, IncidentLevel.LOW, null, "VUOT_NGUONG:5");
+        assertThatThrownBy(() -> service.close(ID, "Đã làm", null, user)).isInstanceOf(PermissionDeniedException.class);
     }
 
     @Test
@@ -155,12 +178,16 @@ class FR_029_AlertLifecycleTest {
     }
 
     private void lock(AlertStatus status, IncidentLevel level, Long assignee, String typeLock) {
+        lockOfType("CHI_SO", status, level, assignee, typeLock);
+    }
+
+    private void lockOfType(String type, AlertStatus status, IncidentLevel level, Long assignee, String typeLock) {
         when(alerts.lock(ID))
                 .thenReturn(Optional.of(new AlertRecord(
                         ID,
                         101L,
                         7L,
-                        "CHI_SO",
+                        type,
                         typeLock,
                         level,
                         null,

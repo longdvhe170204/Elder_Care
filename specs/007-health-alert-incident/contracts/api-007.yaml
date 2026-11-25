@@ -390,7 +390,7 @@ paths:
     get:
       tags: [incidents]
       summary: Tình trạng báo người nhà của sự cố (đề xuất BF-06, 2026-11-24)
-      description: 'recordedLater, state (NONE, INFORMED, NOT_YET), notifiedAt, method, note, notifiedByName, dueAt (Khẩn cấp 15 phút, Trung bình 4 giờ, Nhẹ 24 giờ từ lúc ghi, cấu hình chờ nhóm A), overdue (sự cố còn mở, chưa báo, quá hạn)'
+      description: 'recordedLater, state (NONE, INFORMED, NOT_YET), notifiedAt, method, note, notifiedByName, dueAt (Khẩn cấp 30 phút, Trung bình 4 giờ, Nhẹ 24 giờ từ lúc ghi, cấu hình chờ nhóm A), overdue (chỉ khi sự cố đang theo dõi hoặc đã đóng, chưa báo, quá hạn; còn Mới hoặc Đang xử lý thì không nhắc)'
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FamilyNoticeStatus' } } } } }
     post:
@@ -1230,6 +1230,8 @@ components:
         createDespiteOpen: { type: boolean, default: false }
         recordedLater: { type: boolean, default: false, description: 'Đề xuất BF-06 (2026-11-24): ghi nhận sau, việc đã xảy ra và đã xử lý xong, chỉ lưu hồ sơ; không hạn tiếp nhận, không leo thang, không báo khẩn, chỉ báo thông tin cho Điều dưỡng phụ trách, Trưởng tầng. Bắt buộc có familyNotice khi gắn người cao tuổi' }
         familyNotice: { $ref: '#/components/schemas/FamilyNotice' }
+        closeNow: { type: boolean, default: false, description: 'Đề xuất BF-06 (2026-11-25): chỉ với recordedLater, ghi xong đóng luôn (Điều dưỡng, Trưởng tầng, Bác sĩ), bắt buộc resolution' }
+        resolution: { type: string, description: 'Kết quả xử lý khi closeNow' }
     FamilyNoticeStatus:
       type: object
       properties:

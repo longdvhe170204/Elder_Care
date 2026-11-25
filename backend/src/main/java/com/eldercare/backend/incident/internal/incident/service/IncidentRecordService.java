@@ -1,5 +1,7 @@
 package com.eldercare.backend.incident.internal.incident.service;
 
+import static com.eldercare.backend.incident.internal.incident.domain.IncidentActions.CLOSED;
+import static com.eldercare.backend.incident.internal.incident.domain.IncidentActions.RECEIVED;
 import static com.eldercare.backend.incident.internal.incident.domain.IncidentActions.RECORDED;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
@@ -68,6 +70,14 @@ public class IncidentRecordService {
     private static final String SUSPECTED_INFECTION = "SUSPECTED_INFECTION";
     /** FR-043 (b) sửa theo spec 013 FR-022: không báo đánh giá lại ở mọi mức. */
     static final Set<String> NO_REASSESSMENT = Set.of("BELONGINGS_LOST", "BELONGINGS_DAMAGED");
+    /** BF-06: người có chuyên môn y tế ghi sự cố đang xảy ra thì được ghi là người xử lý (tự tiếp nhận). */
+    private static final Set<com.eldercare.backend.common.Role> AUTO_RECEIVERS =
+            Set.of(com.eldercare.backend.common.Role.DOCTOR, com.eldercare.backend.common.Role.NURSING_STAFF);
+    /** BF-06: người đóng được sự cố khi ghi nhận sau (như đóng sự cố Trung bình, Khẩn cấp). */
+    private static final Set<com.eldercare.backend.common.Role> RECORD_CLOSERS = Set.of(
+            com.eldercare.backend.common.Role.DOCTOR,
+            com.eldercare.backend.common.Role.NURSING_STAFF,
+            com.eldercare.backend.common.Role.FLOOR_MANAGER);
 
     private final IncidentStore incidents;
     private final IncidentCatalogService catalog;
@@ -137,6 +147,15 @@ public class IncidentRecordService {
         }
         IncidentLevel level = level(command.level());
         var familyNotice = checkedFamilyNotice(command);
+        if (command.closeNow()) {
+            if (!command.recordedLater()) throw new InvalidValueException("Chỉ ghi nhận sau mới đóng luôn được");
+            if (command.resolution() == null || command.resolution().isBlank()) {
+                throw new InvalidValueException("Thiếu kết quả xử lý");
+            }
+            if (user.roles().stream().noneMatch(RECORD_CLOSERS::contains)) {
+                throw new PermissionDeniedException("Chỉ Điều dưỡng, Trưởng tầng, Bác sĩ đóng sự cố khi ghi nhận");
+            }
+        }
         if (level.ordinal() < type.defaultLevel().ordinal()
                 && (command.lowerLevelReason() == null
                         || command.lowerLevelReason().isBlank())) {
@@ -205,6 +224,33 @@ public class IncidentRecordService {
                             : null,
                     familyNotice == null ? null : familyNotice.method(),
                     familyNotice == null ? null : familyNotice.note());
+        }
+        if (command.closeNow()) {
+            incidents.closeRecordedLater(id, command.resolution().strip(), user.accountId(), now);
+            audit.write(AuditLogEntry.builder()
+                    .action(CLOSED)
+                    .entity(ENTITY, id)
+                    .resident(residentId)
+                    .before(Map.of("status", "NEW"))
+                    .after(Map.of("status", "CLOSED", "recordedLater", true))
+                    .build());
+            if (residentId != null) {
+                events.publishEvent(new com.eldercare.backend.incident.internal.governance.domain.ResidentItemClosed(residentId));
+            }
+        } else if (command.autoReceive()
+                && !command.recordedLater()
+                && sourceAlertId == null
+                && user.roles().stream().anyMatch(AUTO_RECEIVERS::contains)) {
+            // Người ghi là Bác sĩ, Điều dưỡng: ghi là người xử lý, không phải bấm Tiếp nhận (BF-06)
+            var state = incidents.lock(id).orElseThrow();
+            incidents.receive(id, user.accountId(), now, state.version());
+            audit.write(AuditLogEntry.builder()
+                    .action(RECEIVED)
+                    .entity(ENTITY, id)
+                    .resident(residentId)
+                    .before(Map.of("status", "NEW"))
+                    .after(Map.of("status", "IN_PROGRESS", "receivedBy", user.accountId(), "auto", true))
+                    .build());
         }
         var after = new HashMap<String, Object>();
         after.put("type", type.code());

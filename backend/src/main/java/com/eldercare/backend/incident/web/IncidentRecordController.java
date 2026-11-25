@@ -75,7 +75,10 @@ public class IncidentRecordController {
                                         request.familyNotice().state(),
                                         request.familyNotice().at(),
                                         request.familyNotice().method(),
-                                        request.familyNotice().note())),
+                                        request.familyNotice().note()),
+                        true,
+                        Boolean.TRUE.equals(request.closeNow()),
+                        request.resolution()),
                 currentUser);
         // Ngoài phạm vi chỉ trả nhận dạng và "đã thông báo người xử lý" (FR-041, FR-048).
         var incident = result.identificationOnly()

@@ -391,6 +391,16 @@ public class IncidentStore {
         }, id).stream().findFirst();
     }
 
+    /** BF-06 "Ghi nhận sau" kèm đóng luôn: Mới → Đã đóng ngay khi ghi, kết quả bắt buộc, dừng leo thang. */
+    public void closeRecordedLater(long id, String resolution, long closedBy, Instant at) {
+        int changed = jdbc.update("""
+                UPDATE incident SET status = 'CLOSED', resolution = ?, closed_by = ?, closed_at = ?,
+                  escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status = 'NEW'
+                """, resolution, closedBy, Timestamp.from(at), id);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
     public void receive(long id, long receiverId, Instant at, int expectedVersion) {
         int changed = jdbc.update("""
                 UPDATE incident SET status='IN_PROGRESS', received_at=?, received_by=?, assignee_id=?,

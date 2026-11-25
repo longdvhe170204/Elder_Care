@@ -41,7 +41,7 @@ public class IncidentQueryService {
     private static final PermissionKey CREATE = new PermissionKey(Function.INCIDENT_EMERGENCY, Operation.CREATE);
     private static final Set<String> OPEN = Set.of("NEW", "IN_PROGRESS", "MONITORING");
     private static final Set<Role> HANDLER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
-    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.DOCTOR);
+    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
     private static final Set<Role> ASSIGNER_ROLES = Set.of(Role.FLOOR_MANAGER, Role.DOCTOR, Role.NURSING_HOME_MANAGER);
 
     private final IncidentStore incidents;

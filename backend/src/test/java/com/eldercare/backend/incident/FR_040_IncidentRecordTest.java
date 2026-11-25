@@ -19,6 +19,7 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.care.api.CarePlanReviewApi;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
@@ -252,6 +253,60 @@ class FR_040_IncidentRecordTest {
                         org.mockito.ArgumentMatchers.any(),
                         org.mockito.ArgumentMatchers.any(),
                         org.mockito.ArgumentMatchers.any());
+    }
+
+    /** BF-06: Bác sĩ, Điều dưỡng ghi sự cố đang xảy ra (từ web) thì tự tiếp nhận; lệnh cũ của module khác thì không. */
+    @Test
+    void BF_06_nurseRecordingFromWebAutoReceives_butLegacyCommandDoesNot() {
+        when(incidents.lock(41L)).thenReturn(Optional.of(new IncidentState(41L, RESIDENT, FLOOR, "NEW", IncidentLevel.MEDIUM, false, 0)));
+
+        service.record(command(RESIDENT, 2, "MEDIUM", null, false), user);
+        verify(incidents, never()).receive(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong(), any(), org.mockito.ArgumentMatchers.anyInt());
+
+        service.record(autoReceiving(RESIDENT, 2, "MEDIUM"), user);
+        verify(incidents).receive(41L, 900L, NOW, 0);
+    }
+
+    @Test
+    void BF_06_caregiverRecordingDoesNotAutoReceive() {
+        when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
+
+        service.record(autoReceiving(RESIDENT, 2, "MEDIUM"), user);
+
+        verify(incidents, never()).receive(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong(), any(), org.mockito.ArgumentMatchers.anyInt());
+    }
+
+    /** BF-06: ghi nhận sau kèm đóng luôn: Đã đóng ngay với kết quả; chỉ Điều dưỡng, Trưởng tầng, Bác sĩ. */
+    @Test
+    void BF_06_recordedLaterCloseNowClosesImmediately_onlyForClosers() {
+        var informed = new com.eldercare.backend.incident.api.dto.FamilyNotice("INFORMED", NOW.minusSeconds(60), "PHONE", null);
+        service.record(closeNow(RESIDENT, 2, "MEDIUM", informed, "Đã kiểm tra, không đau"), user);
+        verify(incidents).closeRecordedLater(41L, "Đã kiểm tra, không đau", 900L, NOW);
+
+        when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
+        assertThatThrownBy(() -> service.record(closeNow(RESIDENT, 2, "MEDIUM", informed, "Đã làm"), user))
+                .isInstanceOf(com.eldercare.backend.common.error.PermissionDeniedException.class);
+    }
+
+    @Test
+    void BF_06_closeNowNeedsRecordedLaterAndResolution() {
+        var informed = new com.eldercare.backend.incident.api.dto.FamilyNotice("INFORMED", NOW, "PHONE", null);
+        assertThatThrownBy(() -> service.record(closeNow(RESIDENT, 2, "MEDIUM", informed, " "), user))
+                .isInstanceOf(com.eldercare.backend.common.error.InvalidValueException.class);
+        verify(incidents, never()).insert(any());
+    }
+
+    private static RecordIncidentCommand autoReceiving(Long residentId, long typeId, String level) {
+        return new RecordIncidentCommand(
+                residentId, typeId, null, null, NOW, null, "Phòng 101", null, "Mô tả sự cố", level, null, null, false, false, null,
+                true, false, null);
+    }
+
+    private static RecordIncidentCommand closeNow(
+            Long residentId, long typeId, String level, com.eldercare.backend.incident.api.dto.FamilyNotice notice, String resolution) {
+        return new RecordIncidentCommand(
+                residentId, typeId, null, NOW.minusSeconds(3600), NOW, null, "Phòng 101", null, "Đã xử lý xong", level, null, null,
+                false, true, notice, true, true, resolution);
     }
 
     private static RecordIncidentCommand recordedLater(

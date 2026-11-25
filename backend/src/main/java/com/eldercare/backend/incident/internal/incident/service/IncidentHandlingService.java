@@ -58,8 +58,8 @@ public class IncidentHandlingService {
     private static final Set<String> OPEN = Set.of("NEW", "IN_PROGRESS", "MONITORING");
     private static final Set<String> INFECTION_OUTCOMES = Set.of("CONFIRMED_INFECTION", "RULED_OUT", "UNDETERMINED");
     private static final Set<Role> HANDLER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
-    /** BR-M05-09: sự cố Trung bình, Khẩn cấp chỉ Điều dưỡng hoặc Bác sĩ đóng. */
-    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.DOCTOR);
+    /** BR-M05-09 sửa theo chốt BF-06 (2026-11-25): sự cố Trung bình, Khẩn cấp do Điều dưỡng, Trưởng tầng hoặc Bác sĩ đóng. */
+    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
 
     private final IncidentStore incidents;
     private final IncidentProgressionStore progressions;
