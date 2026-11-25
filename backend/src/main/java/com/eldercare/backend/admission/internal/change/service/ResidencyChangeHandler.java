@@ -414,6 +414,16 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                         .isPresent();
     }
 
+    /**
+     * Chỉ người lập, Hành chính (xem nháp cùng bộ phận, của Bác sĩ và của người đại diện) được xem bản Nháp; Quản lý
+     * viện chỉ xem khi yêu cầu đã gửi duyệt hoặc do chính mình lập.
+     */
+    @Override
+    public boolean mayViewDraft(CurrentUser user, ApprovalRequestView request) {
+        return mayActOnDraft(user, request)
+                || (user.type() != AccountType.FAMILY_MEMBER && user.roles().contains(Role.OFFICE_STAFF));
+    }
+
     /** Hành chính, Bác sĩ, người đại diện lập (Phụ lục 27 dòng "Yêu cầu thay đổi lưu trú", ô T). */
     @Override
     public PermissionKey createPermission() {
@@ -685,11 +695,14 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     /**
-     * FR-043f (Q-421): Nháp, Chờ duyệt do người lập, Hành chính, Quản lý viện hủy; tài khoản người thân chỉ hủy yêu cầu do
-     * chính mình lập. Đã duyệt vẫn do người duyệt (000).
+     * Nháp chỉ người lập hoặc Hành chính hủy; Chờ duyệt do người lập, Hành chính, Quản lý viện; tài khoản người thân chỉ
+     * hủy yêu cầu do chính mình lập. Đã duyệt vẫn do người duyệt (000).
      */
     @Override
     public boolean mayCancel(CurrentUser user, ApprovalRequestView request) {
+        if (ApprovalStatus.DRAFT.equals(request.status())) {
+            return mayViewDraft(user, request);
+        }
         if (request.requesterId() == user.accountId()) {
             return true;
         }
