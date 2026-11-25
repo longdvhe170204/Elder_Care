@@ -27,7 +27,7 @@ final class TransferSummaryDocument {
     private static final DateTimeFormatter TIME =
             DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy").withZone(BusinessTime.ZONE);
     private static final DateTimeFormatter ROW_TIME =
-            DateTimeFormatter.ofPattern("HH:mm\ndd/MM/yyyy").withZone(BusinessTime.ZONE);
+            DateTimeFormatter.ofPattern("HH:mm\ndd/MM").withZone(BusinessTime.ZONE);
 
     /** Nhãn tiếng Việt cho mã loại diễn biến (danh mục M05.PROGRESSION_TYPE); mã lạ thì ghi chung, không in mã. */
     private static final Map<String, String> PROGRESSION = Map.ofEntries(
@@ -87,61 +87,142 @@ final class TransferSummaryDocument {
     }
 
     private static byte[] renderOnce(TransferSummaryContent s, FacilityInfo facility, Caps caps) {
-        // Một trang A4, bố cục theo trình tự bàn giao chuẩn (SBAR): hành chính (hai cột) → tình trạng, lý do → thông tin cần
-        // lưu ý (ba cột) → diễn biến, xử trí → liên hệ, bàn giao (hai cột) → nguyện vọng (khi chọn gửi kèm) → ký hai bên.
+        // Một trang A4, bố cục theo mức ưu tiên của người nhận (BF-06): khung "Cần biết ngay" → lý do, tình trạng, chỉ số →
+        // bệnh nền, thuốc → xử trí đã làm → nơi nhận, người đi cùng, liên hệ → nguyện vọng (khi chọn gửi kèm) → ký hai bên.
         var pdf = (caps.compact() ? PdfDocument.a4Compact(facility, null, TITLE) : PdfDocument.a4(facility, null, TITLE))
-                .note("(Bàn giao kèm người cao tuổi khi chuyển đến cơ sở khám bệnh, chữa bệnh)", true)
-                .heading("I. HÀNH CHÍNH");
-        var admin = new java.util.ArrayList<String>(List.of(
-                "Người cao tuổi", orMissing(s.residentName()),
-                "Nơi chuyển đến thực tế", clip(orMissing(s.receivingFacility()), caps.chars()),
-                "Thời điểm chuyển", s.transferAt() == null ? MISSING : time(s.transferAt())));
-        if (s.expectedReturnAt() != null) {
-            admin.add("Dự kiến về");
-            admin.add(time(s.expectedReturnAt()));
-        }
-        pdf.fields(2, admin.toArray(String[]::new));
+                .note("(Bàn giao kèm người cao tuổi khi chuyển đến cơ sở khám bệnh, chữa bệnh)", true);
+        String ref = Stream.of(s.incidentId() == null ? null : "Sự cố SC-" + s.incidentId(), s.roomBed())
+                .filter(v -> v != null && !v.isBlank())
+                .collect(Collectors.joining(" · "));
+        if (!ref.isEmpty()) pdf.note(ref, true);
 
-        pdf.heading("II. TÌNH TRẠNG LÚC CHUYỂN")
-                .field("Lý do chuyển và tình trạng lúc bàn giao", clip(orMissing(s.handoverCondition()), caps.chars()))
-                .field("Chỉ số gần nhất", vitals(s.latestVitalSigns(), caps));
+        boolean wishes = Boolean.TRUE.equals(s.includeWishes());
+        pdf.box(
+                "CẦN BIẾT NGAY",
+                2,
+                "Người cao tuổi", residentLine(s),
+                "Chuyển lúc", transferLine(s),
+                "Dị ứng", s.allergies() == null || s.allergies().isEmpty() ? UNKNOWN_ASK : clip(names(s.allergies()), caps.chars()),
+                wishes ? "Nguyện vọng cuối đời" : "Bệnh nền",
+                wishes ? wishLine(s.endOfLifeWish(), caps) : clip(bullets(s.chronicConditions(), caps), caps.chars()));
 
-        pdf.heading("III. THÔNG TIN CẦN LƯU Ý")
-                .fields(
-                        3,
-                        "Dị ứng", clip(names(s.allergies()), caps.chars()),
-                        "Bệnh nền", clip(names(s.chronicConditions()), caps.chars()),
-                        "Thuốc đang dùng", medications(s.currentMedications(), caps));
+        pdf.band("I. LÝ DO CHUYỂN VÀ TÌNH TRẠNG LÚC CHUYỂN")
+                .paragraph(clip(orMissing(s.handoverCondition()), caps.chars()));
+        vitals(pdf, s.latestVitalSigns(), caps);
 
-        pdf.heading("IV. DIỄN BIẾN VÀ XỬ TRÍ TẠI VIỆN");
+        pdf.band("II. BỆNH NỀN VÀ THUỐC ĐANG DÙNG")
+                .cells(
+                        2,
+                        "Bệnh nền", clip(bullets(s.chronicConditions(), caps), caps.chars()),
+                        "Thuốc đang dùng", clip(medicationLines(s.currentMedications(), caps), caps.chars() * 2));
+
+        pdf.band("III. ĐÃ XỬ TRÍ TẠI VIỆN");
         var progressions = progressionRows(s.progressions(), caps);
         if (progressions.rows().isEmpty()) {
-            pdf.field("Diễn biến và xử trí", MISSING);
+            pdf.paragraph("Chưa ghi diễn biến hoặc xử trí nào tại viện.");
         } else {
-            // Cột thời điểm hẹp, cột diễn biến rộng để có chỗ ghi chữ
-            pdf.table(List.of("Thời điểm", "Diễn biến và xử trí"), progressions.rows(), new float[] {1f, 6f});
+            pdf.table(List.of("Giờ", "Loại", "Nội dung"), progressions.rows(), new float[] {1.1f, 2f, 7f});
             if (progressions.hidden() > 0) {
                 pdf.note("(Còn " + progressions.hidden() + " diễn biến cũ hơn trong hồ sơ sự cố.)", false);
             }
         }
 
-        pdf.heading("V. LIÊN HỆ VÀ BÀN GIAO")
-                .fields(2, "Người liên hệ chính", contact(s), "Người đi cùng", clip(orMissing(s.companion()), caps.chars()));
-        if (s.notAskedFirstReason() != null) {
-            pdf.field("Lý do chưa hỏi ý kiến gia đình trước", clip(s.notAskedFirstReason(), caps.chars()));
+        pdf.band("IV. NƠI TIẾP NHẬN, NGƯỜI ĐI CÙNG VÀ LIÊN HỆ");
+        var handover = new java.util.ArrayList<String>(List.of(
+                "Nơi tiếp nhận", clip(orMissing(s.receivingFacility()), caps.chars())
+                        + (s.expectedReturnAt() == null ? "" : "\nDự kiến về: " + time(s.expectedReturnAt())),
+                "Liên hệ gia đình", contact(s),
+                "Người đi cùng", clip(people(s.companion()), caps.chars())));
+        if (s.requiredContactReached() != null) {
+            handover.add("Hỏi ý kiến gia đình trước khi chuyển");
+            handover.add(
+                    Boolean.TRUE.equals(s.requiredContactReached())
+                            ? "Đã liên lạc"
+                            : "Chưa hỏi được"
+                                    + (blank(s.notAskedFirstReason()) ? "" : ": " + clip(s.notAskedFirstReason(), caps.chars())));
         }
+        pdf.cells(2, handover.toArray(String[]::new));
 
-        if (Boolean.TRUE.equals(s.includeWishes())) {
+        if (wishes) {
             wishes(pdf, s, caps);
         }
 
         pdf.signatures("Người lập phiếu", "Đại diện nơi nhận")
                 .note(
-                        "Lập lúc " + time(s.preparedAt()) + " bởi " + orMissing(s.preparedBy())
+                        "Lập phiếu lúc " + time(s.preparedAt()) + " bởi " + orMissing(s.preparedBy())
                                 + ". Nguồn: hồ sơ người cao tuổi và bản ghi chuyển viện trên Elder_Care.",
                         false)
                 .note(DISCLAIMER, false);
         return pdf.toBytes();
+    }
+
+    private static final String UNKNOWN_ASK = "Chưa khai báo, hãy hỏi người nhà";
+    private static final DateTimeFormatter HOUR = DateTimeFormatter.ofPattern("HH:mm").withZone(BusinessTime.ZONE);
+
+    private static String residentLine(TransferSummaryContent s) {
+        String name = orMissing(s.residentName());
+        if (s.dateOfBirth() == null || s.transferAt() == null) return name;
+        int age = java.time.Period.between(
+                        s.dateOfBirth(), s.transferAt().atZone(BusinessTime.ZONE).toLocalDate())
+                .getYears();
+        return age >= 0 ? name + " · " + age + " tuổi" : name;
+    }
+
+    private static String transferLine(TransferSummaryContent s) {
+        String at = s.transferAt() == null ? MISSING : time(s.transferAt());
+        return s.occurredAt() == null ? at : at + "\nXảy ra lúc " + HOUR.format(s.occurredAt());
+    }
+
+    /** Chỉ số gần nhất: mỗi chỉ số một ô, kèm giờ đo; chưa có thì ghi rõ chưa đo, không để trống. */
+    private static void vitals(PdfDocument pdf, List<Map<String, Object>> items, Caps caps) {
+        if (items == null || items.isEmpty()) {
+            pdf.paragraph("Chỉ số gần nhất: chưa có chỉ số nào được ghi trước lúc chuyển.");
+            return;
+        }
+        var pairs = new java.util.ArrayList<String>();
+        items.stream().limit(caps.items()).forEach(i -> {
+            pairs.add(text(i.get("indicatorName")));
+            pairs.add((value(i.get("values")) + (blank(i.get("unit")) ? "" : " " + i.get("unit")))
+                    + (i.get("measuredAt") instanceof Instant t ? "\nđo " + HOUR.format(t) : ""));
+        });
+        pdf.cells(Math.min(4, Math.max(1, pairs.size() / 2)), pairs.toArray(String[]::new));
+    }
+
+    private static String wishLine(Map<String, Object> end, Caps caps) {
+        if (end == null || Boolean.TRUE.equals(end.get("notRecorded"))) return MISSING;
+        String choice = WISH_CHOICE.getOrDefault(text(end.get("choice")), MISSING);
+        return choice + (blank(end.get("note")) ? "" : " (" + clip(text(end.get("note")), caps.chars()) + ")");
+    }
+
+    /** Mỗi mục một dòng, đầu dòng có chấm; không có thì "Chưa có thông tin". */
+    private static String bullets(List<Map<String, Object>> items, Caps caps) {
+        if (items == null || items.isEmpty()) return MISSING;
+        return items.stream()
+                .limit(caps.items())
+                .map(i -> "• " + text(i.get("name")))
+                .collect(Collectors.joining("\n"));
+    }
+
+    private static String medicationLines(List<Map<String, Object>> items, Caps caps) {
+        if (items == null || items.isEmpty()) return MISSING;
+        var shown = items.stream()
+                .limit(caps.items())
+                .map(i -> "• "
+                        + Stream.of("name", "strength", "dosage", "route")
+                                .map(k -> text(i.get(k)).trim())
+                                .filter(v -> !v.isEmpty())
+                                .collect(Collectors.joining(" ")))
+                .collect(Collectors.joining("\n"));
+        return items.size() > caps.items() ? shown + "\n… (còn " + (items.size() - caps.items()) + " thuốc)" : shown;
+    }
+
+    /** Người đi cùng: web ghép các người bằng dấu chấm phẩy; mỗi người một dòng. */
+    private static String people(String companion) {
+        if (blank(companion)) return MISSING;
+        return Stream.of(companion.split(";"))
+                .map(String::trim)
+                .filter(p -> !p.isEmpty())
+                .collect(Collectors.joining("\n"));
     }
 
     private static String clip(String text, int max) {
@@ -151,7 +232,7 @@ final class TransferSummaryDocument {
 
     /** Mục chỉ in khi nhân viên chọn gửi kèm; không in toàn văn phiếu nguyện vọng. */
     private static void wishes(PdfDocument pdf, TransferSummaryContent s, Caps caps) {
-        pdf.heading("VI. Nguyện vọng liên quan đến ca này");
+        pdf.band("V. NGUYỆN VỌNG LIÊN QUAN ĐẾN CA NÀY");
         var end = s.endOfLifeWish();
         if (end == null || Boolean.TRUE.equals(end.get("notRecorded"))) {
             pdf.field("Nguyện vọng cuối đời", MISSING);
@@ -176,7 +257,7 @@ final class TransferSummaryDocument {
                             .contains(s.receivingFacility().trim().toLowerCase());
             pdf.field(
                     "Bệnh viện ưu tiên theo hồ sơ",
-                    clip(preferred, caps.chars()) + (same ? "" : " (khác nơi chuyển đến thực tế ở mục 1)"));
+                    clip(preferred, caps.chars()) + (same ? "" : " (khác nơi tiếp nhận ở mục IV)"));
         }
         if (Boolean.TRUE.equals(treatment.get("askFamilyFirst"))) {
             pdf.field(
@@ -208,19 +289,19 @@ final class TransferSummaryDocument {
 
     private static ProgressionRows progressionRows(List<Map<String, Object>> items, Caps caps) {
         if (items == null) return new ProgressionRows(List.of(), 0);
-        int skip = Math.max(0, items.size() - caps.progressions());
-        var rows = items.stream()
+        // Bỏ dòng hệ thống "Đã chuyển viện": đã có ở nơi tiếp nhận và người đi cùng (BF-06)
+        var clinical = items.stream()
+                .filter(i -> !"TRANSFERRED_OUT".equals(text(i.get("typeCode"))))
+                .toList();
+        int skip = Math.max(0, clinical.size() - caps.progressions());
+        var rows = clinical.stream()
                 .skip(skip)
                 .map(i -> {
-                    String label = PROGRESSION.getOrDefault(text(i.get("typeCode")), "diễn biến");
+                    String label = PROGRESSION.getOrDefault(text(i.get("typeCode")), "Diễn biến");
                     String content = text(i.get("content")).trim();
-                    String detail = content.isEmpty()
-                            ? "Có bản ghi " + label.substring(0, 1).toLowerCase() + label.substring(1)
-                                    + ", nội dung chưa rõ."
-                            : content.toLowerCase().startsWith(label.toLowerCase()) ? content : label + ": " + content;
-                    detail = clip(detail, caps.chars());
+                    String detail = content.isEmpty() ? "Nội dung chưa rõ." : clip(content, caps.chars());
                     String at = i.get("occurredAt") instanceof Instant t ? ROW_TIME.format(t) : "";
-                    return List.of(at, detail);
+                    return List.of(at, label, detail);
                 })
                 .toList();
         return new ProgressionRows(rows, skip);

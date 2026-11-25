@@ -180,6 +180,71 @@ public final class PdfDocument {
         return this;
     }
 
+    /** Tiêu đề mục có nền xám nhạt, chạy hết bề ngang (phiếu nhiều mục, BF-06). */
+    public PdfDocument band(String text) {
+        PdfPTable table = new PdfPTable(1);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(style.headingBefore());
+        table.setSpacingAfter(style.headingAfter());
+        table.setKeepTogether(true);
+        PdfPCell cell = new PdfPCell(new Phrase(text, style.heading()));
+        cell.setBackgroundColor(new Color(0xEE, 0xEE, 0xEE));
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setPadding(style.cellPadding());
+        table.addCell(cell);
+        add(table);
+        return this;
+    }
+
+    /**
+     * Lưới ô có viền mảnh, mỗi ô nhãn nhỏ màu xám ở trên, giá trị ở dưới ({@code \n} xuống dòng). {@code columns} cột
+     * đều nhau; ô thừa ở hàng cuối để trống.
+     */
+    public PdfDocument cells(int columns, String... labelValuePairs) {
+        add(cellGrid(columns, false, labelValuePairs));
+        return this;
+    }
+
+    /** Khung viền đậm có tiêu đề, bên trong là lưới ô như {@link #cells} nhưng không viền ô (mục "cần biết ngay"). */
+    public PdfDocument box(String title, int columns, String... labelValuePairs) {
+        PdfPTable outer = new PdfPTable(1);
+        outer.setWidthPercentage(100);
+        outer.setSpacingAfter(style.fieldAfter());
+        outer.setKeepTogether(true);
+        PdfPCell frame = new PdfPCell();
+        frame.setBorderWidth(1.5f);
+        frame.setPadding(style.cellPadding() + 2);
+        frame.addElement(new Paragraph(title, style.bold()));
+        frame.addElement(cellGrid(columns, true, labelValuePairs));
+        outer.addCell(frame);
+        add(outer);
+        return this;
+    }
+
+    private PdfPTable cellGrid(int columns, boolean borderless, String... labelValuePairs) {
+        if (labelValuePairs.length % 2 != 0) {
+            throw new IllegalArgumentException("Cần cặp nhãn, giá trị");
+        }
+        Font label = new Font(
+                style.small().getBaseFont(), style.small().getSize(), Font.NORMAL, new Color(0x55, 0x55, 0x55));
+        PdfPTable table = new PdfPTable(columns);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(borderless ? 3 : 0);
+        table.setSpacingAfter(style.fieldAfter());
+        for (int i = 0; i < labelValuePairs.length; i += 2) {
+            Paragraph paragraph = new Paragraph();
+            paragraph.setLeading(0, 1.45f);
+            paragraph.add(new Chunk(labelValuePairs[i], label));
+            paragraph.add(new Chunk("\n" + (labelValuePairs[i + 1] == null ? "" : labelValuePairs[i + 1]), style.text()));
+            PdfPCell cell = new PdfPCell(paragraph);
+            cell.setPadding(style.cellPadding() + 1.5f);
+            if (borderless) cell.setBorder(Rectangle.NO_BORDER);
+            table.addCell(cell);
+        }
+        table.completeRow();
+        return table;
+    }
+
     /** Dòng chữ nhỏ canh giữa (phụ đề, nguồn thông tin). */
     public PdfDocument note(String text, boolean centered) {
         Paragraph paragraph = new Paragraph(text, style.small());

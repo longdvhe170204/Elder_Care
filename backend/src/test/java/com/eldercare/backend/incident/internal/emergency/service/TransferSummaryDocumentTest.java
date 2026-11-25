@@ -23,26 +23,28 @@ class TransferSummaryDocumentTest {
         String text = text(full(false));
 
         assertThat(text).contains("TÓM TẮT THÔNG TIN SỨC KHOẺ").doesNotContain("PHIẾU TÓM TẮT CHUYỂN VIỆN");
-        assertThat(text).contains("Nơi chuyển đến thực tế: Bệnh viện X", "Thời điểm chuyển: 19:16 ngày 22/11/2026");
-        assertThat(text.indexOf("Nơi chuyển đến thực tế"))
-                .isLessThan(text.indexOf("Thời điểm chuyển"))
-                .isLessThan(text.indexOf("Bệnh nền"));
-        assertThat(text.indexOf("Thời điểm chuyển")).isLessThan(text.indexOf("Dị ứng"));
-        assertThat(text).contains("Lý do chuyển và tình trạng lúc bàn giao: Ngã trong nhà vệ sinh");
-        assertThat(text).contains("Sơ cứu, chăm sóc tại chỗ: Băng ép vết thương");
-        assertThat(text).contains("Đã chuyển viện sang Bệnh viện X").doesNotContain("Đã chuyển viện: Đã chuyển viện");
+        assertThat(text).contains("CẦN BIẾT NGAY", "Chuyển lúc 19:16 ngày 22/11/2026", "Xảy ra lúc 18:46");
+        assertThat(text).contains("Sự cố SC-20 · Phòng 101", "Nguyễn Thị An · 84 tuổi");
+        assertThat(text.indexOf("CẦN BIẾT NGAY"))
+                .isLessThan(text.indexOf("I. LÝ DO CHUYỂN"))
+                .isLessThan(text.indexOf("II. BỆNH NỀN"))
+                .isLessThan(text.indexOf("III. ĐÃ XỬ TRÍ"))
+                .isLessThan(text.indexOf("IV. NƠI TIẾP NHẬN"));
+        assertThat(text).contains("Ngã trong nhà vệ sinh");
+        assertThat(text).contains("Sơ cứu, chăm sóc tại chỗ", "Băng ép vết thương");
+        assertThat(text).doesNotContain("Đã chuyển viện sang").doesNotContain("Đã chuyển viện: Đã chuyển viện");
         assertThat(text).doesNotContain("FIRST_AID").doesNotContain("TRANSFERRED_OUT");
-        assertThat(text).contains("Dị ứng: Sữa bò, phấn hoa", "Bệnh nền: Tăng huyết áp", "Paracetamol 500mg");
-        assertThat(text)
-                .contains("Người liên hệ chính: Nguyễn Văn Rạng · 0911000001", "Người đi cùng: Nguyễn Văn Hùng");
-        assertThat(text).doesNotContain("Bệnh nền: Chưa có thông tin", "Người liên hệ chính: Chưa có thông tin");
+        assertThat(text).contains("Dị ứng Sữa bò, phấn hoa", "• Tăng huyết áp", "Paracetamol 500mg");
+        assertThat(text).contains("Nơi tiếp nhận Bệnh viện X", "Liên hệ gia đình Nguyễn Văn Rạng · 0911000001");
+        assertThat(text).contains("Người đi cùng Nguyễn Văn Hùng");
+        assertThat(text).doesNotContain("Liên hệ gia đình Chưa có thông tin");
     }
 
     @Test
     void FR_050h_nguyenVongKhongInMacDinh() throws Exception {
         String text = text(full(false));
 
-        assertThat(text).doesNotContain("Nguyện vọng liên quan đến ca này").doesNotContain("Bệnh viện Bạch Mai");
+        assertThat(text).doesNotContain("NGUYỆN VỌNG LIÊN QUAN ĐẾN CA NÀY").doesNotContain("Bệnh viện Bạch Mai");
         assertThat(text).doesNotContain("Đưa về nhà");
     }
 
@@ -50,11 +52,11 @@ class TransferSummaryDocumentTest {
     void FR_050h_guiKemNguyenVong_inMucRiengVaGhiRiengBenhVienUuTien() throws Exception {
         String text = text(full(true));
 
-        assertThat(text).contains("Nguyện vọng liên quan đến ca này");
+        assertThat(text).contains("V. NGUYỆN VỌNG LIÊN QUAN ĐẾN CA NÀY");
         assertThat(text).contains("Nguyện vọng cuối đời: Đưa về nhà");
         assertThat(text)
-                .contains("Bệnh viện ưu tiên theo hồ sơ: Bệnh viện Bạch Mai (khác nơi chuyển đến thực tế ở mục 1)");
-        assertThat(text).contains("Nơi chuyển đến thực tế: Bệnh viện X");
+                .contains("Bệnh viện ưu tiên theo hồ sơ: Bệnh viện Bạch Mai (khác nơi tiếp nhận ở mục IV)");
+        assertThat(text).contains("Nơi tiếp nhận Bệnh viện X");
         assertThat(text).contains("Có ghi mong muốn hỏi ý kiến gia đình trước");
     }
 
@@ -63,11 +65,11 @@ class TransferSummaryDocumentTest {
         String text = text(sparse());
 
         assertThat(text).contains("TÓM TẮT THÔNG TIN SỨC KHOẺ");
-        assertThat(text).contains("Dị ứng: Chưa có thông tin", "Bệnh nền: Chưa có thông tin");
-        assertThat(text).contains("Thuốc đang dùng: Chưa có thông tin", "Chỉ số gần nhất: Chưa có thông tin");
-        assertThat(text).contains("Lý do chuyển và tình trạng lúc bàn giao: Chưa có thông tin");
-        assertThat(text).contains("Người liên hệ chính: Chưa có thông tin");
-        assertThat(text).contains("Có bản ghi sơ cứu, chăm sóc tại chỗ, nội dung chưa rõ.");
+        assertThat(text).contains("Dị ứng Chưa khai báo, hãy hỏi người nhà", "Bệnh nền Chưa có thông tin");
+        assertThat(text).contains("Thuốc đang dùng Chưa có thông tin", "chưa có chỉ số nào được ghi");
+        assertThat(text).contains("I. LÝ DO CHUYỂN VÀ TÌNH TRẠNG LÚC CHUYỂN");
+        assertThat(text).contains("Liên hệ gia đình Chưa có thông tin");
+        assertThat(text).contains("Sơ cứu, chăm sóc tại chỗ Nội dung chưa rõ.");
         assertThat(text).doesNotContain("FIRST_AID").doesNotContain("null").doesNotContain("không lấy được");
     }
 
@@ -199,6 +201,10 @@ class TransferSummaryDocumentTest {
                 3L,
                 includeWishes,
                 condition,
-                chronic);
+                chronic,
+                20L,
+                AT.minusSeconds(1800),
+                java.time.LocalDate.of(1942, 3, 5),
+                "Phòng 101");
     }
 }

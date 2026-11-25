@@ -239,7 +239,11 @@ public class TransferOutService {
                 result.historyId(),
                 Boolean.TRUE.equals(command.includeWishes()),
                 handoverCondition(incident),
-                card.chronicConditions());
+                card.chronicConditions(),
+                incidentId,
+                incident.occurredAt() != null ? incident.occurredAt() : incident.discoveredAt(),
+                card.identification() == null ? null : card.identification().dateOfBirth(),
+                card.identification() == null ? null : card.identification().roomBed());
         byte[] pdf = TransferSummaryDocument.render(draft, facility());
         long fileId = files.upload(
                 "phieu-tom-tat-chuyen-vien-" + incidentId + ".pdf", "application/pdf", pdf, user.accountId());
@@ -421,7 +425,11 @@ public class TransferOutService {
                 s.statusHistoryId(),
                 s.includeWishes(),
                 s.handoverCondition(),
-                s.chronicConditions());
+                s.chronicConditions(),
+                s.incidentId(),
+                s.occurredAt(),
+                s.dateOfBirth(),
+                s.roomBed());
     }
 
     /** Lý do chuyển và tình trạng lúc bàn giao: lấy từ mô tả và xử trí ban đầu đã ghi ở sự cố, không bắt nhập lại. */
