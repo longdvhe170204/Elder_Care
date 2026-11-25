@@ -142,7 +142,8 @@ public class TransferOutService {
                 EmergencyCardService.wish(wishes.current(residentId)),
                 card.primaryContact(),
                 treatment.map(TreatmentWishView::askFamilyFirst).orElse(false),
-                incident.level() == IncidentLevel.CRITICAL);
+                incident.level() == IncidentLevel.CRITICAL,
+                store.latestSummaryId(incidentId).orElse(null));
     }
 
     /** Lệnh Chuyển viện; trả mã bản tóm tắt. */

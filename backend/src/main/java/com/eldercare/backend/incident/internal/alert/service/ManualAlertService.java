@@ -19,6 +19,10 @@ import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.CreateAlertCommand;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.TypeLock;
+import com.eldercare.backend.resident.api.ResidentApi;
+import com.eldercare.backend.resident.api.dto.ResidentStatus;
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
@@ -36,6 +40,7 @@ public class ManualAlertService {
     private final AuditLogApi audit;
     private final BusinessTime time;
     private final AlertResponsibility responsibility;
+    private final Optional<ResidentApi> residents;
 
     public ManualAlertService(
             AlertService alerts,
@@ -44,6 +49,19 @@ public class ManualAlertService {
             AuditLogApi audit,
             BusinessTime time,
             AlertResponsibility responsibility) {
+        this(alerts, catalog, permissions, audit, time, responsibility, null);
+    }
+
+    @Autowired
+    public ManualAlertService(
+            AlertService alerts,
+            IncidentCatalogService catalog,
+            PermissionApi permissions,
+            AuditLogApi audit,
+            BusinessTime time,
+            AlertResponsibility responsibility,
+            @Autowired(required = false) ResidentApi residents) {
+        this.residents = Optional.ofNullable(residents);
         this.alerts = alerts;
         this.catalog = catalog;
         this.permissions = permissions;
@@ -65,6 +83,11 @@ public class ManualAlertService {
                 .filter(item -> item.id() == incidentTypeId && item.active())
                 .findFirst()
                 .orElseThrow(() -> new InvalidValueException("Loại sự cố không tồn tại hoặc đã ngừng dùng"));
+        // Cụ đang ở bệnh viện thì không còn ở cơ sở: không tạo cảnh báo mới (BF-06)
+        if (residents.isPresent() && residents.get().status(residentId) == ResidentStatus.HOSPITALIZED) {
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("FR-026", "Người cao tuổi đang ở bệnh viện, không tạo cảnh báo mới")));
+        }
         var alertLevel = level(level);
         var now = time.now();
         Long floorAreaId = responsibility.floorOf(residentId, now).orElse(null);

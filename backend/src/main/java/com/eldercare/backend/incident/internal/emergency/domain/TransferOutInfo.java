@@ -11,4 +11,5 @@ public record TransferOutInfo(
         Map<String, Object> endOfLifeWish,
         EmergencyCard.Contact primaryContact,
         boolean mustAskFirst,
-        boolean emergency) {}
+        boolean emergency,
+        Long summaryId) {}

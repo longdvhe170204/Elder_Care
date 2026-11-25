@@ -1008,6 +1008,7 @@ components:
         primaryContact: { type: [object, 'null'] }
         mustAskFirst: { type: boolean }
         isEmergency: { type: boolean, description: 'Sự cố mức Khẩn cấp: không bắt notAskedFirstReason' }
+        summaryId: { type: [integer, 'null'], format: int64, description: 'Mã phiếu tóm tắt chuyển viện gần nhất; null khi chưa chuyển viện' }
     AlertStatus: { type: string, enum: [NEW, ESCALATED, RECEIVED, IN_PROGRESS, CLOSED, CONVERTED_TO_INCIDENT] }
     IncidentStatus: { type: string, enum: [NEW, IN_PROGRESS, MONITORING, CLOSED, VOIDED] }
     Problem:

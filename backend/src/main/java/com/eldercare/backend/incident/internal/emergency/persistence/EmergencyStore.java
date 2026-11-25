@@ -72,6 +72,12 @@ public class EmergencyStore {
         return events.require(SUMMARY, id);
     }
 
+    /** Mã bản tóm tắt chuyển viện gần nhất của sự cố, để mở xem lại phiếu sau khi đã đóng màn in (BF-06). */
+    public Optional<Long> latestSummaryId(long incidentId) {
+        var summaries = events.list(SUMMARY, incident(incidentId));
+        return summaries.isEmpty() ? Optional.empty() : Optional.of(summaries.getLast().id());
+    }
+
     /** Bản tóm tắt chuyển viện gần nhất của sự cố (phần sức khỏe cho người thân, research S-19a). */
     public Optional<TransferSummaryContent> latestSummary(long incidentId) {
         var summaries = events.list(SUMMARY, incident(incidentId));

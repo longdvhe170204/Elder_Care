@@ -186,6 +186,13 @@ public class IncidentRecordService {
             if (residents.isPresent() && residents.get().isFinalStatus(residentId)) {
                 throw blocked("FR-041", "Người cao tuổi đã ở trạng thái cuối");
             }
+            // Cụ đang ở bệnh viện: không ghi sự cố mới đang diễn ra; ghi nhận sau (việc đã xảy ra trước đó) vẫn được (BF-06)
+            if (!command.recordedLater()
+                    && residents.isPresent()
+                    && residents.get().status(residentId)
+                            == com.eldercare.backend.resident.api.dto.ResidentStatus.HOSPITALIZED) {
+                throw blocked("FR-040", "Người cao tuổi đang ở bệnh viện, không ghi sự cố mới");
+            }
             monitoringLock.lock(residentId);
             var open = incidents.openEmergency(residentId);
             // Ghi nhận sau: việc đã xong, không hỏi tham gia hay tạo riêng như sự cố đang diễn ra (BF-06)
