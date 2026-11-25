@@ -71,7 +71,10 @@ public class HandoverAccess {
 
     private boolean floor(WorkShift shift, CurrentUser user) {
         var mine = user.staffId();
+        // Ca toàn viện không có tầng (scopeId rỗng) nên không có Trưởng tầng nhận, gửi thay (team-plan mục 8,
+        // 2026-11-18)
         return mine.isPresent()
+                && shift.scopeId() != null
                 && (duties.assignedFloorManager(shift.scopeId(), time.now())
                                 .filter(mine.get()::equals)
                                 .isPresent()

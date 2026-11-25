@@ -47,7 +47,7 @@ public final class AcknowledgementDeadlines {
         var shifts = staffPort.get();
         var current = shifts.shiftAt(floorAreaId, now);
         if (current.isEmpty()) {
-            // Chủ dự án chốt 2026-11-23 (A2): tầng không có ca hiện tại thì hạn là hết ca kế tiếp
+            // Q-446: tầng không có ca hiện tại thì hạn là hết ca kế tiếp
             return nextShiftEndOrMedium(shifts, floorAreaId, now, parameters);
         }
         var handoverLead = parameters.read(ParameterCode.CFG_M09_04).asDuration();
@@ -57,7 +57,7 @@ public final class AcknowledgementDeadlines {
         return current.get().endsAt();
     }
 
-    /** Hết ca kế tiếp của tầng; chưa có ca kế tiếp thì theo CFG-M05-01 (chủ dự án chốt 2026-11-23, A2). */
+    /** Hết ca kế tiếp của tầng; chưa có ca kế tiếp thì theo CFG-M05-01 (Q-446). */
     private static Instant nextShiftEndOrMedium(
             AlertStaffPort shifts, long floorAreaId, Instant now, ParameterApi parameters) {
         return shifts.nextShift(floorAreaId, now)

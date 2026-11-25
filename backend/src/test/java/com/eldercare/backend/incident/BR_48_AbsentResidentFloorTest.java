@@ -70,7 +70,7 @@ class BR_48_AbsentResidentFloorTest {
                 .isEqualTo(next.endsAt());
     }
 
-    /** Chủ dự án chốt 2026-11-23 (A2): tầng không có ca hiện tại thì hạn là hết ca kế tiếp, không có thì CFG-M05-01. */
+    /** Q-446: tầng không có ca hiện tại thì hạn là hết ca kế tiếp, không có thì CFG-M05-01. */
     @Test
     void BR_48_lowAlertWithoutCurrentShiftIsDueAtEndOfNextShiftElseMediumDuration() {
         var parameters = mock(ParameterApi.class);

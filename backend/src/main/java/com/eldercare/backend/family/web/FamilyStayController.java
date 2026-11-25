@@ -99,6 +99,10 @@ class FamilyStayController {
     }
 
     private FamilyStayResponse response(SimpleRecord<FamilyStay> stay) {
-        return FamilyStayResponse.of(stay, stays.nightCount(stay.content()));
+        return FamilyStayResponse.of(
+                stay,
+                stays.nightCount(stay.content()),
+                stays.familyMemberName(stay.content()),
+                stays.roommateOpinion(stay.content()));
     }
 }

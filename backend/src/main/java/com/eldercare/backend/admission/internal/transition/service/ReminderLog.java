@@ -26,8 +26,14 @@ public class ReminderLog {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void send(String type, long subjectId, LocalDate day, Instant at) {
-        if (store.markReminded(type, subjectId, day)) {
-            events.publishEvent(new M02Reminder(type, subjectId, day, at));
+        send(new M02Reminder(type, subjectId, day, at));
+    }
+
+    /** Như {@link #send(String, long, LocalDate, Instant)} với nội dung đọc được và báo người đại diện (M02Reminder). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void send(M02Reminder reminder) {
+        if (store.markReminded(reminder.type(), reminder.subjectId(), reminder.on())) {
+            events.publishEvent(reminder);
         }
     }
 }
