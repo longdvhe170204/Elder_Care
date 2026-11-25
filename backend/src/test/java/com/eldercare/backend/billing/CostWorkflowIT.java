@@ -265,6 +265,73 @@ class CostWorkflowIT extends MySqlIntegrationTestBase {
         assertThat(status("cost_item", manual)).isEqualTo("FINALIZED");
     }
 
+    // Demo 2026-11-26 (E, chờ chủ dự án duyệt): đổi ngày kết thúc sau khi đã chốt bảng kỳ cuối thì ngày lưu trú gom
+    // thêm
+    // thành khoản bổ sung muộn ở bảng bổ sung; bảng này cũng do Hành chính chốt luôn như bảng kỳ cuối, để không chặn
+    // quyết
+    // toán. Điều chỉnh tay (trỏ về khoản gốc) vẫn chờ Quản lý viện.
+    long supplementary() {
+        long id = TestUsers.nextId();
+        jdbc.update(
+                """
+                INSERT INTO cost_statement(id,kind,period_id,resident_id,statement_type,unique_key,created_at)
+                VALUES (?,'STATEMENT',?,?,'SUPPLEMENTARY',?,?)
+                """,
+                id,
+                period,
+                resident,
+                "STATEMENT:" + period + ":" + resident + ":SUPPLEMENTARY",
+                Timestamp.from(time.now()));
+        return id;
+    }
+
+    long lateAddition(long statementId, boolean fromSource) {
+        long id = TestUsers.nextId();
+        String source = "source-" + id;
+        jdbc.update(
+                """
+                INSERT INTO cost_item(id,resident_id,statement_id,period_id,cost_type,origin,
+                  source_type,source_id,billing_unit,description,incurred_on,quantity,unit,unit_price,
+                  amount,flags,original_item_id,original_period_id,adjustment_type,reason,created_at,created_by)
+                VALUES (?,?,?,?,'RESIDENCY_FEE','ADJUSTMENT',?,?,?,'Phí lưu trú',?,1,'ngày',83333,83333,
+                  'AFTER_FINALIZED_PERIOD,AFFECTS_TERMINATION',?,?,'LATE_ADDITION','Kiểm thử',?,?)
+                """,
+                id,
+                resident,
+                statementId,
+                period,
+                fromSource ? "RESIDENCY_DAY" : null,
+                fromSource ? source : null,
+                fromSource ? "DAY" : null,
+                billedMonth.atDay(2),
+                fromSource ? null : item("EVENT_BASED", 83333L, ""),
+                period,
+                Timestamp.from(time.now()),
+                office.accountId());
+        return id;
+    }
+
+    @Test
+    void terminationSupplement_lateAdditionsFromSources_officeSubmitFinalizesDirectly() {
+        long supp = supplementary();
+        long a = lateAddition(supp, true);
+        long b = lateAddition(supp, true);
+        items.check(selection(a, b));
+        statements.submit(supp);
+        assertThat(status("cost_statement", supp)).isEqualTo("FINALIZED");
+        assertThat(status("cost_item", a)).isEqualTo("FINALIZED");
+        assertThat(status("cost_item", b)).isEqualTo("FINALIZED");
+    }
+
+    @Test
+    void terminationSupplement_manualAdjustment_staysAwaitingManager() {
+        long supp = supplementary();
+        long manual = lateAddition(supp, false);
+        items.check(selection(manual));
+        statements.submit(supp);
+        assertThat(status("cost_statement", supp)).isEqualTo("AWAITING_FINALIZATION");
+    }
+
     @Test
     void regularStatement_submitStillWaitsForManager() {
         long id = item("EVENT_BASED", 300L, "");
