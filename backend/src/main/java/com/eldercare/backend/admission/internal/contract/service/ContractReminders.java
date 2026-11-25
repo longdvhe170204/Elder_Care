@@ -24,8 +24,9 @@ import org.springframework.stereotype.Component;
  * mở" của hợp đồng ngắn ngày bổ sung khi có bảng của hai chức năng đó.
  *
  * <p>Demo 2026-11-25 (góp ý nhóm, E làm, chờ B, A duyệt): nội dung nêu người cao tuổi, ngày hết hạn và việc cần làm;
- * người đại diện được báo một lần ở ngày đầu của khoảng nhắc (hợp đồng dài hạn, bán trú), ngày kết thúc (ngắn ngày) và
- * ngày đầu quá hạn, không lặp mỗi ngày.
+ * người đại diện được báo một lần ở lần nhắc đầu tiên của khoảng nhắc (hợp đồng dài hạn, bán trú), ngày kết thúc (ngắn
+ * ngày) và lần nhắc đầu tiên của lần quá hạn, không lặp mỗi ngày. Gắn vào lần nhắc đầu chứ không vào một ngày cố định vì
+ * job chạy bù chỉ nhắc ngày mới nhất: lỡ ngày đó thì người đại diện vẫn được báo.
  */
 @Component
 class ContractReminders implements ReminderRule {
@@ -85,7 +86,7 @@ class ContractReminders implements ReminderRule {
                 long days = ChronoUnit.DAYS.between(end, day);
                 detail = "Hợp đồng của " + name + " đã quá hạn " + days + " ngày (hết hạn ngày " + endText
                         + "). Lập hồ sơ kết thúc lưu trú hoặc điều chỉnh hợp đồng.";
-                if (day.equals(contract.overdueSince()))
+                if (log.notRemindedSince(type, contract.id(), contract.overdueSince()))
                     family = "Hợp đồng lưu trú của " + name + " đã hết hạn ngày " + endText
                             + ". Vui lòng liên hệ viện để gia hạn hoặc làm thủ tục kết thúc lưu trú.";
             }
@@ -99,7 +100,7 @@ class ContractReminders implements ReminderRule {
                 long left = ChronoUnit.DAYS.between(day, end);
                 detail = "Hợp đồng của " + name + " hết hạn ngày " + endText + " (còn " + left
                         + " ngày). Lập hồ sơ kết thúc lưu trú hoặc điều chỉnh hợp đồng.";
-                if (day.equals(end.minusDays(windowDays)))
+                if (log.notRemindedSince(type, contract.id(), end.minusDays(windowDays)))
                     family = "Hợp đồng lưu trú của " + name + " sẽ hết hạn ngày " + endText + " (còn " + left
                             + " ngày). Vui lòng liên hệ viện để gia hạn hoặc làm thủ tục kết thúc lưu trú.";
             }

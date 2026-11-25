@@ -29,6 +29,11 @@ public class ReminderLog {
         send(new M02Reminder(type, subjectId, day, at));
     }
 
+    /** Chưa nhắc (loại, đối tượng) lần nào từ ngày {@code from} (demo 2026-11-25: báo người đại diện một lần). */
+    public boolean notRemindedSince(String type, long subjectId, LocalDate from) {
+        return store.lastReminded(type, subjectId).map(from::isAfter).orElse(true);
+    }
+
     /** Như {@link #send(String, long, LocalDate, Instant)} với nội dung đọc được và báo người đại diện (M02Reminder). */
     @Transactional(propagation = Propagation.MANDATORY)
     public void send(M02Reminder reminder) {
