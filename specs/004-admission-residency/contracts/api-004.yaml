@@ -314,7 +314,7 @@ paths:
       tags: [contracts]
       summary: Ghi nhận đã ký (hợp đồng Hiệu lực)
       description: |
-        Bắt buộc ngày ký, người đại diện hợp lệ (012, DBR-02), bản scan. Nội trú: phải có phân bổ giường bắt đầu không muộn hơn ngày bắt đầu (FR-021).
+        Bắt buộc ngày ký, người đại diện hợp lệ (012, DBR-02), bản scan. Ngày ký không sau hôm nay, không trước ngày lập hợp đồng: 422 SIGNED_DATE_INVALID. Nội trú: phải có phân bổ giường bắt đầu không muộn hơn ngày bắt đầu (FR-021).
         Chồng thời gian với hợp đồng Hiệu lực khác: 409 (FR-022, DBR-06). Bán trú: kiểm sức chứa khu nghỉ (003 FR-039).
         Thành công: ghi phiên bản nội dung 0 với đơn giá của mọi khoản (FR-036).
       x-fr: [FR-021, FR-022, FR-036]
