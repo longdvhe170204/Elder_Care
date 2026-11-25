@@ -264,5 +264,19 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " OR CAST(s.q AS DECIMAL(15,3)) <= 0)",
                         Integer.class))
                 .isZero();
+        // V900_18: tài khoản người thân demo.nguoithan của Lê Văn Cường (người đại diện của 9101, đủ quyền xem sức
+        // khỏe,
+        // chi phí) để kiểm cổng người thân (VietQR nộp tiền 017, Lịch chăm sóc hằng ngày 011); vai trò duy nhất Người
+        // thân
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM account a JOIN permission_assignment r ON r.account_id=a.id"
+                                + " AND r.kind='ROLE_ASSIGNMENT' AND r.role='AC-10'"
+                                + " JOIN status_history h ON h.entity_type='M15.ACCOUNT' AND h.entity_id=a.id"
+                                + " AND h.value='ACTIVE' WHERE a.username='demo.nguoithan' AND a.type='FAMILY_MEMBER'"
+                                + " AND a.family_member_id=9101 AND a.status='ACTIVE' AND a.staff_id IS NULL"
+                                + " AND (SELECT COUNT(*) FROM permission_assignment x WHERE x.account_id=a.id"
+                                + " AND x.kind='ROLE_ASSIGNMENT')=1",
+                        Integer.class))
+                .isEqualTo(1);
     }
 }
