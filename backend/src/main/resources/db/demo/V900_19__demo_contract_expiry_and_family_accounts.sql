@@ -1,22 +1,26 @@
--- Dữ liệu demo (chỉ profile demo; E làm 2026-11-26 theo góp ý demo BF-10): thêm bốn người cao tuổi Đang lưu trú để demo
--- trọn luồng Kết thúc lưu trú nhiều lần, giống 9004 Phạm Văn Dũng của V900_13: nội trú dài hạn hết hạn trong CFG-M02-04
--- ngày (Hành chính được nhắc, người đại diện được báo), đã nộp trước và có tiền cọc (demo "Hoàn toàn bộ"), hai món đồ
--- đang gửi, người đại diện có tài khoản app (mật khẩu "Demo2026!").
---   9007 Đặng Văn Hùng   hết hạn sau 5 ngày    người đại diện Đặng Thị Hoa    demo.nguoithan.hoa
---   9008 Bùi Thị Lan     hết hạn sau 12 ngày   người đại diện Bùi Văn Khánh   demo.nguoithan.khanh
---   9009 Đỗ Văn Minh     hết hạn sau 20 ngày   người đại diện Đỗ Thị Ngọc     demo.nguoithan.ngoc
---   9010 Ngô Thị Oanh    hết hạn sau 25 ngày   người đại diện Ngô Văn Phát    demo.nguoithan.phat
--- Giường dùng các giường còn trống sau V900_13 (9005, 9006 phòng nam P102; 9009, 9010 phòng P202). Cách ghi như V900_13.
+-- Dữ liệu demo (chỉ profile demo; E làm 2026-11-25 theo góp ý demo BF-10 của nhóm): bốn người cao tuổi Đang lưu trú có
+-- hợp đồng ở các mốc của luồng nhắc hợp đồng (004 FR-026, FR-029) và tài khoản người thân để demo app người thân.
+--   9003 Lê Thị Cúc      nội trú dài hạn, hết hạn sau đúng 30 ngày (ngày đầu khoảng CFG-M02-04: Hành chính được nhắc, người
+--                        đại diện được báo một lần)
+--   9004 Phạm Văn Dũng   nội trú dài hạn, hết hạn sau 10 ngày (nhắc Hành chính mỗi ngày)
+--   9005 Hoàng Thị Em    nội trú dài hạn, đã hết hạn 3 ngày trước (job hằng ngày đánh dấu quá hạn, nhắc Hành chính, báo
+--                        người đại diện ngày đầu quá hạn)
+--   9006 Võ Văn Phúc     nội trú ngắn ngày, hết hạn hôm nay (nhắc tạo Kết thúc lưu trú hoặc điều chỉnh hợp đồng)
+-- Mỗi người có giường, hợp đồng Hiệu lực (nội dung đủ kỳ tính phí, không cọc như V900_12), sổ số dư, một người thân là
+-- người đại diện (xem chi phí, nhận thông báo) có tài khoản; 9003, 9004, 9006 đã nộp trước (9004 có thêm tiền cọc),
+-- 9004, 9005, 9006 có đồ đang gửi. Thêm tài khoản cho hai người thân của người cao tuổi 9001.
+-- Ngày tính theo ngày nạp (giờ Việt Nam), nên nạp vào ngày nào cũng ra đúng các mốc trên. Ghi như lệnh của ứng dụng ghi
+-- (dòng lịch sử trạng thái, lịch sử giường) theo mẫu V900_02. Mật khẩu tài khoản người thân: "Demo2026!" (như V002_90).
 -- Cú pháp dùng được ở MySQL 8.0 và 8.4.
 
 SET @demo_at = UTC_TIMESTAMP(6);
 SET @today = DATE(@demo_at + INTERVAL 7 HOUR);
+-- Vào ở từ ngày 1 của tháng (lùi 5 ngày khi nạp đầu tháng, để ngày kết thúc 3 ngày trước vẫn sau ngày vào): kỳ chi phí
+-- trước đó không có ngày lưu trú, bảng kỳ cuối là bảng duy nhất cần chốt khi demo Kết thúc lưu trú. 9:00 giờ Việt Nam.
 SET @start_date = DATE_FORMAT(@today - INTERVAL 5 DAY, '%Y-%m-01');
 SET @since = TIMESTAMP(@start_date) + INTERVAL 2 HOUR;
 SET @office = (SELECT id FROM account WHERE username = 'demo.hanhchinh');
 SET @manager = (SELECT id FROM account WHERE username = 'demo.quanly');
-SET @accountant = (SELECT id FROM account WHERE username = 'demo.ketoan');
-SET @office_staff = (SELECT staff_id FROM account WHERE username = 'demo.hanhchinh');
 
 CREATE TEMPORARY TABLE demo_stay
 (
@@ -28,29 +32,29 @@ CREATE TEMPORARY TABLE demo_stay
     address        VARCHAR(200),
     bed_id         BIGINT,
     room_type_id   BIGINT,
+    residence_type VARCHAR(40),
     end_date       DATE,
     payment_code   VARCHAR(16),
     member_id      BIGINT,
     member_name    VARCHAR(100),
     member_phone   VARCHAR(20),
-    username       VARCHAR(64),
-    prepaid        DECIMAL(15, 0),
-    deposit        DECIMAL(15, 0)
+    username       VARCHAR(64)
 );
 
 INSERT INTO demo_stay VALUES
-    (9007, 'NCT-2026-009007', 'Đặng Văn Hùng', '1940-02-11', 'MALE', 'Quận Đống Đa, Hà Nội', 9005, 9002,
-     @today + INTERVAL 5 DAY, 'NCTDEM9078', 9007, 'Đặng Thị Hoa', '0911000007', 'demo.nguoithan.hoa', 12000000, 5000000),
-    (9008, 'NCT-2026-009008', 'Bùi Thị Lan', '1943-07-25', 'FEMALE', 'Quận Tây Hồ, Hà Nội', 9009, 9002,
-     @today + INTERVAL 12 DAY, 'NCTDEM9089', 9008, 'Bùi Văn Khánh', '0911000008', 'demo.nguoithan.khanh', 8000000,
-     3000000),
-    (9009, 'NCT-2026-009009', 'Đỗ Văn Minh', '1937-10-03', 'MALE', 'Quận Hà Đông, Hà Nội', 9006, 9002,
-     @today + INTERVAL 20 DAY, 'NCTDEM909A', 9009, 'Đỗ Thị Ngọc', '0911000009', 'demo.nguoithan.ngoc', 15000000, 5000000),
-    (9010, 'NCT-2026-009010', 'Ngô Thị Oanh', '1944-04-17', 'FEMALE', 'Quận Nam Từ Liêm, Hà Nội', 9010, 9002,
-     @today + INTERVAL 25 DAY, 'NCTDEM9140', 9010, 'Ngô Văn Phát', '0911000010', 'demo.nguoithan.phat', 6000000,
-     2000000);
+    (9003, 'NCT-2026-009003', 'Lê Thị Cúc', '1942-03-14', 'FEMALE', 'Quận Hai Bà Trưng, Hà Nội', 9102, 9001,
+     'LONG_TERM_RESIDENTIAL', @today + INTERVAL 30 DAY, 'NCTDEM9034', 9003, 'Lê Văn Cường', '0911000003',
+     'demo.nguoithan.cuong'),
+    (9004, 'NCT-2026-009004', 'Phạm Văn Dũng', '1938-08-01', 'MALE', 'Quận Thanh Xuân, Hà Nội', 9104, 9002,
+     'LONG_TERM_RESIDENTIAL', @today + INTERVAL 10 DAY, 'NCTDEM9045', 9004, 'Phạm Thị Dịu', '0911000004',
+     'demo.nguoithan.diu'),
+    (9005, 'NCT-2026-009005', 'Hoàng Thị Em', '1945-12-20', 'FEMALE', 'Quận Long Biên, Hà Nội', 9008, 9001,
+     'LONG_TERM_RESIDENTIAL', @today - INTERVAL 3 DAY, 'NCTDEM9056', 9005, 'Hoàng Văn Hải', '0911000005',
+     'demo.nguoithan.hai'),
+    (9006, 'NCT-2026-009006', 'Võ Văn Phúc', '1941-06-09', 'MALE', 'Quận Hoàng Mai, Hà Nội', 9105, 9002,
+     'SHORT_TERM_RESIDENTIAL', @today, 'NCTDEM9067', 9006, 'Võ Thị Phương', '0911000006', 'demo.nguoithan.phuong');
 
--- 001: hồ sơ, Đang lưu trú, mức Chăm sóc cơ bản
+-- 001: hồ sơ, Đang lưu trú, mức Chăm sóc cơ bản (dòng lịch sử như lệnh Tạo hồ sơ, Hoàn tất tiếp nhận)
 INSERT INTO resident (id, profile_code, full_name, date_of_birth, gender, permanent_address, status, status_since,
                       current_care_level, created_at, created_by)
 SELECT resident_id, profile_code, full_name, date_of_birth, gender, address, 'IN_RESIDENCE', @since, 'BASIC',
@@ -73,7 +77,7 @@ INSERT INTO status_history (entity_type, entity_id, attribute, module, kind, val
 SELECT 'M01.RESIDENT', resident_id, 'CARE_LEVEL', 'M01', 'POINT', 'BASIC', @since, @manager, FALSE
 FROM demo_stay;
 
--- 012: người thân là người đại diện, liên hệ chính, đủ quyền xem
+-- 012: người thân là người đại diện, liên hệ chính, xem chi phí, xem sức khỏe, nhận thông báo khẩn
 INSERT INTO family_member (id, full_name, phone_number, address, created_by, created_at)
 SELECT member_id, member_name, member_phone, address, @office, @since - INTERVAL 1 DAY
 FROM demo_stay;
@@ -99,12 +103,12 @@ FROM demo_stay d
                UNION ALL SELECT 'PICKUP_ALLOWED'
                UNION ALL SELECT 'REQUEST_SERVICES') a;
 
--- 004: hợp đồng nội trú dài hạn Hiệu lực, nội dung đủ kỳ tính phí, không yêu cầu cọc (như V900_12, V900_13)
+-- 004: hợp đồng Hiệu lực với ngày kết thúc theo từng mốc; nội dung đủ kỳ tính phí, không cọc (như V900_12)
 INSERT INTO contract (id, contract_number, resident_id, residence_type, start_date, end_date, current_end_date,
                       care_level, residency_fee_billing_period, status, signed_date, signing_representative_id,
                       scan_file_id, created_by, created_at)
-SELECT resident_id, CONCAT('HD-', YEAR(@start_date), '-00', resident_id), resident_id, 'LONG_TERM_RESIDENTIAL',
-       @start_date, end_date, end_date, 'BASIC', 'MONTH', 'ACTIVE', @start_date, member_id, 9001, @office, @since
+SELECT resident_id, CONCAT('HD-', YEAR(@start_date), '-00', resident_id), resident_id, residence_type, @start_date,
+       end_date, end_date, 'BASIC', 'MONTH', 'ACTIVE', @start_date, member_id, 9001, @office, @since
 FROM demo_stay;
 
 INSERT INTO contract_version (kind, contract_id, services, arrival_schedule, created_at)
@@ -113,13 +117,13 @@ SELECT 'DRAFT', resident_id, '[]', '[]', @since FROM demo_stay;
 INSERT INTO contract_version (kind, contract_id, sequence_no, effective_from, content, residence_type, care_level,
                               created_at, locked_at)
 SELECT 'CONTENT', resident_id, 1, @start_date,
-       JSON_OBJECT('residenceType', 'LONG_TERM_RESIDENTIAL', 'careLevel', 'BASIC', 'startDate', @start_date, 'endDate',
+       JSON_OBJECT('residenceType', residence_type, 'careLevel', 'BASIC', 'startDate', @start_date, 'endDate',
                    end_date, 'roomTypeId', room_type_id, 'services', JSON_ARRAY(), 'arrivalSchedule', JSON_ARRAY(),
                    'residencyFeeBillingPeriod', 'MONTH', 'noDepositRequired', TRUE),
-       'LONG_TERM_RESIDENTIAL', 'BASIC', @since, @since
+       residence_type, 'BASIC', @since, @since
 FROM demo_stay;
 
--- 003: phân bổ giường Đang hiệu lực, giường chuyển Đang sử dụng
+-- 003: phân bổ giường Đang hiệu lực từ ngày vào ở, giường chuyển Đang sử dụng
 INSERT INTO bed_allocation (id, resident_id, bed_id, status, start_at, checked_care_level, care_level_source)
 SELECT resident_id, resident_id, bed_id, 'ACTIVE', @since, 'BASIC', 'CURRENT' FROM demo_stay;
 
@@ -133,22 +137,54 @@ FROM demo_stay d
          JOIN bed b ON b.id = d.bed_id
          JOIN room r ON r.id = b.room_id;
 
--- 017: sổ số dư, nộp trước và tiền cọc do Kế toán ghi ngày vào ở (bảng tạm chỉ đọc một lần mỗi câu lệnh)
-INSERT INTO resident_balance (resident_id, opened_at, opening_contract_id, payment_code, balance, deposit_balance,
-                              deposit_status, deposit_status_contract_id)
-SELECT resident_id, @since, resident_id, payment_code, prepaid, deposit, 'NOT_REQUIRED', resident_id FROM demo_stay;
+-- 017: sổ số dư (số dư, cọc bằng 0; nộp tiền ghi bằng ứng dụng), mã nộp tiền đúng ký tự kiểm tra của PaymentCode
+INSERT INTO resident_balance (resident_id, opened_at, opening_contract_id, payment_code, deposit_status,
+                              deposit_status_contract_id)
+SELECT resident_id, @since, resident_id, payment_code, 'NOT_REQUIRED', resident_id FROM demo_stay;
+
+-- 017: nộp trước và tiền cọc do Kế toán ghi ngày vào ở (như lệnh Ghi nộp tiền mặt), để demo hoàn số dư, hoàn cọc
+-- ("Hoàn toàn bộ") khi kết thúc lưu trú; 9005 không nộp trước, bảng kỳ cuối thành khoản phải nộp (người thân nộp trực
+-- tiếp cho Kế toán)
+SET @accountant = (SELECT id FROM account WHERE username = 'demo.ketoan');
+
+CREATE TEMPORARY TABLE demo_payment
+(
+    id          BIGINT PRIMARY KEY,
+    resident_id BIGINT,
+    ledger      VARCHAR(10),
+    type        VARCHAR(20),
+    amount      DECIMAL(15, 0),
+    payer_name  VARCHAR(100),
+    note        VARCHAR(200)
+);
+
+INSERT INTO demo_payment VALUES
+    (9001, 9003, 'BALANCE', 'CASH_PAYMENT', 15000000, 'Lê Văn Cường', 'Nộp trước tiền lưu trú'),
+    (9002, 9004, 'BALANCE', 'CASH_PAYMENT', 10000000, 'Phạm Thị Dịu', 'Nộp trước tiền lưu trú'),
+    (9003, 9004, 'DEPOSIT', 'DEPOSIT_RECEIPT', 5000000, 'Phạm Thị Dịu', NULL),
+    (9004, 9006, 'BALANCE', 'CASH_PAYMENT', 3000000, 'Võ Thị Phương', 'Nộp trước tiền lưu trú ngắn ngày');
 
 INSERT INTO balance_transaction (id, resident_id, ledger, type, amount, occurred_at, method, payer_name, note, status,
                                  confirmed_at, locked_at, created_at, created_by)
-SELECT 99000 + (resident_id - 9007) * 2 + 1 + t.n, resident_id, t.ledger, t.type,
-       CASE WHEN t.n = 0 THEN prepaid ELSE deposit END, @since + INTERVAL 1 HOUR, 'CASH', member_name,
-       CASE WHEN t.n = 0 THEN 'Nộp trước tiền lưu trú' END, 'CONFIRMED', @since + INTERVAL 1 HOUR,
-       @since + INTERVAL 1 HOUR, @since + INTERVAL 1 HOUR, @accountant
-FROM demo_stay
-         JOIN (SELECT 0 AS n, 'BALANCE' AS ledger, 'CASH_PAYMENT' AS type
-               UNION ALL SELECT 1, 'DEPOSIT', 'DEPOSIT_RECEIPT') t;
+SELECT id, resident_id, ledger, type, amount, @since + INTERVAL 1 HOUR, 'CASH', payer_name, note, 'CONFIRMED',
+       @since + INTERVAL 1 HOUR, @since + INTERVAL 1 HOUR, @since + INTERVAL 1 HOUR, @accountant
+FROM demo_payment;
 
--- 013: hai món đồ đang gửi mỗi người (không dùng loại có giá trị vì bắt buộc có ảnh)
+-- Bảng tạm chỉ đọc được một lần trong một câu lệnh (MySQL): cộng theo người trong một bảng dẫn xuất
+UPDATE resident_balance b
+    JOIN (SELECT resident_id,
+                 SUM(CASE WHEN ledger = 'BALANCE' THEN amount ELSE 0 END) AS balance,
+                 SUM(CASE WHEN ledger = 'DEPOSIT' THEN amount ELSE 0 END) AS deposit
+          FROM demo_payment
+          GROUP BY resident_id) p ON p.resident_id = b.resident_id
+SET b.balance         = p.balance,
+    b.deposit_balance = p.deposit;
+
+DROP TEMPORARY TABLE demo_payment;
+
+-- 013: đồ đang gửi (Hành chính nhận từ người đại diện ngày vào ở, như lệnh Tiếp nhận), để demo trả đồ khi kết thúc lưu
+-- trú; không dùng loại đồ có giá trị (bắt buộc có ảnh). Mã loại, mức tình trạng tra theo mã danh mục của V013_01.
+SET @office_staff = (SELECT staff_id FROM account WHERE username = 'demo.hanhchinh');
 SET @good = (SELECT id FROM catalog_item WHERE catalog_type = 'M12.CONDITION_LEVEL' AND code = 'GOOD');
 SET @used = (SELECT id FROM catalog_item WHERE catalog_type = 'M12.CONDITION_LEVEL' AND code = 'SIGNS_OF_USE');
 
@@ -165,14 +201,11 @@ CREATE TEMPORARY TABLE demo_belonging
 );
 
 INSERT INTO demo_belonging VALUES
-    (99001, 9007, 'WHEELCHAIR', 'Xe lăn tay đẩy màu đen', 1, 'chiếc', @used, 9007),
-    (99002, 9007, 'CLOTHING', 'Quần áo thu đông', 4, 'bộ', @good, 9007),
-    (99003, 9008, 'GLASSES', 'Kính đọc sách gọng bạc', 1, 'cái', @good, 9008),
-    (99004, 9008, 'DOCUMENTS', 'Sổ khám bệnh, thẻ bảo hiểm y tế', 2, 'cuốn', @good, 9008),
-    (99005, 9009, 'PERSONAL_ITEMS', 'Máy đo huyết áp cá nhân', 1, 'cái', @used, 9009),
-    (99006, 9009, 'CLOTHING', 'Chăn len, gối', 2, 'cái', @used, 9009),
-    (99007, 9010, 'GLASSES', 'Kính lão gọng đỏ', 1, 'cái', @good, 9010),
-    (99008, 9010, 'PERSONAL_ITEMS', 'Bộ đồ dùng vệ sinh cá nhân', 1, 'bộ', @good, 9010);
+    (9001, 9005, 'GLASSES', 'Kính lão gọng nâu', 1, 'cái', @good, 9005),
+    (9002, 9005, 'CLOTHING', 'Quần áo mùa đông', 5, 'bộ', @used, 9005),
+    (9003, 9004, 'WHEELCHAIR', 'Xe lăn gấp gọn màu xanh', 1, 'chiếc', @used, 9004),
+    (9004, 9004, 'DOCUMENTS', 'Sổ khám bệnh, thẻ bảo hiểm y tế', 2, 'cuốn', @good, 9004),
+    (9005, 9006, 'PERSONAL_ITEMS', 'Bộ đồ dùng vệ sinh cá nhân', 1, 'bộ', @good, 9006);
 
 INSERT INTO belonging (id, resident_id, type_id, description, quantity, unit, intake_handover_id, status, holder_type,
                        holder_id, storage_location_id, condition_level_id, current_handover_id, current_handover_at,
@@ -191,25 +224,27 @@ FROM demo_belonging;
 
 DROP TEMPORARY TABLE demo_belonging;
 
--- 002: tài khoản người thân, vai trò Người thân (AC-10); trạng thái, vai trò ghi vào bảng chung (như V900_13)
+-- 002: tài khoản người thân (Rạng là người đại diện của 9001, Mơ xem chi phí của 9001, bốn người đại diện mới), vai
+-- trò Người thân (AC-10)
 INSERT INTO account (username, type, family_member_id, status, password_hash, must_change_password,
                      inactivity_reference_at, created_at, created_by)
-SELECT username, 'FAMILY_MEMBER', member_id, 'ACTIVE',
+SELECT a.username, 'FAMILY_MEMBER', a.member_id, 'ACTIVE',
        '$argon2id$v=19$m=16384,t=2,p=1$17mqxm8hOdIjyC60bGYBQw$ja8n7hsdD4zLhrpMS2eSF1MPLbM1/KY00izjSCQkh9c',
        FALSE, @demo_at - INTERVAL 1 DAY, @demo_at - INTERVAL 1 DAY, @office
-FROM demo_stay;
+FROM (SELECT 'demo.nguoithan.rang' AS username, 9001 AS member_id
+      UNION ALL SELECT 'demo.nguoithan.mo', 9002
+      UNION ALL SELECT username, member_id FROM demo_stay) a;
 
-DROP TEMPORARY TABLE demo_stay;
-
+-- Trạng thái, vai trò ghi vào bảng chung từ V002_95 (như AccountStore.history, addRole)
 INSERT INTO status_history (entity_type, entity_id, attribute, module, kind, value, starts_at, actor_id, by_system,
                             details, unique_key)
 SELECT 'M15.ACCOUNT', id, 'STATUS', 'M15', 'POINT', 'ACTIVE', created_at, @office, FALSE,
        JSON_OBJECT('lockCause', NULL, 'auditLogId', NULL),
        CONCAT('M15.ASH:', id, ':', DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s.%f'))
-FROM account
-WHERE username IN ('demo.nguoithan.hoa', 'demo.nguoithan.khanh', 'demo.nguoithan.ngoc', 'demo.nguoithan.phat');
+FROM account WHERE username LIKE 'demo.nguoithan.%';
 
 INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, actor_id, reason)
 SELECT 'ROLE_ASSIGNMENT', 'ACCOUNT', id, 'AC-10', created_at, @office, 'Dữ liệu mẫu demo người thân (góp ý demo BF-10)'
-FROM account
-WHERE username IN ('demo.nguoithan.hoa', 'demo.nguoithan.khanh', 'demo.nguoithan.ngoc', 'demo.nguoithan.phat');
+FROM account WHERE username LIKE 'demo.nguoithan.%';
+
+DROP TEMPORARY TABLE demo_stay;
