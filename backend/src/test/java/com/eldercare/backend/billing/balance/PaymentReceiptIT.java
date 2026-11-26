@@ -75,5 +75,54 @@ class PaymentReceiptIT extends BalanceTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("RECEIPT_NOT_AVAILABLE"));
         getAs(accountant, "/api/v1/balance-transactions/999999999/receipt").andExpect(status().isNotFound());
+
+        // Q-451 mở rộng: bảng kê các khoản đã chọn, chia nhóm; khoản chưa xác nhận hoặc của người khác thì từ chối
+        String summary = "/api/v1/residents/" + resident + "/balance-transactions/summary?id=" + transaction;
+        byte[] list = getAs(accountant, summary)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andReturn()
+                .getResponse()
+                .getContentAsByteArray();
+        assertThat(DocumentReaders.pdfText(list))
+                .contains("BẢNG KÊ GIAO DỊCH")
+                .contains("Gia đình nộp")
+                .contains("2.500.000")
+                .contains("Số dư hiện tại")
+                .contains("Chứng từ này không thay thế hóa đơn");
+        getAs(office, summary).andExpect(status().isForbidden());
+        getAs(accountant, summary + "&id=" + other).andExpect(status().isUnprocessableEntity());
+        long someoneElse = sentForSignature(TestUsers.nextId(), null);
+        getAs(accountant, "/api/v1/residents/" + someoneElse + "/balance-transactions/summary?id=" + transaction)
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void confirmedRefund_hasRefundReceiptWithRecipient() throws Exception {
+        long resident = sentForSignature(TestUsers.nextId(), null);
+        long id = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO balance_transaction (id, resident_id, ledger, type, amount, occurred_at, method, recipient,"
+                        + " reason, status, confirmed_at, locked_at, created_by, created_at)"
+                        + " VALUES (?, ?, 'BALANCE', 'REFUND', -750000, UTC_TIMESTAMP(6), 'CASH',"
+                        + " JSON_OBJECT('fullName', 'Lê Thị Mai'), 'Hoàn khi kết thúc', 'CONFIRMED', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6),"
+                        + " ?, UTC_TIMESTAMP(6))",
+                id,
+                resident,
+                accountant.accountId());
+
+        byte[] pdf = getAs(accountant, "/api/v1/balance-transactions/" + id + "/receipt")
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsByteArray();
+
+        assertThat(DocumentReaders.pdfText(pdf))
+                .contains("BIÊN NHẬN HOÀN TIỀN")
+                .contains("HT-" + String.format("%06d", id))
+                .contains("Lê Thị Mai")
+                .contains("750.000")
+                .contains("Bảy trăm năm mươi nghìn đồng")
+                .contains("Người nhận tiền");
     }
 }
