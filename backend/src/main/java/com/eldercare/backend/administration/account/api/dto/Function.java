@@ -63,6 +63,7 @@ public enum Function {
     SHIFT_HANDOVER("Bàn giao ca"),
     SHIFT_SWAP_REQUEST("Yêu cầu đổi ca"),
     FAMILY_MEMBER_PERMISSION("Người thân và quyền"),
+    FAMILY_CONTACT_LIST("Danh sách liên hệ người thân"),
     VISIT_REGISTRATION("Đăng ký thăm"),
     PICKUP("Quy trình đón, ngoại lệ đón"),
     VISITOR_PREFERENCE("Mong muốn về khách thăm, người đón"),
