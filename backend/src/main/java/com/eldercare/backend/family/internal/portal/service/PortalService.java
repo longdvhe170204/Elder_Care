@@ -287,7 +287,12 @@ public class PortalService {
         } else {
             generalMenu
                     .generalMenu(today, today.plusDays(6))
-                    .forEach(d -> menu.add(row("date", d.date(), "mealName", d.mealName(), "dishName", d.dishName())));
+                    .forEach(d -> menu.add(row(
+                            "date", d.date(),
+                            "mealName", d.mealName(),
+                            "dishName", d.dishName(),
+                            "description", d.description(),
+                            "imageUrl", d.imageUrl())));
         }
         return new General(
                 residentId,

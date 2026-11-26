@@ -41,7 +41,7 @@ public class DailyScheduleStore {
     public Map<Long, BigDecimal> measuredValues(long residentId, Instant from, Instant to) {
         var result = new HashMap<Long, BigDecimal>();
         jdbc.query(
-                "SELECT id, result_numeric_value FROM care_task WHERE resident_id=? AND planned_at>=? AND planned_at<?"
+                "SELECT id, result_numeric_value FROM care_task WHERE status<>'DRAFT' AND resident_id=? AND planned_at>=? AND planned_at<?"
                         + " AND result_type='MEASURED_VALUE' AND result_numeric_value IS NOT NULL",
                 rs -> {
                     result.put(rs.getLong(1), rs.getBigDecimal(2));

@@ -9,6 +9,7 @@ import com.eldercare.backend.care.api.CarePlanReviewApi;
 import com.eldercare.backend.care.api.dto.CareEventContext;
 import com.eldercare.backend.care.api.dto.CarePlanStatus;
 import com.eldercare.backend.care.api.events.CarePlanReviewNeeded;
+import com.eldercare.backend.care.internal.careplan.persistence.CarePlanReviewStore;
 import com.eldercare.backend.care.internal.careplan.persistence.CarePlanStore;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.notification.RecipientGroup;
@@ -17,6 +18,7 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.AssessmentApi;
 import com.eldercare.backend.resident.api.dto.AssessmentSummary;
 import com.eldercare.backend.resident.api.events.AssessmentChangedCareLevelOrNeeds;
+import com.eldercare.backend.resident.api.events.InitialAssessmentConfirmed;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,6 +44,7 @@ class CarePlanReviewListener implements CarePlanReviewApi {
     private static final PermissionKey APPROVE = new PermissionKey(Function.CARE_PLAN, Operation.APPROVE);
     private static final String REVIEW_MARKER = "M04.CARE_PLAN_REVIEW";
     private static final String INCIDENT = "M05.INCIDENT";
+    private static final String INITIAL_ASSESSMENT = "M01.INITIAL_ASSESSMENT";
     private static final String PALLIATIVE = "M05.PALLIATIVE_CARE_CHOICE";
 
     private final ApproverApi approvers;
@@ -51,6 +54,7 @@ class CarePlanReviewListener implements CarePlanReviewApi {
     private final ReminderMarkers markers;
     private final AssessmentApi assessments;
     private final CarePlanStore plans;
+    private final CarePlanReviewStore reviews;
 
     CarePlanReviewListener(
             ApproverApi approvers,
@@ -59,7 +63,9 @@ class CarePlanReviewListener implements CarePlanReviewApi {
             ApplicationEventPublisher events,
             ReminderMarkers markers,
             AssessmentApi assessments,
-            CarePlanStore plans) {
+            CarePlanStore plans,
+            CarePlanReviewStore reviews) {
+        this.reviews = reviews;
         this.approvers = approvers;
         this.allocations = allocations;
         this.time = time;
@@ -72,6 +78,25 @@ class CarePlanReviewListener implements CarePlanReviewApi {
     @EventListener
     public void onAssessment(AssessmentChangedCareLevelOrNeeds event) {
         review(event.residentId(), "M01.ASSESSMENT", event.assessmentId());
+    }
+
+    /**
+     * Đánh giá đầu vào được xác nhận (Q-448, FR-011): có ít nhất một nhu cầu chăm sóc và người cao tuổi chưa có kế hoạch
+     * Hiệu lực hay Chờ hiệu lực thì báo và ghi mốc yêu cầu xem xét; không có nhu cầu thì người cao tuổi theo lịch chung.
+     * Sự kiện không mang nhu cầu nên đọc lần Đã xác nhận mới nhất (001 đã lưu trước khi phát), phải trùng lần vừa xác nhận.
+     */
+    @EventListener
+    public void onInitialAssessment(InitialAssessmentConfirmed event) {
+        long residentId = event.residentId();
+        boolean hasNeeds = assessments
+                .latestConfirmed(residentId)
+                .filter(a -> a.id() == event.assessmentId())
+                .map(a -> !a.careNeeds().isEmpty())
+                .orElse(false);
+        if (!hasNeeds) return;
+        boolean hasPlan = plans.list(residentId, false).stream()
+                .anyMatch(p -> p.status() == CarePlanStatus.EFFECTIVE || p.status() == CarePlanStatus.PENDING_EFFECT);
+        if (!hasPlan) review(residentId, INITIAL_ASSESSMENT, event.assessmentId());
     }
 
     /**
@@ -127,6 +152,7 @@ class CarePlanReviewListener implements CarePlanReviewApi {
 
     private void review(
             long residentId, String source, long sourceId, String reference, String milestonePrefix, Instant now) {
+        reviews.raise(residentId, source, sourceId, reference, now);
         var floor = allocations.openAt(residentId, now).map(BedAllocationView::floorAreaId);
         var target = new Target(CARE_PLAN, null, residentId, floor.orElse(null));
         var accounts = approvers.approvers(APPROVE, target);

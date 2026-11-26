@@ -71,7 +71,7 @@ paths:
       operationId: createCarePlan
       tags: [ke-hoach]
       summary: Lập phiên bản Nháp (Điều dưỡng)
-      description: 'Nội dung khởi đầu là bản sao phiên bản Hiệu lực (copyCurrent = true) hoặc trống. Đã có phiên bản Nháp/Chờ duyệt/Chờ hiệu lực thì 409 OPEN_REVISION_EXISTS. Không có đường tạo tự động từ đánh giá (Q-280).'
+      description: 'Q-456: "Lập kế hoạch" / "Sửa kế hoạch". Nội dung khởi đầu luôn là bản sao phiên bản Chờ hiệu lực, không có thì phiên bản Hiệu lực, không có thì trống; copyCurrent giữ cho client cũ, bị bỏ qua. Đã có phiên bản Nháp/Chờ duyệt thì 409 OPEN_REVISION_EXISTS. Không có đường tạo tự động từ đánh giá (Q-280).'
       x-fr: [FR-001, FR-003, FR-004]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { copyCurrent: { type: boolean, default: true } } } } } }
@@ -118,24 +118,33 @@ paths:
       x-implementation-phase: 3
       operationId: submitCarePlan
       tags: [ke-hoach]
-      summary: Gửi duyệt kèm ngày hiệu lực đề xuất
-      description: 'Có ít nhất một mục, mọi mục đủ trường FR-002; ngày hiệu lực muộn hơn hôm nay; bắt buộc changeReason khi đã có phiên bản trước.'
+      summary: Gửi Bác sĩ duyệt
+      description: 'Q-456: không nhập ngày hiệu lực. Có ít nhất một mục, mọi mục đủ trường FR-002; bắt buộc changeReason khi đã có phiên bản trước (422 REASON_REQUIRED).'
       x-fr: [FR-003, FR-005]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [effectiveFrom], properties: { effectiveFrom: { type: string, format: date }, changeReason: { $ref: '#/components/schemas/Reason' } } } } } }
+      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { changeReason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: Chờ duyệt }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plans/{id}/retract:
+    post:
+      x-implementation-phase: 3
+      operationId: retractCarePlan
+      tags: [ke-hoach]
+      summary: Rút lại bản Chờ duyệt về Nháp (chỉ người lập, Q-456)
+      x-fr: [FR-003]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: Nháp }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/{id}/approve:
     post:
       x-implementation-phase: 3
       operationId: approveCarePlan
       tags: [ke-hoach]
       summary: Duyệt (Bác sĩ; Điều dưỡng được gán quyền)
-      description: 'Ngày hiệu lực phải muộn hơn ngày duyệt, ngược lại 409 INVALID_EFFECTIVE_DATE và người duyệt dùng Trả lại (Q-34, FR-004). Người lập tự duyệt: bắt buộc reason, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
+      description: 'Q-456: người cao tuổi chưa có phiên bản Hiệu lực thì chuyển Hiệu lực từ ngày duyệt; đã có thì chuyển Chờ hiệu lực từ ngày hôm sau ngày duyệt (Q-34); phiên bản Chờ hiệu lực trước (nếu có) chuyển Đã hủy. Người lập tự duyệt: bắt buộc reason, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
       x-fr: [FR-003, FR-004, FR-005]
       x-br: [BR-M04-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
-      responses: { '200': { description: Chờ hiệu lực }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+      responses: { '200': { description: Hiệu lực hoặc Chờ hiệu lực }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/{id}/return:
     post:
       x-implementation-phase: 3
@@ -152,26 +161,52 @@ paths:
       operationId: cancelCarePlan
       tags: [ke-hoach]
       summary: Hủy phiên bản Nháp hoặc Chờ duyệt (người lập, người có quyền duyệt)
+      description: 'Q-458: bắt buộc reason, trừ khi người lập tự bỏ bản Nháp của mình (allowedCommands có discardDraft thay cho cancel).'
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
+      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
-  /care-plans/{id}/withdraw-approval:
+  /care-plan-reviews/queue:
+    get:
+      x-implementation-phase: 3
+      operationId: listCarePlanReviewQueue
+      tags: [ke-hoach]
+      summary: Hàng chờ cần lập hoặc sửa kế hoạch theo phạm vi xem, chờ lâu nhất trước (Q-457)
+      x-fr: [FR-009, FR-059]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanQueueRow' } } } } } }
+  /care-plan-reviews/approved:
+    get:
+      x-implementation-phase: 3
+      operationId: listApprovedCarePlans
+      tags: [ke-hoach]
+      summary: Kế hoạch được duyệt trong khoảng CFG-M04-15 (mặc định 7 ngày), theo phạm vi xem, mới nhất trước (Q-451)
+      x-fr: [FR-059]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanApprovedRow' } } } } } }
+  /residents/{residentId}/care-plan-reviews:
+    get:
+      x-implementation-phase: 3
+      operationId: listOpenCarePlanReviews
+      tags: [ke-hoach]
+      summary: Yêu cầu xem xét kế hoạch Đang mở của một người cao tuổi (Q-457)
+      x-fr: [FR-058, FR-059]
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanReview' } } } } }, '403': { $ref: '#/components/responses/CarePlanProblem' } }
+  /residents/{residentId}/care-plan-reviews/dismiss:
     post:
       x-implementation-phase: 3
-      operationId: withdrawCarePlanApproval
+      operationId: dismissCarePlanReviews
       tags: [ke-hoach]
-      summary: Thu hồi duyệt trước ngày hiệu lực
-      x-fr: [FR-003]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      summary: Không cần thay đổi kế hoạch, đóng mọi yêu cầu xem xét Đang mở (người có quyền Lập hoặc Duyệt; Q-457)
+      x-fr: [FR-058]
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
-      responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+      responses: { '200': { description: Đã đóng }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/compare:
     get:
       x-implementation-phase: 3
       operationId: compareCarePlans
       tags: [ke-hoach]
-      summary: So sánh hai phiên bản (mục thêm, bớt, đổi)
+      summary: Thay đổi của bản sửa so với kế hoạch Hiệu lực (mục thêm, bớt, đổi; Q-456)
       x-fr: [FR-008]
       parameters:
         - { name: from, in: query, required: true, schema: { type: integer, format: int64 } }
@@ -652,6 +687,41 @@ paths:
                   $ref: "#/components/schemas/CareTask"
       operationId: listShiftCareTasks
       x-implementation-phase: 4
+  /care-tasks/month-drafts:
+    post:
+      x-implementation-phase: 11
+      operationId: copyCareTaskMonthFromPlans
+      tags: [cong-viec]
+      summary: Chép từ kế hoạch cho cả tháng của tầng, tạo công việc Nháp (Trưởng tầng; Q-453, FR-054)
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CareMonthRequest' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CareMonthCopyResult' } } } } }
+    get:
+      x-implementation-phase: 11
+      operationId: listCareTaskMonthDrafts
+      tags: [cong-viec]
+      summary: Công việc Nháp của tầng trong tháng (Q-453)
+      parameters:
+        - { name: floorAreaId, in: query, required: true, schema: { type: integer, format: int64 } }
+        - { name: month, in: query, required: true, schema: { type: string, example: '2026-12' } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CareMonthDraft' } } } } } }
+  /care-tasks/month-drafts/publish:
+    post:
+      x-implementation-phase: 11
+      operationId: publishCareTaskMonth
+      tags: [cong-viec]
+      summary: Công bố công việc tháng, Nháp sang Chưa đến hạn (Trưởng tầng; Q-453)
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CareMonthRequest' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CareMonthPublishResult' } } } } }
+  /care-tasks/month-drafts/{id}/discard:
+    post:
+      x-implementation-phase: 11
+      operationId: discardCareTaskDraft
+      tags: [cong-viec]
+      summary: Bỏ một công việc Nháp (Trưởng tầng; Q-453)
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK } }
   /shifts/{shiftId}/care-tasks/plan:
     post:
       tags:
@@ -870,7 +940,7 @@ components:
       description: Lỗi kế hoạch theo RFC 9457
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/CareCatalogProblem' } } }
     CarePlanConditionProblem:
-      description: 'OPEN_REVISION_EXISTS, REVISION_LOCKED, INVALID_EFFECTIVE_DATE và điều kiện chuyển trạng thái không thỏa'
+      description: 'OPEN_REVISION_EXISTS, REVISION_LOCKED và điều kiện chuyển trạng thái không thỏa'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/CareCatalogProblem' } } }
 
     CareCatalogProblem:
@@ -1001,6 +1071,38 @@ components:
         riskAgreements: { type: array, items: { $ref: '#/components/schemas/RiskAgreement' } }
         noEffectivePlan: { type: boolean }
         allowedCommands: { type: array, items: { type: string } }
+    CarePlanReview:
+      type: object
+      properties:
+        source: { type: string, description: 'M01.INITIAL_ASSESSMENT, M01.ASSESSMENT, M02.ADDENDUM, M05.INCIDENT, M05.PALLIATIVE_CARE_CHOICE' }
+        sourceId: { type: integer, format: int64 }
+        reference: { type: string }
+        raisedAt: { type: string, format: date-time }
+    CarePlanQueueRow:
+      type: object
+      properties:
+        residentId: { type: integer, format: int64 }
+        fullName: { type: string }
+        profileCode: { type: string }
+        reasons: { type: array, items: { $ref: '#/components/schemas/CarePlanReview' } }
+        draftId: { type: [integer, 'null'], format: int64 }
+        draftReturned: { type: boolean }
+        pendingApproval: { type: boolean, description: 'Bản đã gửi Bác sĩ duyệt (Q-457 sửa 2026-11-26); waitingSince khi đó là lúc gửi' }
+        createdBy: { type: [string, 'null'], description: 'Người lập bản đang xử lý' }
+        waitingSince: { type: string, format: date-time }
+    CarePlanApprovedRow:
+      type: object
+      required: [residentId, fullName, profileCode, planId, status, approvedBy, approvedAt, effectiveFrom, selfApproved]
+      properties:
+        residentId: { type: integer, format: int64 }
+        fullName: { type: string }
+        profileCode: { type: string }
+        planId: { type: integer, format: int64 }
+        status: { type: string, enum: [EFFECTIVE, PENDING_EFFECT, EXPIRED, CANCELLED] }
+        approvedBy: { type: [string, 'null'], description: 'Họ tên người duyệt nếu còn tra được' }
+        approvedAt: { type: string, format: date-time }
+        effectiveFrom: { type: [string, 'null'], format: date }
+        selfApproved: { type: boolean }
     CarePlanComparison:
       type: object
       properties:
@@ -1479,6 +1581,18 @@ components:
                 type: array
                 items:
                   $ref: "#/components/schemas/CarePlanItem"
+              planOccurrences:
+                type: array
+                description: Mốc của mục kế hoạch rơi trong ca và đúng ngày kế hoạch hiệu lực (Q-452).
+                items:
+                  type: object
+                  properties:
+                    itemId:
+                      type: integer
+                      format: int64
+                    plannedAt:
+                      type: string
+                      format: date-time
               otherSources:
                 type: array
                 items:
@@ -1511,9 +1625,36 @@ components:
         - REWORK
         # Đổi api 2026-11-23, chờ chủ dự án duyệt: việc tiếp theo của sự cố đang mở (007 FR-045b)
         - INCIDENT_FOLLOW_UP
+    CareMonthRequest:
+      type: object
+      required: [floorAreaId, month]
+      properties:
+        floorAreaId: { type: integer, format: int64 }
+        month: { type: string, example: '2026-12' }
+    CareMonthCopyResult:
+      type: object
+      properties:
+        created: { type: integer, format: int32 }
+        skipped: { type: integer, format: int32 }
+        shifts: { type: integer, format: int32 }
+    CareMonthPublishResult:
+      type: object
+      properties:
+        published: { type: integer, format: int32 }
+    CareMonthDraft:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        residentId: { type: [integer, 'null'], format: int64 }
+        taskTypeId: { type: integer, format: int64 }
+        shiftId: { type: integer, format: int64 }
+        plannedAt: { type: string, format: date-time }
+        importance: { $ref: '#/components/schemas/Importance' }
+        performerId: { type: [integer, 'null'], format: int64, description: 'Rỗng là việc chung của tầng' }
     CareTaskStatus:
       type: string
       enum:
+        - DRAFT
         - NOT_YET_DUE
         - DUE
         - OVERDUE

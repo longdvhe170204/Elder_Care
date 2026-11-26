@@ -74,10 +74,9 @@ final class NutritionCatalogFixture {
                 "SELECT id FROM catalog_item WHERE catalog_type = 'M01.ALLERGEN' AND name = ?", Long.class, name);
     }
 
+    /** Thân tạo món (Q-445: tên, mô tả); thành phần, chế độ ăn của test cũ không còn gửi. */
     static String dishBody(String name, List<Long> ingredients, boolean noCatalog, List<Long> diets) {
-        return "{\"name\":\"" + name + "\",\"note\":\"\",\"ingredients\":" + ids(ingredients)
-                + ",\"noCatalogIngredient\":" + noCatalog + ",\"suitableDietIds\":" + ids(diets)
-                + ",\"texture\":\"REGULAR\"}";
+        return "{\"name\":\"" + name + "\",\"description\":\"Mô tả " + name + "\"}";
     }
 
     static String ids(List<Long> values) {
@@ -107,18 +106,16 @@ final class NutritionCatalogFixture {
         return dishId(name);
     }
 
-    /** Món Hiệu lực: bếp tạo, gửi, Bác sĩ xác nhận. */
+    /** Món Hiệu lực: bếp tạo rồi đưa vào dùng (Q-445). */
     long activeDish(List<Long> ingredients, List<Long> diets) throws Exception {
         long id = draftDish(ingredients, diets);
-        send(post(BASE + "/dishes/" + id + "/submit"), "{}").andExpect(status().isOk());
-        asDoctor();
-        send(post(BASE + "/dishes/" + id + "/confirm"), "{}").andExpect(status().isOk());
+        send(post(BASE + "/dishes/" + id + "/activate"), "{}").andExpect(status().isOk());
         return id;
     }
 
     static String dietBody(String name, boolean treatment, boolean isDefault, List<Long> restrictions, long safeDish) {
         return "{\"name\":\"" + name + "\",\"description\":\"\",\"treatmentRelated\":" + treatment + ",\"isDefault\":"
-                + isDefault + ",\"restrictions\":" + ids(restrictions) + ",\"safeDishId\":" + safeDish + "}";
+                + isDefault + ",\"restrictions\":" + ids(restrictions) + "}";
     }
 
     /** Chế độ ăn Hiệu lực do Bác sĩ tạo, trả id. */
@@ -131,21 +128,16 @@ final class NutritionCatalogFixture {
     }
 
     /**
-     * Chế độ ăn nền không hạn chế cho món tham chiếu: món an toàn là một món Hiệu lực bất kỳ; chưa có món Hiệu lực nào
-     * thì để trống (ngoại lệ chế độ ăn đầu tiên, chủ dự án duyệt 2026-11-06).
+     * Chế độ ăn nền không hạn chế (Q-445: không còn món an toàn).
      */
     long baseDiet() throws Exception {
-        List<Long> active = jdbc.queryForList(
-                "SELECT id FROM catalog_item WHERE catalog_type='M08.DISH' AND attributes->>'$.status'='ACTIVE' LIMIT 1",
-                Long.class);
         asDoctor();
         String name = "Chế độ nền " + TestUsers.nextId();
-        String safe = active.isEmpty() ? "null" : String.valueOf(active.getFirst());
         send(
                         post(BASE + "/diets"),
                         "{\"name\":\"" + name
                                 + "\",\"description\":\"\",\"treatmentRelated\":false,\"isDefault\":false,"
-                                + "\"restrictions\":[],\"safeDishId\":" + safe + "}")
+                                + "\"restrictions\":[]}")
                 .andExpect(status().isCreated());
         return dietId(name);
     }
@@ -189,9 +181,8 @@ final class NutritionCatalogFixture {
 
     ResultActions apply(long assignment, String professionalReason) throws Exception {
         asDoctor();
-        String reason = professionalReason == null ? "" : "\"professionalReason\":\"" + professionalReason + "\",";
-        return send(
-                post("/api/v1/diet-assignments/" + assignment + "/apply"), "{" + reason + "\"confirmedWarnings\":[]}");
+        String reason = professionalReason == null ? "" : "\"professionalReason\":\"" + professionalReason + "\"";
+        return send(post("/api/v1/diet-assignments/" + assignment + "/apply"), "{" + reason + "}");
     }
 
     /** Lập và áp dụng ngay (không cần lý do chuyên môn), trả id. */

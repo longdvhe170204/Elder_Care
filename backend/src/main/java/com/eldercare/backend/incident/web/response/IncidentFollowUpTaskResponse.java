@@ -2,7 +2,6 @@ package com.eldercare.backend.incident.web.response;
 
 import com.eldercare.backend.care.api.dto.Importance;
 import com.eldercare.backend.care.api.dto.SourceTaskView;
-import com.eldercare.backend.care.api.dto.TaskStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
@@ -21,7 +20,18 @@ public record IncidentFollowUpTaskResponse(
         @Schema(types = {"string", "null"}) String performer,
 
         boolean shared,
-        TaskStatus status,
+
+        @Schema(
+                allowableValues = {
+                    "NOT_YET_DUE",
+                    "DUE",
+                    "OVERDUE",
+                    "COMPLETED",
+                    "COMPLETED_LATE",
+                    "NOT_PERFORMED",
+                    "CANCELLED"
+                })
+        String status,
 
         @Schema(
                 types = {"string", "null"},
@@ -43,7 +53,7 @@ public record IncidentFollowUpTaskResponse(
                 task.importance(),
                 task.performer(),
                 task.shared(),
-                task.status(),
+                task.status().name(),
                 task.closedAt(),
                 task.resultNote(),
                 task.closureReason());

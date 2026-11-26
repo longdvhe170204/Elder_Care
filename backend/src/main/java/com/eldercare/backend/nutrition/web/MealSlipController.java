@@ -68,18 +68,6 @@ public class MealSlipController {
                 .toList();
     }
 
-    @PostMapping("/special-portions/{id}/mark-prepared")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
-    @ApiResponse(
-            responseCode = "409",
-            description = "Bị chặn",
-            content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
-    public ResponseEntity<Void> markSpecialPrepared(
-            @RequestHeader("Idempotency-Key") String idempotencyKey, @PathVariable long id) {
-        slips.markSpecialPrepared(slips.targetOfSpecial(id), id);
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping("/meal-slips/{id}/{command}")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     @ApiResponse(

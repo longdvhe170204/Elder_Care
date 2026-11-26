@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Việc theo phút của chốt suất (research M-08, M-15; Q-306, Q-333): nhắc chốt tại mốc (FR-033), món an toàn tại CFG-M08-05
- * trước giờ bữa (FR-037a ii), suất giữ tại giờ bữa (FR-040a), nhắc phát sinh chưa xác nhận (FR-041). Mỗi việc mỗi bữa ngày
+ * Việc theo phút của chốt suất (research M-08, M-15; Q-306, Q-333): nhắc chốt tại mốc (FR-033), suất giữ tại giờ bữa
+ * (FR-040a), nhắc phát sinh chưa xác nhận (FR-041). Bỏ món an toàn (Q-445). Mỗi việc mỗi bữa ngày
  * đúng một lần theo dấu {@code M08.JOB.<khóa>}; xét mọi bữa đã tới hạn nên lần chạy bù vẫn làm. Không chốt suất (Q-306).
  */
 final class ClosingMinuteTasks {
@@ -65,46 +65,6 @@ final class ClosingMinuteTasks {
                     if (markers.firstTime(KEY, ClosingRecordStore.DAILY_MEAL, meal.id(), "due")) {
                         events.publishEvent(new PortionClosingReminder(meal.id(), meal.mealName(), date, now));
                     }
-                }
-            }
-        }
-    }
-
-    /** CFG-M08-05 trước giờ bữa: suất thiếu món thay thế, chưa có món được Bác sĩ chưa xử lý thì dùng món an toàn. */
-    @Component
-    static class SafeDishTask implements M08MinuteTask {
-
-        private static final String KEY = "SAFE_DISH";
-
-        private final PortionClosingStore closings;
-        private final PortionClosingService closing;
-        private final DailyMeals dailyMeals;
-        private final M08JobMarkers markers;
-
-        SafeDishTask(
-                PortionClosingStore closings,
-                PortionClosingService closing,
-                DailyMeals dailyMeals,
-                M08JobMarkers markers) {
-            this.closings = closings;
-            this.closing = closing;
-            this.dailyMeals = dailyMeals;
-            this.markers = markers;
-        }
-
-        @Override
-        public String key() {
-            return KEY;
-        }
-
-        @Override
-        @Transactional
-        public void run(Instant now) {
-            Duration lead = dailyMeals.reminderLead();
-            for (PortionClosing c : closings.mealTimeBetween(
-                    now.plusNanos(1_000), now.plus(lead).plusNanos(1_000))) {
-                if (markers.firstTime(KEY, ClosingRecordStore.DAILY_MEAL, c.dailyMealId(), "safe-dish")) {
-                    closing.recompute(c, Optional.empty(), "M08.SAFE_DISH:" + c.dailyMealId(), "SAFE_DISH", true, now);
                 }
             }
         }

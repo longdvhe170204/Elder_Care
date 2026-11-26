@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.List;
 
-/** Nội dung thực đơn Nháp (api-011 {@code MenuContent}; FR-024). */
+/** Nội dung thực đơn chung Nháp (api-011 {@code MenuContent}; FR-024, Q-445): thứ tự trong mảng là thứ tự món trong bữa. */
 @Schema(name = "MenuContent")
 public record MenuContentRequest(List<Row> dishes) {
 
@@ -17,10 +17,5 @@ public record MenuContentRequest(List<Row> dishes) {
             Long mealId,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Long dietId,
-
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Long dishId,
-
-            List<Long> substituteDishIds) {}
+            Long dishId) {}
 }

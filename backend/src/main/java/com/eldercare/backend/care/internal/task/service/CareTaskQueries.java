@@ -4,7 +4,10 @@ import com.eldercare.backend.administration.account.api.*;
 import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationApi;
 import com.eldercare.backend.care.api.*;
+import com.eldercare.backend.care.api.dto.CarePlanItemView;
+import com.eldercare.backend.care.api.dto.CarePlanView;
 import com.eldercare.backend.care.api.spi.TaskSourcePort;
+import com.eldercare.backend.care.internal.careplan.domain.CarePlanItemSequence;
 import com.eldercare.backend.care.internal.careplan.service.CarePlanQueries;
 import com.eldercare.backend.care.internal.task.domain.*;
 import com.eldercare.backend.care.internal.task.persistence.CareTaskStore;
@@ -88,13 +91,28 @@ public class CareTaskQueries {
             var other = sources.stream()
                     .flatMap(source -> source.sources(resident, s.startsAt(), s.endsAt()).stream())
                     .toList();
-            var planItems = date.datesUntil(lastDate.plusDays(1))
-                    .flatMap(day -> plans.effectiveOn(resident, day).stream())
-                    .flatMap(plan -> plan.items().stream())
-                    .distinct()
-                    .toList();
+            var planItems = new LinkedHashMap<Long, CarePlanItemView>();
+            var planOccurrences = new ArrayList<CareShiftSources.PlanOccurrence>();
+            for (var day = date; !day.isAfter(lastDate); day = day.plusDays(1)) {
+                var items = plans.effectiveOn(resident, day)
+                        .map(CarePlanView::items)
+                        .orElseGet(List::of);
+                for (var item : items) {
+                    planItems.putIfAbsent(item.id(), item);
+                    for (var at : CarePlanItemSequence.withinShift(item, s.startsAt(), s.endsAt())) {
+                        if (at.atZone(BusinessTime.ZONE).toLocalDate().equals(day)) {
+                            planOccurrences.add(new CareShiftSources.PlanOccurrence(item.id(), at));
+                        }
+                    }
+                }
+            }
             rows.add(new CareShiftSources.ResidentSources(
-                    resident, residents.status(resident).name(), assigned, planItems, other));
+                    resident,
+                    residents.status(resident).name(),
+                    assigned,
+                    List.copyOf(planItems.values()),
+                    List.copyOf(planOccurrences),
+                    other));
         }
         return new CareShiftSources(s, List.copyOf(rows));
     }

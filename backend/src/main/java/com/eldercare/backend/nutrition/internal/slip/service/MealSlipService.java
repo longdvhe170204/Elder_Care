@@ -24,7 +24,6 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
-import com.eldercare.backend.nutrition.api.dto.Texture;
 import com.eldercare.backend.nutrition.api.events.MealSlipDelivered;
 import com.eldercare.backend.nutrition.api.events.MealSlipDeliveredLate;
 import com.eldercare.backend.nutrition.api.events.MealSlipDiscrepancyReported;
@@ -35,29 +34,25 @@ import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.Me
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SlipDiscrepancy;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SpecialPortion;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SupplementaryPortion;
-import com.eldercare.backend.nutrition.internal.closing.domain.CountedPerson.DishChoice;
 import com.eldercare.backend.nutrition.internal.closing.domain.DailyMeal;
 import com.eldercare.backend.nutrition.internal.closing.domain.PortionClosing;
+import com.eldercare.backend.nutrition.internal.closing.domain.PortionContent;
 import com.eldercare.backend.nutrition.internal.closing.domain.PortionFlag;
 import com.eldercare.backend.nutrition.internal.closing.persistence.ClosingRecordStore;
 import com.eldercare.backend.nutrition.internal.closing.persistence.PortionClosingStore;
-import com.eldercare.backend.resident.api.HealthItemApi;
+import com.eldercare.backend.nutrition.internal.menu.persistence.MenuStore;
 import com.eldercare.backend.resident.api.ResidentApi;
-import com.eldercare.backend.resident.api.dto.HealthItemType;
 import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
-import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.roombedallocation.api.dto.FloorView;
-import com.eldercare.backend.roombedallocation.api.dto.LocationView;
+import com.eldercare.backend.staffing.api.ShiftApi;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -78,7 +73,6 @@ public class MealSlipService {
 
     private static final Set<String> RESOLUTIONS = Set.of("ADD_PORTION", "REPLACE_PORTION", "OTHER");
 
-    private static final AuditAction SPECIAL_PREPARED = new AuditAction("SPECIAL_PORTION_PREPARED", false);
     private static final AuditAction PREPARED = new AuditAction("MEAL_SLIP_PREPARED", false);
     private static final AuditAction DELIVERED = new AuditAction("MEAL_SLIP_DELIVERED", false);
     private static final AuditAction RECEIVED = new AuditAction("MEAL_SLIP_RECEIVED", false);
@@ -91,9 +85,9 @@ public class MealSlipService {
     private final PortionClosingStore closings;
     private final NutritionCatalogStore catalog;
     private final ResidentApi residents;
-    private final ResidentLocationApi residentLocations;
     private final LocationStructureApi structure;
-    private final HealthItemApi healthItems;
+    private final MenuStore menus;
+    private final ObjectProvider<ShiftApi> shifts;
     private final PermissionApi permissions;
     private final AuditLogApi audit;
     private final CurrentUser user;
@@ -105,9 +99,9 @@ public class MealSlipService {
             PortionClosingStore closings,
             NutritionCatalogStore catalog,
             ResidentApi residents,
-            ResidentLocationApi residentLocations,
             LocationStructureApi structure,
-            HealthItemApi healthItems,
+            MenuStore menus,
+            ObjectProvider<ShiftApi> shifts,
             PermissionApi permissions,
             AuditLogApi audit,
             CurrentUser user,
@@ -117,9 +111,9 @@ public class MealSlipService {
         this.closings = closings;
         this.catalog = catalog;
         this.residents = residents;
-        this.residentLocations = residentLocations;
         this.structure = structure;
-        this.healthItems = healthItems;
+        this.menus = menus;
+        this.shifts = shifts;
         this.permissions = permissions;
         this.audit = audit;
         this.user = user;
@@ -127,36 +121,30 @@ public class MealSlipService {
         this.events = events;
     }
 
-    /** Số suất theo chế độ ăn (tên chế độ ăn). */
-    public record DietCount(String diet, int portionCount) {}
+    /** Phần bổ sung của phiếu (FR-048b). */
+    public record Supplement(long id, int portionCount, Instant deliveredAt, Instant receivedAt) {}
 
-    /** Nhãn suất đặc biệt (FR-045): chỉ trường FR-046; dấu là danh sách đóng, không có "cần đối chiếu". */
-    public record Label(
-            long id,
-            String fullName,
-            String room,
-            String diet,
-            Texture texture,
-            String dishes,
-            List<String> flags,
-            boolean prepared) {}
-
-    /** Phần bổ sung của phiếu (FR-048b; trường thêm vào hợp đồng 2026-11-07). */
-    public record Supplement(long id, Long dietId, int portionCount, Instant deliveredAt, Instant receivedAt) {}
-
-    /** Phiếu cho bếp (api-011 {@code KitchenMealSlip}; FR-046, SC-008); {@code flags} là dấu mức phiếu (danh sách đóng). */
+    /**
+     * Phiếu cho bếp (api-011 {@code KitchenMealSlip}; FR-046, SC-008, Q-445): tầng/khu hoặc phiếu nhân viên, các món của bữa,
+     * tổng suất, số suất giữ; không tên, dị ứng, chế độ ăn. {@code flags} là dấu mức phiếu (danh sách đóng).
+     */
     public record KitchenSlip(
             long id,
+            boolean staff,
             String floorArea,
             String meal,
-            List<DietCount> portionsByDiet,
-            List<Label> labels,
+            List<String> dishes,
+            int portionCount,
+            int heldPortionCount,
             MealSlipStatus status,
             List<Supplement> supplementaryPortions,
             List<String> flags) {}
 
-    /** Phiếu cho nhân viên tại tầng (api-011 {@code FloorMealSlip}): thêm người cần đối chiếu, dị ứng khi có quyền xem. */
-    public record FloorSlip(KitchenSlip slip, List<Long> needsCrossCheck, List<Map<String, Object>> allergies) {}
+    /** Suất giữ có tên cho người nhận tại tầng (FR-040a). */
+    public record HeldPortion(long id, long residentId, String fullName, String status) {}
+
+    /** Phiếu cho nhân viên tại tầng (api-011 {@code FloorMealSlip}): thêm suất giữ có tên. */
+    public record FloorSlip(KitchenSlip slip, List<HeldPortion> heldPortions) {}
 
     public static Target target(long slipId, Long floorAreaId) {
         return new Target(ENTITY, Long.toString(slipId), null, floorAreaId);
@@ -193,69 +181,24 @@ public class MealSlipService {
     }
 
     /**
-     * Danh sách phiếu cho nhân viên tại tầng: chỉ phiếu của tầng/khu trong phạm vi quyền "Nhận phiếu, báo sai lệch" VIEW;
-     * dị ứng của từng người chỉ khi có quyền xem dị ứng (19.3).
+     * Danh sách phiếu cho nhân viên tại tầng: phiếu của tầng/khu trong phạm vi quyền "Nhận phiếu, báo sai lệch" VIEW, và phiếu
+     * nhân viên cho nhân viên có ca đang diễn ra (FR-048, Q-445).
      */
     @Transactional(readOnly = true)
     public List<FloorSlip> floorSlips(long dailyMealId, Long floorAreaId) {
         List<FloorSlip> out = new ArrayList<>();
         boolean any = false;
         for (SimpleRecord<MealSlip> slip : slipsOf(dailyMealId, floorAreaId)) {
-            PermissionResult allowed = permissions.hasPermission(
-                    user,
-                    new PermissionKey(Function.MEAL_RECEIPT, Operation.VIEW),
-                    target(slip.id(), slip.content().floorAreaId()));
-            if (!allowed.allowed()) {
+            if (!mayReceive(slip, Operation.VIEW)) {
                 continue;
             }
             any = true;
-            List<SimpleRecord<SpecialPortion>> specials = activeSpecials(slip.id());
-            List<Long> crossCheck = specials.stream()
-                    .filter(s -> s.content().flags().contains(PortionFlag.NEEDS_CROSS_CHECK))
-                    .map(s -> s.content().residentId())
-                    .toList();
-            List<Map<String, Object>> allergies = new ArrayList<>();
-            for (SimpleRecord<SpecialPortion> s : specials) {
-                long resident = s.content().residentId();
-                if (!mayViewAllergy(resident)) {
-                    continue;
-                }
-                healthItems.active(resident, HealthItemType.ALLERGY).forEach(i -> {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("residentId", resident);
-                    i.allergenId().ifPresent(a -> row.put("allergenId", a));
-                    i.freeText().ifPresent(t -> row.put("text", t));
-                    allergies.add(row);
-                });
-            }
-            out.add(new FloorSlip(kitchen(slip), crossCheck, allergies));
+            out.add(new FloorSlip(kitchen(slip), heldPortions(slip.id())));
         }
         if (!any && floorAreaId != null) {
             throw outOfScope();
         }
         return out;
-    }
-
-    /** Bếp đánh dấu một suất đặc biệt đã chuẩn bị (FR-045); phiếu đã giao thì không đổi được. */
-    @RequiresPermission(function = Function.MEAL_PREPARATION, operation = Operation.UPDATE)
-    @BusinessCommand(requiresReason = false)
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void markSpecialPrepared(Target target, long specialId) {
-        SimpleRecord<SpecialPortion> row = records.special(specialId);
-        SimpleRecord<MealSlip> slip = records.lockSlip(row.parent().entityId());
-        row = records.special(specialId);
-        SpecialPortion s = row.content();
-        if (!ClosingRecordStore.ACTIVE.equals(row.status())
-                || s.prepared()
-                || !MealSlipStatus.CLOSED.name().equals(slip.status())) {
-            throw stateChanged();
-        }
-        records.changeSpecial(row, ClosingRecordStore.ACTIVE, prepared(s));
-        audit.write(AuditLogEntry.builder()
-                .action(SPECIAL_PREPARED)
-                .entity(SpecialPortion.KIND.code(), specialId)
-                .resident(s.residentId())
-                .build());
     }
 
     /** Lệnh của bếp trên phiếu: {@code mark-prepared}, {@code deliver}, {@code resolve-discrepancy} (bảng phiếu). */
@@ -409,32 +352,17 @@ public class MealSlipService {
         if (!MealSlipStatus.CLOSED.name().equals(slip.status())) {
             throw stateChanged();
         }
-        List<UnmetCondition> unmet = new ArrayList<>();
-        notPrepared(slip.id()).ifPresent(unmet::add);
-        if (!unmet.isEmpty()) {
-            throw new ConditionNotMetException(unmet);
-        }
         records.changeSlip(slip, MealSlipStatus.PREPARED.name(), slip.content());
         write(PREPARED, slip.id(), Map.of());
     }
 
     /**
-     * Giao (FR-047): mọi suất đặc biệt đã chuẩn bị, không còn suất thiếu món thay thế chưa được Bác sĩ xử lý, mọi phát sinh
-     * cần giao của tầng/khu đã được bếp xác nhận, bữa có bản ghi lưu mẫu; nêu đủ các điều kiện chưa đạt rồi mới xét trạng
-     * thái Đã chuẩn bị.
+     * Giao (FR-047, Q-445): mọi phát sinh cần giao của tầng/khu đã được bếp xác nhận, bữa có bản ghi lưu mẫu; nêu đủ các điều
+     * kiện chưa đạt rồi mới xét trạng thái Đã chuẩn bị.
      */
     private void deliver(SimpleRecord<MealSlip> slip, Instant now) {
         MealSlip m = slip.content();
         List<UnmetCondition> unmet = new ArrayList<>();
-        notPrepared(slip.id()).ifPresent(unmet::add);
-        long missing = activeSpecials(slip.id()).stream()
-                .filter(s -> s.content().flags().contains(PortionFlag.MISSING_SUBSTITUTE_DISH)
-                        && s.content().assignedDishId() == null)
-                .count();
-        if (missing > 0) {
-            unmet.add(new UnmetCondition(
-                    "MISSING_SUBSTITUTE_DISH", missing + " suất thiếu món thay thế chưa được Bác sĩ xử lý"));
-        }
         long pending = records.adjustments(m.dailyMealId()).stream()
                 .filter(r -> r.content().floorAreaId() == m.floorAreaId()
                         && r.content().needsDelivery()
@@ -502,16 +430,32 @@ public class MealSlipService {
                 .toList();
     }
 
-    private Optional<UnmetCondition> notPrepared(long slipId) {
-        long count = activeSpecials(slipId).stream()
-                .filter(s -> s.content().special() && !s.content().prepared())
-                .count();
-        return count == 0
-                ? Optional.empty()
-                : Optional.of(new UnmetCondition("NOT_PREPARED", count + " suất đặc biệt chưa được đánh dấu chuẩn bị"));
+    /** Phiếu nhân viên: nhân viên có ca đang diễn ra (FR-048, Q-445); phiếu tầng/khu: quyền "Nhận phiếu, báo sai lệch". */
+    private boolean mayReceive(SimpleRecord<MealSlip> slip, Operation operation) {
+        if (slip.content().floorAreaId() == PortionContent.STAFF_GROUP) {
+            return onShiftNow();
+        }
+        return permissions
+                .hasPermission(
+                        user,
+                        new PermissionKey(Function.MEAL_RECEIPT, operation),
+                        target(slip.id(), slip.content().floorAreaId()))
+                .allowed();
+    }
+
+    private boolean onShiftNow() {
+        ShiftApi api = shifts.getIfAvailable();
+        return api != null
+                && user.staffId().map(id -> api.onShift(id, time.now())).orElse(false);
     }
 
     private void requireReceiver(SimpleRecord<MealSlip> slip, Operation operation) {
+        if (slip.content().floorAreaId() == PortionContent.STAFF_GROUP) {
+            if (onShiftNow()) {
+                return;
+            }
+            throw outOfScope();
+        }
         PermissionResult result = permissions.hasPermission(
                 user,
                 new PermissionKey(Function.MEAL_RECEIPT, operation),
@@ -547,67 +491,55 @@ public class MealSlipService {
 
     private KitchenSlip kitchen(SimpleRecord<MealSlip> slip) {
         MealSlip m = slip.content();
-        List<DietCount> counts = portionsByDiet(m.dailyMealId(), m.floorAreaId()).entrySet().stream()
-                .map(e -> new DietCount(catalog.diet(e.getKey()).name(), e.getValue()))
-                .toList();
-        List<SimpleRecord<SpecialPortion>> specials = activeSpecials(slip.id());
-        Map<Long, LocationView> where = residentLocations.current(
-                specials.stream().map(s -> s.content().residentId()).collect(Collectors.toSet()));
-        List<Label> labels = specials.stream()
-                .map(s -> label(s, Optional.ofNullable(where.get(s.content().residentId()))))
-                .toList();
+        int portions = portionsByDiet(m.dailyMealId(), m.floorAreaId()).values().stream()
+                .mapToInt(Integer::intValue)
+                .sum();
+        long mealId = DailyMeal.mealIdOf(m.dailyMealId());
+        java.time.LocalDate date = DailyMeal.dateOf(m.dailyMealId());
+        List<String> dishes = menus.publishedOn(date)
+                .map(menu -> menu.content().dishesOf(date, mealId).stream()
+                        .map(id -> catalog.dish(id).name())
+                        .toList())
+                .orElse(List.of());
+        int held = (int) activeSpecials(slip.id()).stream()
+                .filter(s -> s.content().flags().contains(PortionFlag.HELD_PORTION))
+                .count();
         List<Supplement> supplements = records.supplements(slip.id()).stream()
                 .map(r -> new Supplement(
                         r.id(),
-                        r.content().dietId(),
                         r.content().portionCount(),
                         r.content().deliveredAt(),
                         r.content().receivedAt()))
                 .toList();
+        boolean staff = m.floorAreaId() == PortionContent.STAFF_GROUP;
         return new KitchenSlip(
                 slip.id(),
-                structure.floor(m.floorAreaId()).map(FloorView::name).orElse(Long.toString(m.floorAreaId())),
-                catalog.meal(DailyMeal.mealIdOf(m.dailyMealId())).name(),
-                counts,
-                labels,
+                staff,
+                staff
+                        ? null
+                        : structure.floor(m.floorAreaId()).map(FloorView::name).orElse(Long.toString(m.floorAreaId())),
+                catalog.meal(mealId).name(),
+                dishes,
+                portions,
+                held,
                 MealSlipStatus.valueOf(slip.status()),
                 supplements,
                 m.flags().stream().sorted().toList());
     }
 
-    private Label label(SimpleRecord<SpecialPortion> row, Optional<LocationView> where) {
-        SpecialPortion s = row.content();
-        String dishes = s.assignedDishId() != null
-                ? catalog.dish(s.assignedDishId()).name()
-                : s.dishes().stream().map(this::dishName).collect(Collectors.joining(", "));
-        List<String> flags = s.flags().stream()
-                .filter(f -> f != PortionFlag.NEEDS_CROSS_CHECK)
-                .map(Enum::name)
-                .sorted()
+    private List<HeldPortion> heldPortions(long slipId) {
+        return activeSpecials(slipId).stream()
+                .filter(s -> s.content().flags().contains(PortionFlag.HELD_PORTION)
+                        || s.content().heldServedAt() != null
+                        || s.content().heldDiscardedAt() != null)
+                .map(s -> new HeldPortion(
+                        s.id(),
+                        s.content().residentId(),
+                        residents.identity(s.content().residentId()).fullName(),
+                        s.content().heldServedAt() != null
+                                ? "SERVED"
+                                : s.content().heldDiscardedAt() != null ? "DISCARDED" : "HELD"))
                 .toList();
-        return new Label(
-                row.id(),
-                residents.identity(s.residentId()).fullName(),
-                where.map(LocationView::roomName).orElse(null),
-                catalog.diet(s.dietId()).name(),
-                s.texture(),
-                dishes,
-                flags,
-                s.prepared());
-    }
-
-    private String dishName(DishChoice choice) {
-        return catalog.dish(choice.substituteDishId() != null ? choice.substituteDishId() : choice.dishId())
-                .name();
-    }
-
-    private boolean mayViewAllergy(long residentId) {
-        return permissions
-                .hasPermission(
-                        user,
-                        new PermissionKey(Function.ALLERGY_CONDITION, Operation.VIEW),
-                        new Target("M01.RESIDENT", Long.toString(residentId), residentId, null))
-                .allowed();
     }
 
     private void write(AuditAction action, long id, Map<String, Object> after) {
@@ -616,24 +548,6 @@ public class MealSlipService {
                 .entity(ENTITY, id)
                 .after(after)
                 .build());
-    }
-
-    private static SpecialPortion prepared(SpecialPortion s) {
-        return new SpecialPortion(
-                s.dailyMealId(),
-                s.residentId(),
-                s.dietId(),
-                s.texture(),
-                s.dishes(),
-                s.flags(),
-                s.special(),
-                s.assignedDishId(),
-                s.assignNote(),
-                s.assignedBy(),
-                s.assignedAt(),
-                s.heldServedAt(),
-                s.heldDiscardedAt(),
-                true);
     }
 
     private static String required(String content) {

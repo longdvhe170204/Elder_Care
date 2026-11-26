@@ -2,6 +2,7 @@ package com.eldercare.backend.care.web;
 
 import com.eldercare.backend.administration.account.api.*;
 import com.eldercare.backend.administration.account.api.dto.*;
+import com.eldercare.backend.care.api.dto.CarePlanStatus;
 import com.eldercare.backend.care.internal.careplan.domain.CarePlan;
 import com.eldercare.backend.care.internal.careplan.service.*;
 import com.eldercare.backend.care.web.request.*;
@@ -9,6 +10,7 @@ import com.eldercare.backend.care.web.response.*;
 import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
+import com.eldercare.backend.resident.api.ResidentApi;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,6 +31,8 @@ public class CarePlanController {
     private final CurrentUser user;
     private final CareRiskService risks;
     private final BusinessTime time;
+    private final CarePlanReviews reviews;
+    private final ResidentApi residentApi;
 
     public CarePlanController(
             CarePlanService service,
@@ -37,7 +41,11 @@ public class CarePlanController {
             PermissionApi permissions,
             CurrentUser user,
             CareRiskService risks,
-            BusinessTime time) {
+            BusinessTime time,
+            CarePlanReviews reviews,
+            ResidentApi residentApi) {
+        this.reviews = reviews;
+        this.residentApi = residentApi;
         this.service = service;
         this.queries = queries;
         this.accounts = accounts;
@@ -65,8 +73,8 @@ public class CarePlanController {
             @PathVariable long residentId,
             @RequestHeader("Idempotency-Key") String key,
             @RequestBody CarePlanCreate body) {
-        var row = service.create(
-                CarePlanService.residentTarget(residentId, 0), residentId, !Boolean.FALSE.equals(body.copyCurrent()));
+        // Q-447: luôn chép bản Chờ hiệu lực hoặc Hiệu lực; copyCurrent giữ trong hợp đồng cho client cũ, bị bỏ qua.
+        var row = service.create(CarePlanService.residentTarget(residentId, 0), residentId);
         return ResponseEntity.status(201).eTag(VersionEtag.of(row.version())).body(response(row));
     }
 
@@ -139,8 +147,28 @@ public class CarePlanController {
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = CareProblemBody.class)))
     public void submit(
-            @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CarePlanSubmit body) {
-        service.submit(service.target(id), id, body.effectiveFrom(), body.changeReason());
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody(required = false) CarePlanSubmit body) {
+        service.submit(service.target(id), id, body == null ? null : body.changeReason());
+    }
+
+    @PostMapping("/care-plans/{id}/retract")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public void retract(@PathVariable long id, @RequestHeader("Idempotency-Key") String key) {
+        service.retract(service.target(id), id);
     }
 
     @PostMapping("/care-plans/{id}/approve")
@@ -192,11 +220,81 @@ public class CarePlanController {
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = CareProblemBody.class)))
     public void cancel(
-            @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody CarePlanApprovalWrite body) {
+        // Q-449: lý do không bắt buộc khi người lập tự bỏ bản Nháp của mình; service kiểm
         service.cancel(service.target(id), id, body.reason());
     }
 
-    @PostMapping("/care-plans/{id}/withdraw-approval")
+    /** Q-448 (FR-059): hàng chờ "Cần lập hoặc sửa kế hoạch" theo phạm vi xem, chờ lâu nhất trước. */
+    @GetMapping("/care-plan-reviews/queue")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<CarePlanQueueResponse> reviewQueue() {
+        return reviews.queue().stream()
+                .map(row -> {
+                    var identity = residentApi.identity(row.residentId());
+                    return new CarePlanQueueResponse(
+                            row.residentId(),
+                            identity.fullName(),
+                            identity.profileCode(),
+                            row.reasons().stream()
+                                    .map(CarePlanReviewResponse::of)
+                                    .toList(),
+                            row.draft().map(CarePlan::id).orElse(null),
+                            row.draft()
+                                    .map(p -> p.status() == CarePlanStatus.DRAFT && "RETURNED".equals(p.endReason()))
+                                    .orElse(false),
+                            row.draft()
+                                    .map(p -> p.status() == CarePlanStatus.PENDING_APPROVAL)
+                                    .orElse(false),
+                            row.draft().map(p -> actor(p.createdBy())).orElse(null),
+                            row.waitingSince());
+                })
+                .toList();
+    }
+
+    /** Q-451 (FR-059): kế hoạch đã duyệt trong 7 ngày gần nhất, mới nhất trước. */
+    @GetMapping("/care-plan-reviews/approved")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<CarePlanApprovedResponse> approvedReviews() {
+        return reviews.approved().stream()
+                .map(plan -> {
+                    var identity = residentApi.identity(plan.residentId());
+                    String approvedBy = plan.approvedBy() == null
+                            ? null
+                            : accounts.fullName(plan.approvedBy()).orElse(null);
+                    return new CarePlanApprovedResponse(
+                            plan.residentId(),
+                            identity.fullName(),
+                            identity.profileCode(),
+                            plan.id(),
+                            plan.status().name(),
+                            approvedBy,
+                            plan.approvedAt(),
+                            plan.effectiveFrom(),
+                            plan.selfApproved());
+                })
+                .toList();
+    }
+
+    /** Q-448 (FR-059): yêu cầu xem xét Đang mở của một người cao tuổi, hiện phía trên kế hoạch. */
+    @GetMapping("/residents/{residentId}/care-plan-reviews")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public List<CarePlanReviewResponse> openReviews(@PathVariable long residentId) {
+        return reviews.open(CarePlanService.residentTarget(residentId, 0), residentId).stream()
+                .map(CarePlanReviewResponse::of)
+                .toList();
+    }
+
+    /** Q-448 (FR-058): "Không cần thay đổi" đóng mọi yêu cầu xem xét Đang mở của người cao tuổi. */
+    @PostMapping("/residents/{residentId}/care-plan-reviews/dismiss")
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(
             responseCode = "409",
@@ -204,9 +302,11 @@ public class CarePlanController {
                     @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = CareProblemBody.class)))
-    public void withdraw(
-            @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
-        service.withdraw(service.target(id), id, body.reason());
+    public void dismissReviews(
+            @PathVariable long residentId,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody CareCatalogReason body) {
+        reviews.dismiss(CarePlanService.residentTarget(residentId, 0), residentId, body.reason());
     }
 
     private String actor(Long accountId) {
@@ -272,16 +372,18 @@ public class CarePlanController {
                 commands.put("replaceItems", key(Operation.UPDATE));
                 commands.put("replaceRiskAgreements", key(Operation.UPDATE));
                 commands.put("submit", key(Operation.UPDATE));
-                commands.put(
-                        "cancel", row.createdBy() == user.accountId() ? key(Operation.VIEW) : key(Operation.APPROVE));
+                // Q-449: người lập tự bỏ bản Nháp của mình không cần lý do; cùng lệnh cancel, tên khác để giao diện
+                // biết
+                if (row.createdBy() == user.accountId()) commands.put("discardDraft", key(Operation.VIEW));
+                else commands.put("cancel", key(Operation.APPROVE));
             }
             case PENDING_APPROVAL -> {
                 commands.put("approve", key(Operation.APPROVE));
                 commands.put("return", key(Operation.APPROVE));
                 commands.put(
                         "cancel", row.createdBy() == user.accountId() ? key(Operation.VIEW) : key(Operation.APPROVE));
+                if (row.createdBy() == user.accountId()) commands.put("retract", key(Operation.UPDATE));
             }
-            case PENDING_EFFECT -> commands.put("withdrawApproval", key(Operation.APPROVE));
             default -> {}
         }
         return new CarePlanResponse(

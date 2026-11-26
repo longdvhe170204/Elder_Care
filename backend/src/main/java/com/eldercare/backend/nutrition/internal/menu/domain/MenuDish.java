@@ -1,12 +1,11 @@
 package com.eldercare.backend.nutrition.internal.menu.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
-import java.util.List;
 
-/** Một dòng nội dung thực đơn trong cột JSON của {@code menu} (FR-024, R-15). */
-public record MenuDish(LocalDate date, long mealId, long dietId, long dishId, List<Long> substituteDishIds) {
-
-    public MenuDish {
-        substituteDishIds = substituteDishIds == null ? List.of() : List.copyOf(substituteDishIds);
-    }
-}
+/**
+ * Một món của thực đơn chung trong cột JSON của {@code menu} (FR-024, R-15; Q-445): ngày, bữa, món; thứ tự trong danh sách
+ * là thứ tự món trong bữa. Bỏ qua {@code dietId}, {@code substituteDishIds} của nội dung có trước Q-445.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record MenuDish(LocalDate date, long mealId, long dishId) {}

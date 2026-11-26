@@ -13,8 +13,9 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Nguồn công việc loại {@code MEAL} cho 005 (T026; FR-017, FR-042, FR-050): kiểm bữa, người trong lịch bữa, liệt kê bữa
- * trong ca và xác nhận phục vụ trước khi ghi kết quả ăn uống. Bữa bị bỏ vì vắng ({@code sourceCancelled}) chưa cài.
+ * Nguồn công việc loại {@code MEAL} cho 005 (T026; FR-017, FR-042): kiểm bữa, người trong lịch bữa, liệt kê bữa trong ca.
+ * Không có xác nhận phục vụ trước khi ghi kết quả ăn uống (bỏ FR-050, Q-445): {@code confirmServing} dùng mặc định của
+ * cổng. Bữa bị bỏ vì vắng ({@code sourceCancelled}) chưa cài.
  */
 @Component
 public class MealTaskSource implements TaskSourcePort {
@@ -22,11 +23,8 @@ public class MealTaskSource implements TaskSourcePort {
     /** Lười: lịch bữa đi qua đếm suất, đọc chấm công 005, mà 005 lại cần bean này (vòng phụ thuộc lúc khởi tạo). */
     private final ObjectProvider<MealScheduleApi> scheduleProvider;
 
-    private final ServingService serving;
-
-    MealTaskSource(ObjectProvider<MealScheduleApi> scheduleProvider, ServingService serving) {
+    MealTaskSource(ObjectProvider<MealScheduleApi> scheduleProvider) {
         this.scheduleProvider = scheduleProvider;
-        this.serving = serving;
     }
 
     @Override
@@ -58,10 +56,5 @@ public class MealTaskSource implements TaskSourcePort {
             }
         }
         return out;
-    }
-
-    @Override
-    public boolean confirmServing(long mealId, long residentId) {
-        return serving.servingConfirmed(mealId, residentId);
     }
 }

@@ -75,6 +75,23 @@ public class CarePlanStore {
                 residentId);
     }
 
+    /** Người cao tuổi đang có bản Nháp hoặc Chờ duyệt (hàng chờ Q-448, FR-059). */
+    public List<Long> residentsWithDraft() {
+        return jdbc.queryForList(
+                "SELECT DISTINCT resident_id FROM care_plan WHERE status IN ('DRAFT','PENDING_APPROVAL')", Long.class);
+    }
+
+    /** Các bản đã được duyệt từ mốc Q-451, kể cả bản hết hiệu lực hoặc bị bản khác thay thế. */
+    public List<CarePlan> approvedSince(Instant cutoff) {
+        return jdbc.query("""
+                SELECT * FROM care_plan
+                WHERE approved_at >= ?
+                  AND (status IN ('EFFECTIVE','PENDING_EFFECT','EXPIRED')
+                       OR (status = 'CANCELLED' AND end_reason = 'SUPERSEDED'))
+                ORDER BY approved_at DESC, id DESC
+                """, this::row, local(cutoff));
+    }
+
     public CarePlan create(long residentId, int revision, Long previous, long actor, Instant now) {
         long id = insert(
                 "INSERT INTO care_plan(resident_id,revision,status,previous_plan_id,created_by,created_at) VALUES(?,?,'DRAFT',?,?,?)",
@@ -196,6 +213,13 @@ public class CarePlanStore {
             jdbc.update(
                     "UPDATE care_plan SET status='CANCELLED',end_reason='FINAL_STATUS',reminded_at=NULL,escalated_at=NULL,version=version+1 WHERE id=? AND status IN('DRAFT','PENDING_APPROVAL','PENDING_EFFECT')",
                     plan.id());
+    }
+
+    /** Q-447: bản Chờ hiệu lực bị bản sau được duyệt thay thế. */
+    public void supersede(long id) {
+        jdbc.update(
+                "UPDATE care_plan SET status='CANCELLED',end_reason='SUPERSEDED',version=version+1 WHERE id=? AND status='PENDING_EFFECT'",
+                id);
     }
 
     public void activate(long id) {

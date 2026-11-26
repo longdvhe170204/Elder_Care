@@ -57,7 +57,18 @@ class FR_003_CarePlanContractTest {
                     .extracting(parameter -> parameter.get$ref())
                     .contains("#/components/parameters/IfMatch", "#/components/parameters/IdempotencyKey");
         }
-        for (String action : List.of("submit", "approve", "return", "cancel", "withdraw-approval")) {
+        assertThat(paths).doesNotContainKey("/care-plans/{id}/withdraw-approval");
+        assertThat(paths.get("/care-plans/{id}/retract").getPost().getOperationId())
+                .isEqualTo("retractCarePlan");
+        var submitBody = paths.get("/care-plans/{id}/submit")
+                .getPost()
+                .getRequestBody()
+                .getContent()
+                .get("application/json")
+                .getSchema();
+        assertThat(submitBody.getProperties()).containsOnlyKeys("changeReason");
+        assertThat(submitBody.getRequired()).isNullOrEmpty();
+        for (String action : List.of("submit", "retract", "approve", "return", "cancel")) {
             Operation operation = paths.get("/care-plans/{id}/" + action).getPost();
             assertThat(operation).isNotNull();
             assertThat(operation.getParameters())
