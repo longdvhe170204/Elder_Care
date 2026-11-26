@@ -13,6 +13,7 @@ import com.eldercare.backend.medication.web.request.ReasonRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.NewReconciliationRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.ProposeCorrectionRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.ReconciliationItemRequest;
+import com.eldercare.backend.medication.web.request.ReconciliationRequests.ReconciliationNotesRequest;
 import com.eldercare.backend.medication.web.response.M07Problems;
 import com.eldercare.backend.medication.web.response.ReconciliationBodies.ReconciliationBody;
 import com.eldercare.backend.medication.web.response.ReconciliationBodies.ReconciliationCorrectionBody;
@@ -89,11 +90,35 @@ public class MedicationReconciliationController {
         CreateReconciliationBody command = new CreateReconciliationBody();
         command.setReason(body.reason().name());
         command.setReasonDetail(body.reasonDetail());
+        command.setFacilityName(body.facilityName());
+        command.setPrescriberName(body.prescriberName());
+        command.setPrescribedAt(body.prescribedAt());
+        command.setComparisonSource(body.comparisonSource());
+        command.setAttachmentFileId(body.attachmentFileId());
+        command.setAttachmentName(body.attachmentName());
+        command.setNurseNote(body.nurseNote());
         ReconciliationResponse created =
                 reconciliationService.create(residentId, command, currentUser.accountId(), isDoctor());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .eTag(VersionEtag.of(created.getVersion()))
                 .build();
+    }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/api/v1/medication-reconciliations/{id}/notes")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public ReconciliationBody updateNotes(
+            @PathVariable("id") Long id, @Valid @RequestBody ReconciliationNotesRequest body) {
+        CreateReconciliationBody command = new CreateReconciliationBody();
+        command.setFacilityName(body.facilityName());
+        command.setPrescriberName(body.prescriberName());
+        command.setPrescribedAt(body.prescribedAt());
+        command.setComparisonSource(body.comparisonSource());
+        command.setAttachmentFileId(body.attachmentFileId());
+        command.setAttachmentName(body.attachmentName());
+        command.setNurseNote(body.nurseNote());
+        command.setDoctorConclusion(body.doctorConclusion());
+        return ReconciliationBody.of(
+                reconciliationService.updateMetadata(id, command, isDoctor()), currentUser.accountId());
     }
 
     @GetMapping("/api/v1/medication-reconciliations/{id}")
@@ -142,6 +167,20 @@ public class MedicationReconciliationController {
         return ResponseEntity.ok().eTag(VersionEtag.of(res.getVersion())).build();
     }
 
+    @PostMapping("/api/v1/medication-reconciliations/{id}/draft")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Bản nháp", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> saveDraft(
+            @PathVariable("id") Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        ReconciliationResponse res = reconciliationService.saveDraft(id, currentUser.accountId(), isDoctor());
+        return ResponseEntity.ok().eTag(VersionEtag.of(res.getVersion())).build();
+    }
+
     @PostMapping("/api/v1/medication-reconciliations/{id}/return")
     @ApiResponse(responseCode = "200", description = "Mở", content = @Content)
     public ResponseEntity<Void> returnTicket(
@@ -149,6 +188,21 @@ public class MedicationReconciliationController {
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody ReasonRequest body) {
         ReconciliationResponse res = reconciliationService.returnForEdit(id, body.reason(), currentUser.accountId());
+        return ResponseEntity.ok().eTag(VersionEtag.of(res.getVersion())).build();
+    }
+
+    @PostMapping("/api/v1/medication-reconciliations/{id}/cancel")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã hủy", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> cancelTicket(
+            @PathVariable("id") Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody ReasonRequest body) {
+        ReconciliationResponse res = reconciliationService.cancel(id, body.reason(), currentUser.accountId());
         return ResponseEntity.ok().eTag(VersionEtag.of(res.getVersion())).build();
     }
 

@@ -6,6 +6,8 @@ package com.eldercare.backend.medication.internal.reconciliation.domain;
 public enum ReconciliationStatus {
     /** Open, allows editing and adding reconciliation lines */
     OPEN,
+    /** Doctor saved partial decisions as draft */
+    DRAFT,
     /** Submitted, pending review and confirmation by a second staff member */
     PENDING_CONFIRMATION,
     /** Confirmed, decisions applied to prescriptions */

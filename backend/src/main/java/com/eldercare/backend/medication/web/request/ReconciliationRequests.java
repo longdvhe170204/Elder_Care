@@ -32,12 +32,43 @@ public final class ReconciliationRequests {
         ADD_NEW
     }
 
+    public enum NurseFinding {
+        NO_CHANGE,
+        CONTINUE,
+        DISCONTINUE,
+        DOSE_CHANGED,
+        NEW_MEDICATION,
+        NOT_FOUND_IN_NEW,
+        UNCLEAR_INDICATION
+    }
+
     /** Lập phiếu; {@code reasonDetail} bắt buộc khi theo yêu cầu chuyên môn (FR-034b). */
     public record NewReconciliationRequest(
             @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
             ReconciliationReason reason,
 
-            String reasonDetail) {}
+            String reasonDetail,
+            String facilityName,
+            String prescriberName,
+            java.time.LocalDate prescribedAt,
+            String comparisonSource,
+            Long attachmentFileId,
+            String attachmentName,
+            String nurseNote) {
+        public NewReconciliationRequest(ReconciliationReason reason, String reasonDetail) {
+            this(reason, reasonDetail, null, null, null, null, null, null, null);
+        }
+    }
+
+    public record ReconciliationNotesRequest(
+            String facilityName,
+            String prescriberName,
+            java.time.LocalDate prescribedAt,
+            String comparisonSource,
+            Long attachmentFileId,
+            String attachmentName,
+            String nurseNote,
+            String doctorConclusion) {}
 
     /** api-006 {@code ReconciliationItem} khi thay danh sách dòng của phiếu Mở. */
     public record ReconciliationItemRequest(
@@ -50,8 +81,34 @@ public final class ReconciliationRequests {
             Long admissionMedicationItemId,
             String medicationDescription,
             Decision decision,
+            NurseFinding nurseFinding,
+            String comparisonSummary,
+            java.time.Instant lastHospitalDoseAt,
             String reason,
-            @Valid NewPrescriptionRequest newPrescription) {}
+            @Valid NewPrescriptionRequest newPrescription) {
+        public ReconciliationItemRequest(
+                Long id,
+                ItemSource source,
+                Long prescriptionId,
+                Long admissionMedicationItemId,
+                String medicationDescription,
+                Decision decision,
+                String reason,
+                NewPrescriptionRequest newPrescription) {
+            this(
+                    id,
+                    source,
+                    prescriptionId,
+                    admissionMedicationItemId,
+                    medicationDescription,
+                    decision,
+                    null,
+                    null,
+                    null,
+                    reason,
+                    newPrescription);
+        }
+    }
 
     /** Đề nghị đính chính phiếu Đã xác nhận (FR-039, BR-M07-17). */
     public record ProposeCorrectionRequest(

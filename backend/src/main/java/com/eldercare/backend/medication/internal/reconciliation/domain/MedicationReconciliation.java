@@ -39,6 +39,30 @@ public class MedicationReconciliation {
     @Column(name = "reason_detail", length = 2000)
     private String reasonDetail;
 
+    @Column(name = "facility_name")
+    private String facilityName;
+
+    @Column(name = "prescriber_name")
+    private String prescriberName;
+
+    @Column(name = "prescribed_at")
+    private java.time.LocalDate prescribedAt;
+
+    @Column(name = "comparison_source")
+    private String comparisonSource;
+
+    @Column(name = "attachment_file_id")
+    private Long attachmentFileId;
+
+    @Column(name = "attachment_name")
+    private String attachmentName;
+
+    @Column(name = "nurse_note", length = 2000)
+    private String nurseNote;
+
+    @Column(name = "doctor_conclusion", length = 2000)
+    private String doctorConclusion;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private ReconciliationStatus status = ReconciliationStatus.OPEN;
@@ -111,6 +135,10 @@ public class MedicationReconciliation {
         this.submittedById = submittedById;
         this.submittedAt = submittedAt;
         this.returnReason = null;
+    }
+
+    public void saveAsDraft() {
+        this.status = ReconciliationStatus.DRAFT;
     }
 
     public void returnForEdit(String reason) {
@@ -226,5 +254,56 @@ public class MedicationReconciliation {
 
     public void replaceLines(List<ReconciliationItem> lines) {
         this.lines = new ArrayList<>(lines == null ? List.of() : lines);
+    }
+
+    public void updateMetadata(
+            String facilityName,
+            String prescriberName,
+            java.time.LocalDate prescribedAt,
+            String comparisonSource,
+            Long attachmentFileId,
+            String attachmentName,
+            String nurseNote,
+            String doctorConclusion) {
+        if (facilityName != null) this.facilityName = facilityName;
+        if (prescriberName != null) this.prescriberName = prescriberName;
+        if (prescribedAt != null) this.prescribedAt = prescribedAt;
+        if (comparisonSource != null) this.comparisonSource = comparisonSource;
+        if (attachmentFileId != null) this.attachmentFileId = attachmentFileId;
+        if (attachmentName != null) this.attachmentName = attachmentName;
+        if (nurseNote != null) this.nurseNote = nurseNote;
+        if (doctorConclusion != null) this.doctorConclusion = doctorConclusion;
+    }
+
+    public String getFacilityName() {
+        return facilityName;
+    }
+
+    public String getPrescriberName() {
+        return prescriberName;
+    }
+
+    public java.time.LocalDate getPrescribedAt() {
+        return prescribedAt;
+    }
+
+    public String getComparisonSource() {
+        return comparisonSource;
+    }
+
+    public Long getAttachmentFileId() {
+        return attachmentFileId;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public String getNurseNote() {
+        return nurseNote;
+    }
+
+    public String getDoctorConclusion() {
+        return doctorConclusion;
     }
 }

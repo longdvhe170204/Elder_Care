@@ -25,6 +25,12 @@ public class ReconciliationItem {
 
     private ReconciliationDecision decision;
 
+    private String nurseFinding;
+
+    private String comparisonSummary;
+
+    private Instant lastHospitalDoseAt;
+
     private String reason;
 
     private String newPrescriptionJson;
@@ -155,6 +161,9 @@ public class ReconciliationItem {
                 && Objects.equals(admissionMedicationItemId, that.admissionMedicationItemId)
                 && Objects.equals(medicationDescription, that.medicationDescription)
                 && decision == that.decision
+                && Objects.equals(nurseFinding, that.nurseFinding)
+                && Objects.equals(comparisonSummary, that.comparisonSummary)
+                && Objects.equals(lastHospitalDoseAt, that.lastHospitalDoseAt)
                 && Objects.equals(reason, that.reason)
                 && Objects.equals(newPrescriptionJson, that.newPrescriptionJson)
                 && Objects.equals(createdById, that.createdById)
@@ -174,11 +183,38 @@ public class ReconciliationItem {
                 admissionMedicationItemId,
                 medicationDescription,
                 decision,
+                nurseFinding,
+                comparisonSummary,
+                lastHospitalDoseAt,
                 reason,
                 newPrescriptionJson,
                 createdById,
                 createdAt,
                 discontinuedOutsideTicket,
                 createdPrescriptionId);
+    }
+
+    public String getNurseFinding() {
+        return nurseFinding;
+    }
+
+    public void setNurseFinding(String nurseFinding) {
+        this.nurseFinding = nurseFinding;
+    }
+
+    public String getComparisonSummary() {
+        return comparisonSummary;
+    }
+
+    public void setComparisonSummary(String comparisonSummary) {
+        this.comparisonSummary = comparisonSummary;
+    }
+
+    public Instant getLastHospitalDoseAt() {
+        return lastHospitalDoseAt;
+    }
+
+    public void setLastHospitalDoseAt(Instant lastHospitalDoseAt) {
+        this.lastHospitalDoseAt = lastHospitalDoseAt;
     }
 }
