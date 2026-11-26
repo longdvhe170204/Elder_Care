@@ -1021,3 +1021,11 @@ T069 dùng hộp Lập công việc cho ca hiện có. Dòng cá nhân mặc đ�
 API nguồn cho cả ca có danh sách theo phạm vi và quyền đọc, nhưng thiếu mốc kết thúc có cấu trúc cho theo dõi sau ngã và tiếp xúc, thiếu khoảng có mặt của người bán trú tại giờ dự kiến. Giữ backend xác nhận hiệu lực, người cao tuổi, thời điểm và quyền trên lệnh lưu. Khi backend trả `INVALID_BASIS` cho nguồn đã chọn, báo tại ô nguồn và giữ nội dung. Không tách giờ kết thúc từ văn bản mô tả. Hiện không thấy provider `WATER_INTAKE_ALERT` trong mã thực thi, nên chỉ dùng bản ghi hệ thống thực sự trả. Muốn lọc đầy đủ tại giao diện trước khi lưu cần chốt bổ sung dữ liệu có cấu trúc của API với chủ dự án và C.
 
 Test hiện có đổi theo thao tác chọn nguồn mới. Bổ sung ca chọn nguồn bắt đầu hôm trước, loại nguồn của người khác và hiện lỗi khi backend từ chối. Ca cấp tầng kiểm tra việc xóa người đã chọn khi đổi sang loại cấp tầng và không dùng phân công chung.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 4 (2026-11-26)
+
+T070: ô giờ dự kiến dùng mốc thật của ca, nhận giờ bắt đầu và loại trừ giờ kết thúc theo `CareTaskValidator`. Dùng giờ Việt Nam, gợi ý theo bước 15 phút và cho nhập phút chính xác. Ô hiển thị ngày tương ứng sau khi nhập giờ hợp lệ. Ca qua đêm gửi đúng ngày hôm sau cho phần sau nửa đêm. Khi còn dòng chưa gửi, ô đổi ca đang được khóa như thiết kế lập lô.
+
+Khung nâng cao thu gọn mặc định. Khi dữ liệu nguồn đủ, hiển thị khung từ mục kế hoạch hoặc loại công việc, toàn ca đối với việc cấp ca và mục không có giờ cố định. Chỉ cho nhập số phút của việc phát sinh mức Thường với loại kết quả `PERFORMED`. Để trống không gửi trường ghi đè. Khi danh mục thiếu số phút mặc định, backend áp dụng CFG-M04-02. API tham số hiện yêu cầu quyền xem riêng và hợp đồng nguồn ca không trả giá trị này, nên chưa xem trước được giờ cụ thể ở nhánh dùng cấu hình hệ thống. Không thêm quyền hoặc trường API.
+
+Hai test mới đỏ trước khi cài. Các ca đã kiểm: đúng ngày sau nửa đêm, nhập phút lẻ, chặn đúng giờ kết thúc, khung danh mục và sửa một phía, xem khung kế hoạch mà không chỉnh, không gửi hai trường khi dùng mặc định. Web 1459 test/205 file, lint/build qua. Backend `FR_017_CareTaskValidatorTest` 5/5. Chưa kiểm trực quan trên trình duyệt.
