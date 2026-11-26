@@ -177,6 +177,53 @@ class US6_BalanceTransactionIT extends BalanceTestBase {
         assertThat(refundRemindedAt(c)).isEqualTo(remindedAt);
     }
 
+    // Demo 2026-11-26 (E, chờ chủ dự án duyệt): mọi biến động số dư báo người đại diện kèm số tiền, số dư sau giao
+    // dịch;
+    // bị từ chối cũng báo; không còn thông báo nộp tiền riêng (PAYMENT_RECORDED, PAYMENT_SUFFICIENT) để không báo trùng
+    @Test
+    void everyBalanceMovement_tellsTheRepresentative_onceWithAmountAndBalanceAfter() throws Exception {
+        long a = sentForSignature(TestUsers.nextId(), null);
+        long p = TestUsers.nextId();
+        representatives.representative(a, p);
+
+        cash(a, "BALANCE", 2_000_000);
+        assertThat(familyTexts(a))
+                .containsExactly("Đã ghi nhận nộp tiền mặt 2.000.000 đ cho Nguyễn Văn " + a
+                        + ". Số dư sau giao dịch: 2.000.000 đ; tiền cọc: 0 đ.");
+
+        approve(requestOf(id(newTransaction(refund(a, 500_000, p)).andExpect(status().isCreated()))))
+                .andExpect(status().isOk());
+        assertThat(familyTexts(a))
+                .hasSize(2)
+                .last()
+                .isEqualTo("Đã ghi nhận hoàn số dư 500.000 đ cho Nguyễn Văn " + a
+                        + ". Số dư sau giao dịch: 1.500.000 đ; tiền cọc: 0 đ.");
+
+        reject(requestOf(id(newTransaction(refund(a, 300_000, p)).andExpect(status().isCreated()))))
+                .andExpect(status().isOk());
+        assertThat(familyTexts(a))
+                .hasSize(3)
+                .last()
+                .isEqualTo("Yêu cầu hoàn số dư 300.000 đ cho Nguyễn Văn " + a + " đã bị từ chối; số dư không đổi.");
+
+        assertThat(events.stream(com.eldercare.backend.common.notification.HasNotificationRequests.class)
+                        .flatMap(e -> e.notificationRequests().stream())
+                        .filter(r -> r.residentId().orElse(0L) == a)
+                        .map(r -> r.eventType()))
+                .doesNotContain("M11_BALANCE_PAYMENT_RECORDED", "M11_BALANCE_PAYMENT_SUFFICIENT");
+    }
+
+    private List<String> familyTexts(long resident) {
+        return events.stream(com.eldercare.backend.common.notification.HasNotificationRequests.class)
+                .flatMap(e -> e.notificationRequests().stream())
+                .filter(r -> r.eventType().equals("M11_BALANCE_TRANSACTION")
+                        && r.residentId().orElse(0L) == resident)
+                .flatMap(r -> r.content().stream())
+                .filter(c -> c.type() == com.eldercare.backend.common.notification.InformationType.COSTS)
+                .map(c -> c.content())
+                .toList();
+    }
+
     private java.sql.Timestamp refundRemindedAt(long resident) {
         return jdbc.queryForObject(
                 "SELECT deposit_refund_reminded_at FROM resident_balance WHERE resident_id = ?",
