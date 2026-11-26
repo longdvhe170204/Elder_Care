@@ -36,6 +36,9 @@ public class Prescription {
     @Column(name = "resident_id", nullable = false)
     private Long residentId;
 
+    @Column(name = "prescription_group_id", length = 64)
+    private String prescriptionGroupId;
+
     @Column(name = "medication_id", nullable = false)
     private Long medicationId;
 
@@ -145,6 +148,12 @@ public class Prescription {
     @Column(name = "indication", length = 500)
     private String indication;
 
+    @Column(name = "chronic_disease", nullable = false)
+    private boolean chronicDisease;
+
+    @Column(name = "measurement_conditions", columnDefinition = "json")
+    private String measurementConditions;
+
     @Column(name = "temp_resumed_at")
     private Instant tempResumedAt;
 
@@ -242,6 +251,14 @@ public class Prescription {
 
     public Long getResidentId() {
         return residentId;
+    }
+
+    public String getPrescriptionGroupId() {
+        return prescriptionGroupId;
+    }
+
+    public void setPrescriptionGroupId(String prescriptionGroupId) {
+        this.prescriptionGroupId = prescriptionGroupId;
     }
 
     public Long getMedicationId() {
@@ -450,6 +467,22 @@ public class Prescription {
 
     public Set<Long> getAllergenIds() {
         return Collections.unmodifiableSet(allergenIds);
+    }
+
+    public boolean isChronicDisease() {
+        return chronicDisease;
+    }
+
+    public void setChronicDisease(boolean chronicDisease) {
+        this.chronicDisease = chronicDisease;
+    }
+
+    public String getMeasurementConditions() {
+        return measurementConditions;
+    }
+
+    public void setMeasurementConditions(String measurementConditions) {
+        this.measurementConditions = measurementConditions;
     }
 
     public void markReplaces(Long replacesId) {

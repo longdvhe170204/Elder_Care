@@ -138,7 +138,70 @@ public class PrescriptionService implements PrescriptionApi {
             Map<String, String> confirmedIssues,
             String timeCriticality,
             List<String> requiredMeasurements,
-            String indication) {
+            String indication,
+            String measurementConditions,
+            boolean chronicDisease) {
+
+        /** Lệnh không nêu điều kiện chỉ số / mạn tính. */
+        public CreatePrescriptionCommand(
+                Long medicationId,
+                BigDecimal dosage,
+                String dosageUnit,
+                String route,
+                PrescriptionType prescriptionType,
+                FrequencyType frequencyType,
+                String timedSlots,
+                Integer everyNHours,
+                Instant firstSlot,
+                String daysOfWeek,
+                Integer minIntervalMinutes,
+                Integer maxDosesPer24h,
+                Instant startedAt,
+                LocalDate endedAt,
+                MedicationSource medicationSource,
+                PrescriberType prescriberType,
+                String facilityName,
+                String prescriberName,
+                Long prescriberId,
+                LocalDate prescribedAt,
+                Long prescriptionFileId,
+                String instructionNote,
+                boolean pendingAdmission,
+                Map<String, String> confirmedIssues,
+                String timeCriticality,
+                List<String> requiredMeasurements,
+                String indication) {
+            this(
+                    medicationId,
+                    dosage,
+                    dosageUnit,
+                    route,
+                    prescriptionType,
+                    frequencyType,
+                    timedSlots,
+                    everyNHours,
+                    firstSlot,
+                    daysOfWeek,
+                    minIntervalMinutes,
+                    maxDosesPer24h,
+                    startedAt,
+                    endedAt,
+                    medicationSource,
+                    prescriberType,
+                    facilityName,
+                    prescriberName,
+                    prescriberId,
+                    prescribedAt,
+                    prescriptionFileId,
+                    instructionNote,
+                    pendingAdmission,
+                    confirmedIssues,
+                    timeCriticality,
+                    requiredMeasurements,
+                    indication,
+                    null,
+                    false);
+        }
 
         /** Lệnh không nêu mức quan trọng, chỉ số, chỉ định (đơn từ phiếu đối chiếu, thay thế cũ). */
         public CreatePrescriptionCommand(
@@ -413,7 +476,9 @@ public class PrescriptionService implements PrescriptionApi {
                 confirmedMap,
                 body.getTimeCriticality(),
                 body.getRequiredMeasurements(),
-                body.getIndication());
+                body.getIndication(),
+                body.getMeasurementConditions(),
+                body.isChronicDisease());
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
@@ -444,10 +509,43 @@ public class PrescriptionService implements PrescriptionApi {
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
     @Transactional
     public PrescriptionResponse create(Target target, long residentId, CreatePrescriptionCommand cmd) {
-        return create(residentId, cmd, true);
+        return create(residentId, cmd, true, null);
+    }
+
+    /** Kê đơn gồm nhiều dòng thuốc dùng chung {@code prescriptionGroupId} (M07-01). */
+    @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
+    @Transactional
+    public List<PrescriptionResponse> createBatch(
+            Target target, long residentId, List<CreatePrescriptionCommand> commands, Long currentUserId) {
+        return createBatch(target, residentId, commands, currentUserId, true);
+    }
+
+    @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
+    @Transactional
+    public List<PrescriptionResponse> createBatch(
+            Target target,
+            long residentId,
+            List<CreatePrescriptionCommand> commands,
+            Long currentUserId,
+            boolean isDoctor) {
+        if (commands == null || commands.isEmpty()) {
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("ITEMS_REQUIRED", "Đơn thuốc phải có ít nhất một dòng thuốc")));
+        }
+        String groupId = java.util.UUID.randomUUID().toString();
+        List<PrescriptionResponse> results = new ArrayList<>();
+        for (CreatePrescriptionCommand cmd : commands) {
+            results.add(create(residentId, cmd, true, groupId));
+        }
+        return results;
     }
 
     private PrescriptionResponse create(long residentId, CreatePrescriptionCommand cmd, boolean outsideTicket) {
+        return create(residentId, cmd, outsideTicket, null);
+    }
+
+    private PrescriptionResponse create(
+            long residentId, CreatePrescriptionCommand cmd, boolean outsideTicket, String groupId) {
         // 1. Khóa trạng thái M07 theo người trên resident_module_state (research D-03, R-15)
         residentMedicationLock.lock(residentId);
 
@@ -476,14 +574,51 @@ public class PrescriptionService implements PrescriptionApi {
             }
         }
 
-        // 4. Kiểm tra thuốc trong danh mục
+        // 4. Kiểm tra thuốc trong danh mục & phạm vi kê đơn nội bộ (M07-02)
         Medication med = medicationRepository.findById(cmd.medicationId()).orElseThrow(NotFoundException::new);
         if (!med.isActive()) {
             throw new ConditionNotMetException(
                     List.of(new UnmetCondition("MEDICATION_INACTIVE", "Thuốc đã ngừng hiệu lực trong danh mục")));
         }
+        if (outsideTicket && cmd.prescriberType() == PrescriberType.INTERNAL) {
+            if (med.isSpecialControl()) {
+                throw new ConditionNotMetException(List.of(new UnmetCondition(
+                        "SPECIAL_CONTROL_PRESCRIPTION_BLOCKED",
+                        "Thuốc kiểm soát đặc biệt không được kê trên luồng kê đơn nội bộ")));
+            }
+            if (!med.isAllowInternalPrescribe()) {
+                throw new ConditionNotMetException(List.of(new UnmetCondition(
+                        "OUTSIDE_INTERNAL_PRESCRIBING_SCOPE",
+                        "Thuốc ngoài phạm vi kê đơn nội bộ của viện, chỉ tiếp nhận qua đơn bệnh viện ngoài")));
+            }
+            if (cmd.indication() == null || cmd.indication().isBlank()) {
+                throw new ConditionNotMetException(List.of(new UnmetCondition(
+                        "INDICATION_REQUIRED", "Đơn nội bộ bắt buộc phải có chẩn đoán / chỉ định lâm sàng")));
+            }
+        }
 
-        // 5. Kiểm tra loại đơn và tần suất (FR-004)
+        // 5. Kiểm tra loại đơn, thời hạn và tần suất (FR-004, M07-04, M07-02)
+        if (outsideTicket && cmd.endedAt() == null) {
+            throw new ConditionNotMetException(List.of(
+                    new UnmetCondition("ENDED_AT_REQUIRED", "Bắt buộc nhập ngày kết thúc cho thuốc trong đơn")));
+        }
+        if (cmd.endedAt() != null) {
+            LocalDate startDate = cmd.startedAt()
+                    .atZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
+                    .toLocalDate();
+            if (cmd.endedAt().isBefore(startDate)) {
+                throw new ConditionNotMetException(List.of(
+                        new UnmetCondition("INVALID_DATE_RANGE", "Ngày kết thúc không được trước ngày bắt đầu")));
+            }
+            if (outsideTicket && cmd.prescriberType() == PrescriberType.INTERNAL) {
+                long days = java.time.temporal.ChronoUnit.DAYS.between(startDate, cmd.endedAt()) + 1;
+                long maxDays = cmd.chronicDisease() ? 90L : 30L;
+                if (days > maxDays) {
+                    throw new ConditionNotMetException(List.of(new UnmetCondition(
+                            "PRESCRIPTION_DURATION_EXCEEDED", "Thời hạn kê đơn nội bộ tối đa " + maxDays + " ngày")));
+                }
+            }
+        }
         if (cmd.prescriptionType() == PrescriptionType.PERIODIC) {
             if (cmd.frequencyType() == null) {
                 throw new ConditionNotMetException(List.of(
@@ -562,6 +697,9 @@ public class PrescriptionService implements PrescriptionApi {
 
         p.applyBf07(
                 criticalityOf(cmd.timeCriticality()), measurementsJson(cmd.requiredMeasurements()), cmd.indication());
+        p.setChronicDisease(cmd.chronicDisease());
+        p.setMeasurementConditions(cmd.measurementConditions());
+        p.setPrescriptionGroupId(groupId);
         Prescription saved = prescriptionRepository.save(p);
 
         // Lưu các vấn đề đã xác nhận vào prescription_issue
