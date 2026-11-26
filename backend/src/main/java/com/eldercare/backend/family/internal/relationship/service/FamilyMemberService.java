@@ -35,6 +35,7 @@ import com.eldercare.backend.family.api.events.RelationshipChange;
 import com.eldercare.backend.family.api.events.RelationshipChanged;
 import com.eldercare.backend.family.api.events.RightChangesTookEffect;
 import com.eldercare.backend.family.internal.relationship.domain.Dbr02Check;
+import com.eldercare.backend.family.internal.relationship.domain.FamilyContact;
 import com.eldercare.backend.family.internal.relationship.domain.FamilyMember;
 import com.eldercare.backend.family.internal.relationship.domain.FamilyRegistrationForm;
 import com.eldercare.backend.family.internal.relationship.domain.FamilyRelationship;
@@ -194,6 +195,16 @@ public class FamilyMemberService {
         requireStaff();
         FamilyMember member = store.familyMember(familyMemberId).orElseThrow(NotFoundException::new);
         return new FamilyMemberDetail(member, store.ofFamilyMember(familyMemberId));
+    }
+
+    /** Danh sách liên hệ người thân (Q-448, FR-077): quan hệ Hiệu lực, chỉ trường để liên hệ. */
+    @RequiresPermission(function = Function.FAMILY_CONTACT_LIST, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<FamilyContact> contacts(Target target) {
+        requireStaff();
+        return FamilyContact.listOf(
+                store.ofResident(target.residentId()),
+                id -> store.familyMember(id).orElseThrow());
     }
 
     /** Quan hệ của người cao tuổi kể cả đã kết thúc; người thân chỉ thấy quan hệ của chính mình (FR-067). */
