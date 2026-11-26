@@ -108,6 +108,24 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
         return BalanceTypes.TRANSACTION;
     }
 
+    /**
+     * Demo 2026-11-26 (E): thông báo gửi người duyệt nêu loại giao dịch, số tiền và người cao tuổi (tiêu đề đã là tên
+     * chức năng, 000 Notices).
+     */
+    @Override
+    public java.util.Optional<String> submittedNoticeSummary(ApprovalRequestView submitted) {
+        BalanceTransactionRow row = row(submitted);
+        String label = switch (row.type()) {
+            case REFUND -> "Hoàn số dư";
+            case DEPOSIT_REFUND -> "Hoàn tiền cọc";
+            case ADJUSTMENT -> "Điều chỉnh số dư";
+            default -> "Giao dịch số dư";
+        };
+        String amount = String.format(java.util.Locale.GERMANY, "%,d", Math.abs(row.amount())) + " đ";
+        return java.util.Optional.of(label + " " + amount + " cho "
+                + residents.identity(row.residentId()).fullName() + ".");
+    }
+
     @Override
     public void validateContent(JsonNode content) {
         transactionId(content);
