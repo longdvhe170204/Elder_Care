@@ -40,4 +40,9 @@ public interface AlertStaffPort {
             long floorAreaId, Instant at) {
         return List.of();
     }
+
+    /** Có nhân viên mang mã hồ sơ này không (kiểm người bàn giao khi chuyển viện, BF-06). Mặc định coi là có. */
+    default boolean staffExists(long staffId) {
+        return true;
+    }
 }

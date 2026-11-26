@@ -82,6 +82,11 @@ class AlertStaffLookup implements AlertStaffPort {
         return query.floors(at);
     }
 
+    @Override
+    public boolean staffExists(long staffId) {
+        return query.staff(staffId).isPresent();
+    }
+
     public List<com.eldercare.backend.incident.api.dto.HandoverCandidateView> handoverCandidates(
             long floor, Instant at) {
         return query.staffOnShift(floor, at).stream()

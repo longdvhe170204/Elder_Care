@@ -1789,6 +1789,7 @@ Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID 
 | `/xem-lai-lieu`, `…/{id}/ket-qua` | `/dose-reviews`, `…/{id}/result` |
 | `/nguoi-cao-tuoi/{nctId}/phieu-doi-chieu`, `/phieu-doi-chieu/{id}`, `…/dong`, `…/gui-xac-nhan`, `…/tra-lai`, `…/xac-nhan`, `…/de-nghi-dinh-chinh` | `/residents/{residentId}/medication-reconciliations`, `/medication-reconciliations/{id}`, `…/items`, `…/submit`, `…/return`, `…/confirm`, `…/propose-correction` |
 | `/de-nghi-dinh-chinh-phieu/{id}/xac-nhan`, `…/tra-lai` | `/reconciliation-corrections/{id}/confirm`, `…/return` |
+| lệnh Hủy phiếu đối chiếu `…/huy`, mã lệnh được phép `HUY` (Q-447, 2026-11-26) | `/medication-reconciliations/{id}/cancel`; `allowedCommands` giữ mã `HUY` như các mã lệnh khác của phiếu |
 | `/tiep-nhan-thuoc-cung-ung` (tham số `yeuCauMuaSamId`) | `/supplied-medication-intakes` (`purchaseRequestId`) |
 | `/nguoi-cao-tuoi/{nctId}/thuoc-gia-dinh-gui`, `/thuoc-gia-dinh-gui/{id}`, `…/xac-nhan-su-dung`, `…/chi-giu-ho`, `…/ngung-su-dung`, `…/kiem-ke-dieu-chinh`, `…/hoan-tra`, `…/huy` | `/residents/{residentId}/family-medications`, `/family-medications/{id}`, `…/confirm-use`, `…/hold-only`, `…/stop-use`, `…/adjust-inventory`, `…/return`, `…/dispose` |
 | `/nguoi-cao-tuoi/{nctId}/thuoc-can-mang` (tham số `chuyenId`), `…/lan-giao-thuoc`, `/lan-giao-thuoc/{id}/nhan-lai`, `/nguoi-cao-tuoi/{nctId}/khong-mang-thuoc` | `/residents/{residentId}/medications-to-bring` (`tripId`), `…/medication-handovers`, `/medication-handovers/{id}/return`, `/residents/{residentId}/no-medication-orders` |
@@ -3421,6 +3422,7 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | --- | --- |
 | `/nguoi-than`, `/nguoi-than/{id}` | `/family-members`, `/family-members/{id}` |
 | `/nguoi-cao-tuoi/{nctId}/quan-he`; `/quan-he/{id}/{lenh}` (`doi-lien-he-chinh`, `dat-dai-dien-dau-tien`, `doi-thu-tu`, `ket-thuc`) | `/residents/{residentId}/relationships`; `/relationships/{id}/{command}` (`change-primary-contact`, `set-first-representative`, `change-contact-order`, `end`) |
+| `/nguoi-cao-tuoi/{nctId}/lien-he-nguoi-than`; dòng Phụ lục 27 "Danh sách liên hệ người thân" (Q-448, 2026-11-26) | `/residents/{residentId}/family-contacts` (schema `FamilyContact`); `Function.FAMILY_CONTACT_LIST` |
 | `/nguoi-cao-tuoi/{nctId}/phieu-dang-ky`, `…/danh-sach-don` (tham số `t`), `…/mong-muon` | `/residents/{residentId}/family-registration-forms`, `…/pickup-list` (`at`), `…/visit-pickup-wishes` |
 | `/yeu-cau-quyen`, `/yeu-cau-quyen/{id}/{lenh}` (`xac-nhan`, `duyet`, `tu-choi`, `huy`) | `/right-change-requests`, `/right-change-requests/{id}/{command}` (`confirm`, `approve`, `reject`, `cancel`) |
 | `/nguoi-cao-tuoi/{nctId}/don`, `…/ban-ghi-don`, `…/ngoai-le-don`; `/ngoai-le-don/{id}/{lenh}` | `/residents/{residentId}/pickups`, `…/pickup-records`, `…/pickup-exceptions`; `/pickup-exceptions/{id}/{command}` |

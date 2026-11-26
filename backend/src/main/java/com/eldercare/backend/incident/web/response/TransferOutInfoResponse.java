@@ -17,7 +17,10 @@ public record TransferOutInfoResponse(
 
         @JsonProperty("isEmergency")
         @Schema(name = "isEmergency", description = "Sự cố mức Khẩn cấp: không bắt notAskedFirstReason")
-        Boolean isEmergency) {
+        Boolean isEmergency,
+
+        @Schema(description = "Mã phiếu tóm tắt chuyển viện gần nhất của sự cố; null khi chưa chuyển viện")
+        Long summaryId) {
 
     public static TransferOutInfoResponse of(TransferOutInfo info) {
         return new TransferOutInfoResponse(
@@ -25,7 +28,8 @@ public record TransferOutInfoResponse(
                 info.endOfLifeWish(),
                 contact(info.primaryContact()),
                 info.mustAskFirst(),
-                info.emergency());
+                info.emergency(),
+                info.summaryId());
     }
 
     static Map<String, Object> contact(EmergencyCard.Contact contact) {

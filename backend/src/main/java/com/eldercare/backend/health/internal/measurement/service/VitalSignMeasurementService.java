@@ -92,7 +92,21 @@ public class VitalSignMeasurementService {
     }
 
     private VitalSignRecord recordInternal(
-            RecordVitalSignCommand command, CurrentUser user, boolean syncedAfterPermissionLoss) {
+            RecordVitalSignCommand input, CurrentUser user, boolean syncedAfterPermissionLoss) {
+        // Bỏ trống giờ đo thì lấy giờ ghi (spec; trước đây NullPointerException, trả 500)
+        final RecordVitalSignCommand command = input.measuredAt() != null
+                ? input
+                : new RecordVitalSignCommand(
+                        input.residentId(),
+                        input.indicatorId(),
+                        businessTime.now(),
+                        input.measuredBy(),
+                        input.values(),
+                        input.immediateAction(),
+                        input.taskId(),
+                        input.deviceMeasuredAt(),
+                        input.offline(),
+                        input.note());
         PermissionResult permission =
                 checkPermission(user, command.residentId(), command.offline() ? command.deviceMeasuredAt() : null);
         if (command.values().isEmpty()) {

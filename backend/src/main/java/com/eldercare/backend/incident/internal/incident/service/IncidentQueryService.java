@@ -41,7 +41,7 @@ public class IncidentQueryService {
     private static final PermissionKey CREATE = new PermissionKey(Function.INCIDENT_EMERGENCY, Operation.CREATE);
     private static final Set<String> OPEN = Set.of("NEW", "IN_PROGRESS", "MONITORING");
     private static final Set<Role> HANDLER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
-    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.DOCTOR);
+    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
     private static final Set<Role> ASSIGNER_ROLES = Set.of(Role.FLOOR_MANAGER, Role.DOCTOR, Role.NURSING_HOME_MANAGER);
 
     private final IncidentStore incidents;
@@ -126,6 +126,8 @@ public class IncidentQueryService {
         boolean assigner = ASSIGNER_ROLES.stream().anyMatch(roles::contains) || current;
         if (assigner && (manager || handler)) commands.add("assign-handler");
         if (handler || incident.recordedBy() == user.accountId()) commands.add("progressions");
+        // BF-06: ghi nhận đã báo người nhà (người có chuyên môn phụ trách: Bác sĩ, Điều dưỡng, Trưởng tầng)
+        if (handler && incident.residentId() != null) commands.add("family-notice");
         if (handler) commands.add("change-level");
         if (status.equals("IN_PROGRESS") && handler) commands.add("move-to-monitoring");
         if (status.equals("MONITORING") && handler) commands.add("reopen");

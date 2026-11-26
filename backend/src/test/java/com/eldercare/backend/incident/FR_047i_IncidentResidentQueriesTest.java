@@ -66,6 +66,25 @@ class FR_047i_IncidentResidentQueriesTest {
         });
     }
 
+    /** BF-06: gõ số phòng cũng tìm ra các cụ trong phòng đó, người ở phòng khác không khớp. */
+    @Test
+    void matchesByRoomName() {
+        allowed();
+        when(residents.byStatus(any())).thenReturn(List.of(1L, 2L, 3L));
+        resident(1, "Nguyễn Thị An");
+        resident(2, "Trần Văn Bình");
+        resident(3, "Lê Thị Hoa");
+        when(locations.current(anyCollection()))
+                .thenReturn(Map.of(
+                        1L, new LocationView(null, null, 7L, "Tầng 1", 10L, "P101", 1L, "G1"),
+                        2L, new LocationView(null, null, 7L, "Tầng 1", 10L, "P101", 2L, "G2"),
+                        3L, new LocationView(null, null, 7L, "Tầng 1", 11L, "P102", 3L, "G1")));
+
+        var found = queries.search("p101", user);
+
+        assertThat(found).extracting(r -> r.fullName()).containsExactly("Nguyễn Thị An", "Trần Văn Bình");
+    }
+
     @Test
     void atMostFiveResults() {
         allowed();

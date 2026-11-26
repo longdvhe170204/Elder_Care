@@ -10,6 +10,7 @@ import com.eldercare.backend.medication.api.dto.SkipDoseRequest;
 import com.eldercare.backend.medication.internal.dose.domain.DoseDetailView;
 import com.eldercare.backend.medication.internal.dose.domain.DoseReviewStatus;
 import com.eldercare.backend.medication.internal.dose.service.DoseAdministrationService;
+import com.eldercare.backend.medication.internal.dose.service.DoseCommandPermission;
 import com.eldercare.backend.medication.internal.dose.service.DoseExtrasService;
 import com.eldercare.backend.medication.internal.dose.service.DoseReviewService;
 import com.eldercare.backend.medication.internal.dose.service.DoseViewService;
@@ -50,6 +51,7 @@ public class DoseController {
     private final DoseWorkflowService doseWorkflow;
     private final CurrentUser currentUser;
     private final BusinessTime businessTime;
+    private final DoseCommandPermission doseCommands;
 
     public DoseController(
             DoseAdministrationService doseAdministrationService,
@@ -58,7 +60,8 @@ public class DoseController {
             DoseExtrasService doseExtras,
             DoseWorkflowService doseWorkflow,
             CurrentUser currentUser,
-            BusinessTime businessTime) {
+            BusinessTime businessTime,
+            DoseCommandPermission doseCommands) {
         this.doseAdministrationService = doseAdministrationService;
         this.doseReviewService = doseReviewService;
         this.doseViews = doseViews;
@@ -66,6 +69,7 @@ public class DoseController {
         this.doseWorkflow = doseWorkflow;
         this.currentUser = currentUser;
         this.businessTime = businessTime;
+        this.doseCommands = doseCommands;
     }
 
     @PostMapping("/api/v1/medication-doses/{doseKey}/administer")
@@ -88,6 +92,7 @@ public class DoseController {
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
         var reporter = body.reportedBy();
         AdministerDoseRequest request = new AdministerDoseRequest(
                 body.administeredAt() != null ? body.administeredAt() : businessTime.now(),
@@ -128,6 +133,7 @@ public class DoseController {
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
         doseAdministrationService.refuseDose(
                 doseKey,
                 new RefuseDoseRequest(
@@ -155,6 +161,7 @@ public class DoseController {
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
         doseAdministrationService.skipDose(
                 doseKey,
                 new SkipDoseRequest(
@@ -184,6 +191,7 @@ public class DoseController {
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
         return view(doseWorkflow.postpone(doseKey, body.reason(), currentUser.accountId(), businessTime.now()));
     }
 
@@ -197,6 +205,7 @@ public class DoseController {
     public DoseBody claim(
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        doseCommands.require(currentUser);
         return view(doseWorkflow.claim(doseKey, currentUser.accountId(), businessTime.now()));
     }
 
@@ -210,6 +219,7 @@ public class DoseController {
     public DoseBody release(
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        doseCommands.require(currentUser);
         return view(doseWorkflow.release(doseKey, currentUser.accountId(), businessTime.now()));
     }
 
