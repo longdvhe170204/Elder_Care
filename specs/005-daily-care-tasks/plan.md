@@ -1007,3 +1007,9 @@ T067 sửa `src/features/care-tasks/CareResultForm.jsx` và thêm test cùng tê
 Đối chiếu: `CareResultTiming` đã xét trạng thái bằng `performedAt`; `CareResultService` lưu giờ server và nhãn ghi nhận muộn riêng, từ chối thời điểm tương lai/trước đầu khung. Không sửa state machine, schema, API, sự kiện tính phí hoặc quy tắc Q-32/Q-37 của bàn giao. Không mở lại công việc đã đóng bằng thao tác nhanh. Chưa chạy test backend trong mốc chỉ sửa web này.
 
 TDD: 4 ca form, trước sửa 3 đỏ vì thiếu lựa chọn mới, 1 xanh kiểm form số đo; sau sửa 4/4 xanh. Form + checklist 10/10; toàn web 205 file, 1454 test xanh; npm run lint/build exit 0. Build có cảnh báo chunk lớn; jsdom báo navigation chưa hỗ trợ nhưng không có test thất bại. Chưa kiểm trực quan trình duyệt; không coi toàn Phase 14 hoàn tất. Không thêm thuật ngữ API/domain mới nên glossary giữ nguyên. C cần review phần 005.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 2 (2026-11-26)
+
+T068: Checklist ca dùng mẫu Dòng thời gian ca (DESIGN.md mục 7.2). Nút Đánh dấu hoàn thành nằm cạnh khối việc và mở khung chi tiết sẵn có. Nút hiện khi loại kết quả trong snapshot là `PERFORMED` và checklist trả quyền `record`. Khi mở, đọc lại chi tiết và chỉ cho thao tác khi đọc thành công. Một lệnh đang gửi khóa thao tác tiếp theo, thử lại cùng nội dung giữ Idempotency-Key. Khi lưu xong, tải trạng thái từ backend.
+
+Hai test mới đỏ trước khi cài vì không tìm thấy nút. Kiểm thành công: nhấn nút chỉ mở form, gửi hai lần liên tiếp chỉ có một POST, tải lại thấy việc Hoàn thành. Kiểm bị từ chối: chi tiết trả 403 thì hiện lỗi và không gửi lệnh. Bộ test bố cục bắt lỗi bọc cả các khối không có nút nhanh, đã sửa để chỉ bọc khối có nút. Toàn web 205 file, 1456 test xanh, lint/build qua. Còn kiểm trực quan laptop, 375px, bàn phím và nền tối.

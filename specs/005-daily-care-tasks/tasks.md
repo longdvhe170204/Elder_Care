@@ -421,6 +421,7 @@ Chia nhỏ theo kho để người dùng tự commit từng mốc; không tự c
 
 - [x] T067 Web: form kết quả `PERFORMED` có Vừa hoàn thành / Đã hoàn thành trước đó; bắt buộc giờ khi chọn trước đó, không gửi giờ cũ khi đổi lại Vừa hoàn thành; giữ form chuyên môn và lý do trễ. Test trước: 3 đỏ, 1 xanh; sau sửa 4 xanh; toàn web 1454 test xanh, lint/build qua. Chưa nghiệm thu trực quan.
 - [ ] T068 Web: nút hoàn thành từ danh sách, đọc quyền/trạng thái hiện hành, chống gửi đồng thời, xử lý lỗi và làm mới từ backend; kiểm trình duyệt laptop, 375px, bàn phím, nền tối.
+  - 2026-11-26: đã cài nút cạnh khối việc và kiểm tự động luồng ghi, trả 403, gửi trùng, làm mới trạng thái. Còn kiểm trực quan.
 - [ ] T069 Web: hai chế độ căn cứ theo yêu cầu, đối tượng người/vị trí loại trừ nhau, nguồn thật và trạng thái rỗng; rà dữ liệu cấp tầng theo hợp đồng trước khi sửa.
 - [ ] T070 Web/backend: kiểm biên ca ngày/qua đêm và giá trị mặc định khung thời gian; thu gọn tùy chọn nâng cao, không tự đặt ngưỡng mới.
 - [ ] T071 Backend: kiểm hồi quy thời điểm thực hiện/ghi nhận, quyền, căn cứ, đồng thời, bàn giao và sự kiện; sửa chỉ khi có lỗi được chứng minh. Quy tắc mới hoặc đổi hợp đồng phải chốt trước.
