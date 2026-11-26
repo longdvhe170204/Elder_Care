@@ -257,10 +257,6 @@ public class Prescription {
         return prescriptionGroupId;
     }
 
-    public void setPrescriptionGroupId(String prescriptionGroupId) {
-        this.prescriptionGroupId = prescriptionGroupId;
-    }
-
     public Long getMedicationId() {
         return medicationId;
     }
@@ -473,16 +469,15 @@ public class Prescription {
         return chronicDisease;
     }
 
-    public void setChronicDisease(boolean chronicDisease) {
-        this.chronicDisease = chronicDisease;
-    }
-
     public String getMeasurementConditions() {
         return measurementConditions;
     }
 
-    public void setMeasurementConditions(String measurementConditions) {
+    public void assignClinicalMetadata(
+            boolean chronicDisease, String measurementConditions, String prescriptionGroupId) {
+        this.chronicDisease = chronicDisease;
         this.measurementConditions = measurementConditions;
+        this.prescriptionGroupId = prescriptionGroupId;
     }
 
     public void markReplaces(Long replacesId) {

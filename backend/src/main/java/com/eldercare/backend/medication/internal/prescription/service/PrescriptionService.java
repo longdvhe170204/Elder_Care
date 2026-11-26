@@ -697,9 +697,7 @@ public class PrescriptionService implements PrescriptionApi {
 
         p.applyBf07(
                 criticalityOf(cmd.timeCriticality()), measurementsJson(cmd.requiredMeasurements()), cmd.indication());
-        p.setChronicDisease(cmd.chronicDisease());
-        p.setMeasurementConditions(cmd.measurementConditions());
-        p.setPrescriptionGroupId(groupId);
+        p.assignClinicalMetadata(cmd.chronicDisease(), cmd.measurementConditions(), groupId);
         Prescription saved = prescriptionRepository.save(p);
 
         // Lưu các vấn đề đã xác nhận vào prescription_issue
