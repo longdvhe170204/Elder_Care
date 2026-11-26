@@ -1066,3 +1066,11 @@ Hai thay đổi hợp đồng cần chủ dự án duyệt trước khi triển 
 ### Kiểm hộp lập việc qua đêm trên Edge
 
 Dùng dữ liệu test ca 18:00–07:00. Ở 1366px chế độ sáng và 375px chế độ tối, mở hộp bằng Enter, kiểm giờ 07:00 bị chặn, nhập 01:07 thấy đúng ngày hôm sau, mở tùy chọn nâng cao thấy khung 00:57–01:27 và gửi đúng `plannedAt`. Lượt đầu phát hiện phần đầu hộp tràn ngang ở 375px. Đã cho tiêu đề và các nút xếp dọc ở màn hẹp, xếp ngang từ cỡ `sm`. Cả hộp và trang đều qua kiểm tràn ngang khi chạy lại. Toàn web 1470 test/205 file xanh, lint/build qua. Chưa demo với backend thật.
+
+### Demo ca đêm với backend thật và kiểm chênh lệch giờ
+
+Dùng JAR backend đã có và MySQL 8.0 riêng trên loopback. Trên Edge 375px chế độ tối, Trưởng tầng lập việc phát sinh của ca 18:00–07:00 cho nhân viên được giao. Giờ kết thúc bị chặn. Backend lưu đúng ngày hôm sau và áp mặc định 15 phút mỗi phía khi danh mục để trống. Nhân viên mở checklist, xác nhận Vừa hoàn thành và API trả `COMPLETED` với cùng mốc thực hiện và mốc ghi. Đã thử tiếp chọn Đã hoàn thành trước đó, gửi 01:11, backend ghi lúc 01:13 và trả `COMPLETED` với hai mốc riêng.
+
+Demo phát hiện trình duyệt có thể từ chối giờ hợp lệ khi đồng hồ máy đi sau backend. T074 dùng `loadedAt` do checklist trả cộng thời gian trôi qua trên máy để kiểm giờ tương lai, trong khi lệnh lưu vẫn do backend xác nhận. Test mới đỏ trước khi cài và xanh sau sửa. Toàn web 1471 test/205 file xanh, lint/build qua.
+
+Gọi trực tiếp API demo xác nhận giờ tương lai trả 422, tài khoản ngoài phạm vi nhận 404, thực hiện sau khung trả `COMPLETED_LATE`. Đã thao tác Điều dưỡng lập mục và Bác sĩ duyệt, kế hoạch chuyển Chờ hiệu lực. Chưa đi tiếp luồng lập từ kế hoạch hiệu lực trong demo này vì job kích hoạt theo ngày bị tắt ở cấu hình cô lập. Phần chọn mục kế hoạch đã có test web với dữ liệu giả lập. Các thay đổi đề xuất cho API nguồn ca vẫn chờ duyệt.
