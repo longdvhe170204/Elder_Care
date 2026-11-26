@@ -7,6 +7,8 @@ import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.care.api.dto.CarePlanStatus;
+import com.eldercare.backend.care.internal.careplan.domain.CarePlan;
 import com.eldercare.backend.care.internal.careplan.domain.CarePlanReviewRaised;
 import com.eldercare.backend.care.internal.careplan.domain.CarePlanReviewRule;
 import com.eldercare.backend.care.internal.careplan.persistence.CarePlanReviewStore;
@@ -19,8 +21,13 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.ResidentApi;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.TreeSet;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -32,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class CarePlanReviews {
+    private static final PermissionKey VIEW = new PermissionKey(Function.CARE_PLAN, Operation.VIEW);
     private static final PermissionKey CREATE = new PermissionKey(Function.CARE_PLAN, Operation.CREATE);
     private static final PermissionKey APPROVE = new PermissionKey(Function.CARE_PLAN, Operation.APPROVE);
 
@@ -67,6 +75,43 @@ public class CarePlanReviews {
     public List<CarePlanReviewRaised> open(long residentId) {
         return CarePlanReviewRule.open(
                 reviews.raised(residentId), plans.list(residentId, false), reviews.dismissals(residentId));
+    }
+
+    /** Yêu cầu Đang mở của một người cao tuổi, cho màn kế hoạch (FR-059). */
+    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.VIEW)
+    public List<CarePlanReviewRaised> open(Target target, long residentId) {
+        return open(residentId);
+    }
+
+    /** Một dòng hàng chờ: yêu cầu Đang mở, bản Nháp (bị trả lại hay đang soạn), thời điểm bắt đầu chờ. */
+    public record QueueRow(
+            long residentId, List<CarePlanReviewRaised> reasons, Optional<CarePlan> draft, Instant waitingSince) {}
+
+    /**
+     * Hàng chờ "Cần lập hoặc sửa kế hoạch" (FR-059): người chưa ở trạng thái cuối, trong phạm vi xem kế hoạch, còn yêu cầu
+     * Đang mở hoặc có bản Nháp; chờ lâu nhất trước.
+     */
+    @Transactional(readOnly = true)
+    public List<QueueRow> queue() {
+        var candidates = new TreeSet<Long>(reviews.residentsRaised());
+        candidates.addAll(plans.residentsWithDraft());
+        var rows = new ArrayList<QueueRow>();
+        for (long residentId : candidates) {
+            if (residents.isFinalStatus(residentId)) continue;
+            if (!permissions
+                    .hasPermission(user, VIEW, CarePlanService.residentTarget(residentId, 0))
+                    .allowed()) continue;
+            var all = plans.list(residentId, false);
+            var open = CarePlanReviewRule.open(reviews.raised(residentId), all, reviews.dismissals(residentId));
+            var draft =
+                    all.stream().filter(p -> p.status() == CarePlanStatus.DRAFT).findFirst();
+            if (open.isEmpty() && draft.isEmpty()) continue;
+            Instant since =
+                    open.isEmpty() ? draft.get().createdAt() : open.getFirst().raisedAt();
+            rows.add(new QueueRow(residentId, open, draft, since));
+        }
+        rows.sort(Comparator.comparing(QueueRow::waitingSince));
+        return rows;
     }
 
     /** "Không cần thay đổi": người có quyền Lập hoặc Duyệt kế hoạch chăm sóc trong phạm vi, lý do bắt buộc. */

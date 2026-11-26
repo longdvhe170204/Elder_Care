@@ -165,6 +165,23 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
       responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plan-reviews/queue:
+    get:
+      x-implementation-phase: 3
+      operationId: listCarePlanReviewQueue
+      tags: [ke-hoach]
+      summary: Hàng chờ cần lập hoặc sửa kế hoạch theo phạm vi xem, chờ lâu nhất trước (Q-448)
+      x-fr: [FR-009, FR-059]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanQueueRow' } } } } } }
+  /residents/{residentId}/care-plan-reviews:
+    get:
+      x-implementation-phase: 3
+      operationId: listOpenCarePlanReviews
+      tags: [ke-hoach]
+      summary: Yêu cầu xem xét kế hoạch Đang mở của một người cao tuổi (Q-448)
+      x-fr: [FR-058, FR-059]
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanReview' } } } } }, '403': { $ref: '#/components/responses/CarePlanProblem' } }
   /residents/{residentId}/care-plan-reviews/dismiss:
     post:
       x-implementation-phase: 3
@@ -1010,6 +1027,23 @@ components:
         riskAgreements: { type: array, items: { $ref: '#/components/schemas/RiskAgreement' } }
         noEffectivePlan: { type: boolean }
         allowedCommands: { type: array, items: { type: string } }
+    CarePlanReview:
+      type: object
+      properties:
+        source: { type: string, description: 'M01.INITIAL_ASSESSMENT, M01.ASSESSMENT, M02.ADDENDUM, M05.INCIDENT, M05.PALLIATIVE_CARE_CHOICE' }
+        sourceId: { type: integer, format: int64 }
+        reference: { type: string }
+        raisedAt: { type: string, format: date-time }
+    CarePlanQueueRow:
+      type: object
+      properties:
+        residentId: { type: integer, format: int64 }
+        fullName: { type: string }
+        profileCode: { type: string }
+        reasons: { type: array, items: { $ref: '#/components/schemas/CarePlanReview' } }
+        draftId: { type: [integer, 'null'], format: int64 }
+        draftReturned: { type: boolean }
+        waitingSince: { type: string, format: date-time }
     CarePlanComparison:
       type: object
       properties:

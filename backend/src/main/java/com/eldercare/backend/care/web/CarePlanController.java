@@ -9,6 +9,7 @@ import com.eldercare.backend.care.web.response.*;
 import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
+import com.eldercare.backend.resident.api.ResidentApi;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,6 +31,7 @@ public class CarePlanController {
     private final CareRiskService risks;
     private final BusinessTime time;
     private final CarePlanReviews reviews;
+    private final ResidentApi residentApi;
 
     public CarePlanController(
             CarePlanService service,
@@ -39,8 +41,10 @@ public class CarePlanController {
             CurrentUser user,
             CareRiskService risks,
             BusinessTime time,
-            CarePlanReviews reviews) {
+            CarePlanReviews reviews,
+            ResidentApi residentApi) {
         this.reviews = reviews;
+        this.residentApi = residentApi;
         this.service = service;
         this.queries = queries;
         this.accounts = accounts;
@@ -217,6 +221,44 @@ public class CarePlanController {
     public void cancel(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
         service.cancel(service.target(id), id, body.reason());
+    }
+
+    /** Q-448 (FR-059): hàng chờ "Cần lập hoặc sửa kế hoạch" theo phạm vi xem, chờ lâu nhất trước. */
+    @GetMapping("/care-plan-reviews/queue")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<CarePlanQueueResponse> reviewQueue() {
+        return reviews.queue().stream()
+                .map(row -> {
+                    var identity = residentApi.identity(row.residentId());
+                    return new CarePlanQueueResponse(
+                            row.residentId(),
+                            identity.fullName(),
+                            identity.profileCode(),
+                            row.reasons().stream()
+                                    .map(CarePlanReviewResponse::of)
+                                    .toList(),
+                            row.draft().map(CarePlan::id).orElse(null),
+                            row.draft()
+                                    .map(p -> "RETURNED".equals(p.endReason()))
+                                    .orElse(false),
+                            row.waitingSince());
+                })
+                .toList();
+    }
+
+    /** Q-448 (FR-059): yêu cầu xem xét Đang mở của một người cao tuổi, hiện phía trên kế hoạch. */
+    @GetMapping("/residents/{residentId}/care-plan-reviews")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public List<CarePlanReviewResponse> openReviews(@PathVariable long residentId) {
+        return reviews.open(CarePlanService.residentTarget(residentId, 0), residentId).stream()
+                .map(CarePlanReviewResponse::of)
+                .toList();
     }
 
     /** Q-448 (FR-058): "Không cần thay đổi" đóng mọi yêu cầu xem xét Đang mở của người cao tuổi. */

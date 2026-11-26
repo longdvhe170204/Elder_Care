@@ -373,4 +373,56 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                         residentId))
                 .isZero();
     }
+
+    private org.springframework.test.web.servlet.ResultActions queue() throws Exception {
+        return mvc.perform(get("/api/v1/care-plan-reviews/queue")).andExpect(status().isOk());
+    }
+
+    private String row() {
+        return "$[?(@.residentId==" + residentId + ")]";
+    }
+
+    @Test
+    void Q448_fallPutsResidentInQueueUntilRevisedPlanIsApproved() throws Exception {
+        long incident = TestUsers.nextId();
+        reviewApi.fallIncidentRecorded(residentId, incident);
+
+        queue().andExpect(jsonPath(row() + ".reasons[0].source").value("M05.INCIDENT"))
+                .andExpect(jsonPath(row() + ".reasons[0].reference").value(Long.toString(incident)))
+                .andExpect(jsonPath(row() + ".profileCode").value("NCT-2026-" + residentId))
+                .andExpect(jsonPath(row() + ".draftId").value(org.hamcrest.Matchers.contains((Object) null)));
+        mvc.perform(get("/api/v1/residents/" + residentId + "/care-plan-reviews"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].source").value("M05.INCIDENT"));
+
+        long id = create();
+        queue().andExpect(jsonPath(row() + ".draftId").value(org.hamcrest.Matchers.contains((int) id)));
+        submit(id);
+        approveAsDoctor(id);
+
+        queue().andExpect(jsonPath(row()).isEmpty());
+        mvc.perform(get("/api/v1/residents/" + residentId + "/care-plan-reviews"))
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void Q448_returnedDraftIsQueuedAsReturned() throws Exception {
+        long id = create();
+        submit(id);
+        user.set(doctor.user());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/return"), "{\"reason\":\"Thiếu mục uống nước\"}"))
+                .andExpect(status().isOk());
+        user.set(nurse.user());
+
+        queue().andExpect(jsonPath(row() + ".draftReturned").value(org.hamcrest.Matchers.contains(true)))
+                .andExpect(jsonPath(row() + ".reasons[*]").isEmpty());
+    }
+
+    @Test
+    void Q448_queueHidesResidentsOutsideScope() throws Exception {
+        reviewApi.fallIncidentRecorded(residentId, TestUsers.nextId());
+        user.set(new TestUsers(jdbc, time).staff(Role.NURSING_STAFF).user());
+
+        queue().andExpect(jsonPath(row()).isEmpty());
+    }
 }

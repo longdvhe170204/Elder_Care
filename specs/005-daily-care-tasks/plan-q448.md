@@ -80,48 +80,18 @@
 - [ ] Lệnh `POST /residents/{residentId}/care-plan-reviews/dismiss` body `{ reason }` (bắt buộc, khuôn `Reason` chung ≤ 2000 như các lệnh kế hoạch), cần `CARE_PLAN.CREATE` hoặc `CARE_PLAN.APPROVE` trong phạm vi; `Idempotency-Key` như các lệnh khác; ghi nhật ký `CARE_PLAN_REVIEW_DISMISSED`. Không có yêu cầu Đang mở thì 409 `NO_OPEN_REVIEW`.
 - [ ] Cập nhật `api-005.yaml`, chạy test hợp đồng `FR_003_CarePlanContractTest`.
 
-### Task 4: Đọc hàng chờ và trạng thái kế hoạch (backend)
+### Cắt bớt (chủ dự án 2026-11-26)
 
-**Files:**
-- Create: `care/internal/careplan/service/CarePlanQueue.java`
-- Modify: `care/web/CarePlanController.java`, `care/web/response/` (thêm `CarePlanQueueResponse`, `PlanState`)
-- Modify: `api-005.yaml`
-- Test: `BR_17_CarePlanReviewIT.java`
+Bỏ: API đếm và số đếm trên menu; bộ lọc tầng, nguồn; nhóm "Đang chờ Bác sĩ duyệt"; năm trạng thái kế hoạch `planState` (FR-009 viết lại: người không có trong hàng chờ theo lịch chung); liên kết sang nguồn, điền sẵn "Lý do sửa"; toàn bộ phần mobile; dữ liệu mẫu. Mỗi kho chạy test một lần trước khi commit.
 
-- [ ] `GET /care-plan-reviews/queue?floorAreaId=&source=` cần `CARE_PLAN.VIEW`; phạm vi theo tầng như `GET /residents`. Mỗi người một dòng: `resident` (tên, mã hồ sơ, phòng, giường từ `BedAllocationApi`), `planState`, `reasons[]` (nguồn, mã tham chiếu, `raisedAt`), `waitingSince`, `draft` (id, trạng thái, lý do trả lại nếu có), `allowedCommands`. Nhóm `pendingApproval[]` riêng. Sắp `waitingSince` tăng dần.
-- [ ] `planState` theo thứ tự FR-009. "Chờ đánh giá" dùng `assessments.latestConfirmed(...)` của loại đầu vào; gọi gộp cho danh sách để tránh N+1 (thêm hàm lô vào `AssessmentApi` nếu chưa có).
-- [ ] `GET /residents/{residentId}/care-plans` trả thêm `planState`, `openReviews[]`. Giữ `noEffectivePlan` cho mobile cũ.
-- [ ] `GET /care-plan-reviews/count` trả số dòng của hàng chờ cho menu.
-- [ ] Test `Q448_queueGroupsReasonsPerResidentAndRespectsFloorScope`, `Q448_planStateOrder`.
-- [ ] Chạy `./mvnw verify` cho module care. Nhật ký vào `backend/logs/005/`.
+### Task 4: API hàng chờ (backend) — xong, T074
 
-### Task 5: Web — hàng chờ trên màn Kế hoạch chăm sóc
+- [ ] `GET /care-plan-reviews/queue` (quyền Xem kế hoạch chăm sóc): ứng viên là người có mốc phát sinh hoặc bản Nháp; lọc người Đang lưu trú, người trong phạm vi xem (`PermissionApi` theo từng người) và người còn yêu cầu Đang mở hoặc còn bản Nháp. Mỗi dòng: `residentId`, `name`, `profileCode`, `reasons[]` (source, reference, raisedAt), `waitingSince`, `draft` (id, `returned`). Sắp `waitingSince` tăng dần.
+- [x] `GET /residents/{residentId}/care-plan-reviews` trả yêu cầu Đang mở của một người (thay cho `openReviews` trong danh sách kế hoạch: người chưa có bản nào thì danh sách rỗng).
+- [ ] Test: IT trong `FR_003_CarePlanLifecycleIT` (có trong hàng chờ khi có sự cố; rời hàng chờ khi duyệt; người ngoài phạm vi không thấy; bản bị trả lại có `returned`).
 
-**Files (kho Elder_Care_Frontend):**
-- Regenerate: `src/api/api005.js` (`npm run gen:api`)
-- Create: `src/features/care-tasks/CarePlanQueue.jsx`, `CarePlanQueue.test.jsx`
-- Modify: `src/features/care-tasks/CarePlanPage.jsx`, `CarePlanPage.test.jsx`, `carePlanLabels.js`
-- Modify: `src/features/care-tasks/CarePlanDetail.jsx`, `CarePlanDetail.test.jsx`
-- Modify: `src/common/layout/navigation.js` (số đếm)
+### Task 5: Web hàng chờ và dải lý do
 
-- [ ] Test đỏ `CarePlanQueue.test.jsx`: hiện tiêu đề và số; mỗi dòng có tên, phòng, nhãn nguồn, "x ngày"; nút theo trạng thái (`Lập kế hoạch` / `Sửa kế hoạch` / `Sửa tiếp` / `Mở`); lọc tầng, lọc nguồn; nhóm `Đang chờ Bác sĩ duyệt` thu gọn; hàng chờ rỗng thì hiện "Không có ai cần lập hoặc sửa kế hoạch".
-- [ ] `CarePlanPage`: khi chưa chọn người thì hiện `CarePlanQueue` dưới ô tìm; bấm dòng thì chọn người đó (giữ `?residentId=` trên URL để thông báo dẫn thẳng tới). Có nút quay về hàng chờ khi đang xem một người.
-- [ ] `CarePlanDetail`: nhãn `planState` cạnh tên; dải "Cần xem xét vì: Sự cố ngã 25/11 14:20 · Xem sự cố" cho mỗi `openReviews`; nút `Không cần thay đổi` mở hộp thoại bắt buộc lý do; ô `Lý do sửa` điền sẵn từ nguồn (người dùng sửa được).
-- [ ] Liên kết nguồn: đánh giá → trang hồ sơ tab đánh giá; sự cố → trang chi tiết sự cố 007; phụ lục → trang hợp đồng 004. Kiểm đường dẫn có sẵn trong `App.jsx`, chưa có thì chỉ hiện chữ.
-- [ ] Menu "Kế hoạch chăm sóc" hiện số từ `count`, làm mới khi đóng hoặc duyệt.
-- [ ] Theo DESIGN.md của kho web (badge, bảng, khoảng cách). Kiểm trên trình duyệt: vai Điều dưỡng (hàng chờ có 3 nguồn khác nhau), vai Bác sĩ, màn hẹp 375px, chế độ tối. Chụp màn đưa chủ dự án.
-- [ ] `npm test`, `npm run lint`.
-
-### Task 6: Mobile — nhãn trạng thái kế hoạch
-
-**Files (kho Elder_Care_Mobile):**
-- Modify: `lib/staff/care_tasks/care_plans_screen.dart`, `test/staff/care_tasks/care_plans_screen_test.dart`
-
-- [ ] Đọc `planState` thay cho `noEffectivePlan`, hiện nhãn tiếng Việt như web; người "Theo lịch chung" không hiện cảnh báo.
-- [ ] `flutter test` cho file này.
-
-### Task 7: Dữ liệu mẫu, tài liệu, tiến độ
-
-- [ ] Cập nhật `sql/demo-full-data.sql` (ngoài kho) để có: 1 người mới vào ở chưa có kế hoạch có nhu cầu, 1 người theo lịch chung, 1 người vừa ngã, 1 bản bị trả lại.
-- [ ] Đánh dấu tasks Q-448 trong `specs/005-daily-care-tasks/tasks.md`, ghi `docs/progress.md`.
-- [ ] Commit từng kho: Elder_Care (docs + backend), Elder_Care_Frontend, Elder_Care_Mobile.
+- [ ] `CarePlanQueue.jsx`: tiêu đề "Cần lập hoặc sửa kế hoạch (n)", mỗi dòng tên, mã hồ sơ, nhãn nguồn, thời gian chờ, nút `Lập kế hoạch` / `Sửa kế hoạch` / `Sửa tiếp`; rỗng thì "Không có ai cần lập hoặc sửa kế hoạch". Hiện thay chữ "Chọn người cao tuổi để xem kế hoạch".
+- [ ] `CarePlanPage`: dải "Cần xem xét vì: …" và nút `Không cần thay đổi` (hộp thoại bắt buộc lý do) khi có `openReviews`.
+- [ ] `npm run gen:api`, `npm test`, `npm run lint`, xem trên trình duyệt.

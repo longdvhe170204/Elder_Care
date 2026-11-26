@@ -65,6 +65,15 @@ public class CarePlanReviewStore {
                 residentId);
     }
 
+    /** Người cao tuổi từng có mốc phát sinh (ứng viên của hàng chờ, FR-059). */
+    public List<Long> residentsRaised() {
+        return jdbc.queryForList(
+                "SELECT DISTINCT entity_id FROM reminder_marker WHERE kind = ? AND entity_type = ?",
+                Long.class,
+                RAISED,
+                RESIDENT);
+    }
+
     /** Các lần "Không cần thay đổi" của người cao tuổi. */
     public List<Instant> dismissals(long residentId) {
         return jdbc.query(
