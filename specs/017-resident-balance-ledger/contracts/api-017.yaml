@@ -145,8 +145,8 @@ paths:
   /balance-transactions/{id}/receipt:
     get:
       tags: [payments]
-      summary: Kế toán, Quản lý viện tải biên nhận nộp tiền
-      description: 'Bổ sung 2026-11-27 (Q-451): PDF dựng khi tải từ khoản nộp đã xác nhận (nộp tiền mặt, chuyển khoản, tiền cọc); số BN- theo mã giao dịch; ghi không thay hóa đơn. 409 RECEIPT_NOT_AVAILABLE với giao dịch khác.'
+      summary: Kế toán, Quản lý viện tải biên nhận nộp, hoàn tiền
+      description: 'Bổ sung 2026-11-27 (Q-451): PDF dựng khi tải từ khoản đã xác nhận: biên nhận nộp tiền (số BN-) hoặc biên nhận hoàn tiền, hoàn cọc (số HT-); ghi không thay hóa đơn. 409 RECEIPT_NOT_AVAILABLE với giao dịch khác.'
       x-fr: [FR-005, FR-006]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses:
@@ -160,8 +160,8 @@ paths:
   /family-portal/balance-transactions/{id}/receipt:
     get:
       tags: [family-portal]
-      summary: Người thân có quyền xem chi phí tải biên nhận nộp tiền
-      description: 'Bổ sung 2026-11-27 (Q-451): PDF dựng khi tải từ khoản nộp đã xác nhận (nộp tiền mặt, chuyển khoản, tiền cọc); số BN- theo mã giao dịch; ghi không thay hóa đơn. 409 RECEIPT_NOT_AVAILABLE với giao dịch khác.'
+      summary: Người thân có quyền xem chi phí tải biên nhận nộp, hoàn tiền
+      description: 'Bổ sung 2026-11-27 (Q-451): PDF dựng khi tải từ khoản đã xác nhận: biên nhận nộp tiền (số BN-) hoặc biên nhận hoàn tiền, hoàn cọc (số HT-); ghi không thay hóa đơn. 409 RECEIPT_NOT_AVAILABLE với giao dịch khác.'
       x-fr: [FR-005, FR-006]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses:
@@ -172,6 +172,22 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
+  /residents/{residentId}/balance-transactions/summary:
+    get:
+      tags: [payments]
+      summary: Kế toán, Quản lý viện in bảng kê các giao dịch đã chọn
+      description: 'Bổ sung 2026-11-27 (Q-451): PDF chia nhóm gia đình nộp, hoàn lại, trừ chi phí, điều chỉnh; tổng từng nhóm và số dư hiện tại. Chỉ giao dịch Đã xác nhận của người cao tuổi đó (422).'
+      x-fr: [FR-005, FR-006]
+      parameters:
+        - { $ref: '#/components/parameters/ResidentId' }
+        - { name: id, in: query, required: true, schema: { type: array, items: { type: integer, format: int64 } } }
+      responses:
+        '200':
+          description: File
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
   /balance-transactions/pending-approval:
     get:
       tags: [balance-transactions]
