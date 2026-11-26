@@ -515,6 +515,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Chờ xác nhận | Trả lại | Mở | Người xác nhận | Bắt buộc lý do | Thông báo người thực hiện |
 | Chờ xác nhận | Xác nhận | Đã xác nhận | Người xác nhận (FR-038) | Khác người gửi và người đã ghi quyết định (quy tắc hai người); người xác nhận đáp ứng FR-005 cho mọi dòng tạo đơn nội bộ; với dòng tạo đơn bên ngoài phải có cơ sở kê (FR-006); người xác nhận kiểm đủ dòng cho thuốc đang dùng khi tiếp nhận và căn cứ của dòng Ngừng, Thay đổi liều *(Q-411)* | Áp FR-036 trong cùng một lệnh |
 | Mở, Chờ xác nhận | Tới hạn CFG-M07-05 (mặc định \[4 giờ\]) mà chưa Đã xác nhận | Giữ nguyên (gắn dấu "quá hạn") | Bộ lập lịch | Phiếu đã có hạn (không áp khi hồ sơ còn Đang tiếp nhận) | Cảnh báo mức trung bình (feature 007) (BR-M07-09) |
+| Mở, Chờ xác nhận | Hủy phiếu *(bổ sung 2026-11-26, Q-447)* | Đã hủy | Bác sĩ, Điều dưỡng có quyền ghi phiếu đối chiếu | Bắt buộc lý do | Không đổi đơn nào (đơn đang Tạm dừng vẫn Tạm dừng); hạn CFG-M07-05 và cảnh báo quá hạn giữ mốc cũ, phiếu lập lại tiếp tục mốc đó |
 | Mở, Chờ xác nhận | Người cao tuổi chuyển lại Điều trị tại bệnh viện | Đã hủy | Hệ thống | — | Lý do "chuyển viện lại"; các đơn giữ Tạm dừng |
 | Mở, Chờ xác nhận | Người cao tuổi chuyển trạng thái cuối | Đã hủy | Hệ thống | — | FR-047 |
 

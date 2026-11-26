@@ -493,11 +493,14 @@ paths:
   /medication-reconciliations/{id}/cancel:
     post:
       tags: [reconciliation]
-      summary: Hủy phiếu đối chiếu đang Mở hoặc Chờ xác nhận (bắt buộc lý do)
-      x-fr: [FR-034]
+      summary: Hủy phiếu Mở hoặc Chờ xác nhận (bắt buộc lý do; bổ sung 2026-11-26, Q-447)
+      description: |
+        Bác sĩ, Điều dưỡng có quyền ghi phiếu đối chiếu (403 PERMISSION_DENIED). Phiếu Đã xác nhận hoặc Đã hủy: 409 INVALID_STATE.
+        Không đổi đơn thuốc; hạn đối chiếu và cảnh báo quá hạn giữ mốc cũ. allowedCommands của phiếu Mở, Chờ xác nhận có HUY.
+      x-fr: [FR-035]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/Reason' }
-      responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '200': { description: Đã hủy }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' } }
   /medication-reconciliations/{id}/confirm:
     post:
       tags: [reconciliation]

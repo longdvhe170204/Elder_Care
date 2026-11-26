@@ -375,8 +375,12 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         return toResponse(saved, items);
     }
 
+    /**
+     * Hủy phiếu Mở hoặc Chờ xác nhận (Q-447): bắt buộc lý do; không đổi đơn, không đổi hạn đối chiếu (phiếu lập lại tiếp tục
+     * mốc của {@link ReconciliationDeadlines}). Phiếu Đã xác nhận chỉ đính chính.
+     */
     @Transactional
-    public ReconciliationResponse cancel(Long id, String reason, Long currentUserId) {
+    public ReconciliationResponse cancel(Long id, String reason) {
         MedicationReconciliation ticket = reconciliationRepo.findById(id).orElseThrow(NotFoundException::new);
         residentMedicationLock.lock(ticket.getResidentId());
 
@@ -384,17 +388,21 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                 && ticket.getStatus() != ReconciliationStatus.DRAFT
                 && ticket.getStatus() != ReconciliationStatus.PENDING_CONFIRMATION) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "INVALID_STATE", "Chỉ có thể hủy phiếu đang Mở hoặc Chờ xác nhận");
+                    HttpStatus.CONFLICT, "INVALID_STATE", "Chỉ hủy được phiếu Mở hoặc Chờ xác nhận (Q-447)");
         }
-
         if (reason == null || reason.isBlank()) {
-            throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_VALUE", "Lý do hủy phiếu bắt buộc");
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_VALUE", "Lý do hủy phiếu bắt buộc (Q-447)");
         }
 
         ticket.cancel(reason.trim());
         MedicationReconciliation saved = reconciliationRepo.save(ticket);
-        List<ReconciliationItem> items = itemRepo.findByReconciliationIdOrderByItemOrderAsc(id);
-        return toResponse(saved, items);
+        return toResponse(saved, itemRepo.findByReconciliationIdOrderByItemOrderAsc(id));
+    }
+
+    @Transactional
+    public ReconciliationResponse cancel(Long id, String reason, Long currentUserId) {
+        return cancel(id, reason);
     }
 
     @Transactional

@@ -634,4 +634,43 @@ class MedicationReconciliationTest {
         assertThat(openDose.getStatus()).isEqualTo(DoseStatus.CANCELLED);
         verify(doseRepo).save(openDose);
     }
+
+    @Test
+    @DisplayName("Q-447: hủy phiếu Mở bắt buộc lý do; Đã hủy, không đổi đơn, không đổi hạn đối chiếu")
+    void cancelOpenTicketKeepsPrescriptionsAndDeadline() {
+        openTicket(5L);
+        when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        assertThatThrownBy(() -> reconciliationService.cancel(5L, " "))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(
+                        e -> assertThat(((BusinessException) e).status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY));
+
+        ReconciliationResponse res = reconciliationService.cancel(5L, "Lập nhầm lý do, cần phiếu tiếp nhận");
+
+        assertThat(res.getStatus()).isEqualTo("CANCELLED");
+        assertThat(res.getPermittedActions()).isEmpty();
+        verify(prescriptionRepo, never()).save(any());
+        org.mockito.Mockito.verifyNoInteractions(deadlines);
+    }
+
+    @Test
+    @DisplayName("Q-447: phiếu Mở, Chờ xác nhận có lệnh HUY; phiếu Đã xác nhận không hủy được")
+    void cancelOnlyOpenOrPending() {
+        openTicket(6L);
+        when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> inv.getArgument(0));
+        assertThat(reconciliationService.get(6L).getPermittedActions()).contains("HUY");
+
+        MedicationReconciliation confirmed = new MedicationReconciliation(
+                100L, ReconciliationReason.ADMISSION, null, null, 10L, Instant.now(), Instant.now());
+        setId(confirmed, 7L);
+        confirmed.submit(10L, Instant.now());
+        confirmed.confirm(30L, Instant.now());
+        when(reconciliationRepo.findById(7L)).thenReturn(Optional.of(confirmed));
+
+        assertThat(reconciliationService.get(7L).getPermittedActions()).doesNotContain("HUY");
+        assertThatThrownBy(() -> reconciliationService.cancel(7L, "Lý do"))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).errorCode()).isEqualTo("INVALID_STATE"));
+    }
 }

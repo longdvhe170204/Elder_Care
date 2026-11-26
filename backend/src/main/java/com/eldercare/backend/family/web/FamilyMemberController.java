@@ -11,6 +11,7 @@ import com.eldercare.backend.family.web.request.FamilyMemberRequest;
 import com.eldercare.backend.family.web.request.FamilyRegistrationFormRequest;
 import com.eldercare.backend.family.web.request.RelationshipCommandRequest;
 import com.eldercare.backend.family.web.response.CreatedResponse;
+import com.eldercare.backend.family.web.response.FamilyContactResponse;
 import com.eldercare.backend.family.web.response.FamilyMemberDetailResponse;
 import com.eldercare.backend.family.web.response.FamilyMemberResponse;
 import com.eldercare.backend.family.web.response.RelationshipResponse;
@@ -113,6 +114,20 @@ class FamilyMemberController {
         FamilyMember updated =
                 service.updateFamilyMember(FamilyMemberService.familyMemberTarget(id), id, ifMatch, body.data());
         return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).body(FamilyMemberResponse.of(updated));
+    }
+
+    /** Danh sách liên hệ người thân (Q-448, FR-077). */
+    @GetMapping("/residents/{residentId}/family-contacts")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    List<FamilyContactResponse> familyContacts(@PathVariable long residentId) {
+        return service.contacts(FamilyMemberService.residentTarget(residentId)).stream()
+                .map(FamilyContactResponse::of)
+                .toList();
     }
 
     @GetMapping("/residents/{residentId}/relationships")
