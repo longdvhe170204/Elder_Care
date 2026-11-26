@@ -101,6 +101,35 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/IssuesProblem' }
         '422': { $ref: '#/components/responses/Problem' }
+  /residents/{residentId}/prescriptions/batch:
+    post:
+      tags: [prescription]
+      summary: Kê đơn gồm nhiều dòng thuốc cùng lúc
+      x-fr: [FR-004, FR-005, FR-006, FR-007]
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  items: { $ref: '#/components/schemas/NewPrescription' }
+      responses:
+        '201':
+          description: Đã tạo các dòng thuốc thuộc cùng đơn
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Prescription' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/IssuesProblem' }
+        '422': { $ref: '#/components/responses/Problem' }
   /residents/{residentId}/prescriptions/check:
     post:
       tags: [prescription]
@@ -202,6 +231,16 @@ paths:
       x-br: [BR-M07-01]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: from, in: query, required: true, schema: { type: string, format: date-time } }, { name: to, in: query, required: true, schema: { type: string, format: date-time } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Dose' } } } } } }
+  /medication-doses/history:
+    get:
+      tags: [dose]
+      summary: Lịch sử trạng thái các liều thuốc của người cao tuổi theo khoảng ngày
+      parameters:
+        - { name: residentId, in: query, required: true, schema: { type: integer, format: int64 } }
+        - { name: fromDate, in: query, required: true, schema: { type: string, format: date } }
+        - { name: toDate, in: query, required: true, schema: { type: string, format: date } }
+        - { name: status, in: query, schema: { type: string } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Dose' } } } } } }
   /medication-doses/rounds:
     get:
       tags: [dose]
@@ -266,27 +305,16 @@ paths:
         '200': { description: Hoãn có chủ đích, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }
         '409': { $ref: '#/components/responses/Problem' }
         '422': { $ref: '#/components/responses/Problem' }
-  /medication-doses/{doseKey}/claim:
+  /medication-doses/{doseKey}/hold:
     post:
       tags: [dose]
-      summary: Nhận liều trước khi soạn thuốc
-      description: 'Liều Đến giờ hoặc Trễ (kể cả Hoãn). Người khác không xác nhận được tới khi hết hạn CFG-M07-08 (15 phút) hoặc người nhận bỏ nhận. Không đổi trạng thái liều; bản ghi ngoại tuyến không bị chặn (BR-M07-20, BR-M07-26, Q-428).'
-      x-fr: [FR-026]
-      x-br: [BR-M07-26]
+      summary: Tạm giữ 1 liều do chỉ số đo bất thường (chỉ tạm giữ liều này, không ngừng toàn đơn)
       parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DoseResult' } } } }
       responses:
-        '200': { description: Đã nhận liều, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }
+        '200': { description: Tạm giữ 1 liều, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }
         '409': { $ref: '#/components/responses/Problem' }
-  /medication-doses/{doseKey}/release:
-    post:
-      tags: [dose]
-      summary: Bỏ nhận liều
-      description: 'Người đang nhận bỏ nhận; người khác bị 409 DOSE_CLAIMED khi lượt nhận còn hạn.'
-      x-br: [BR-M07-26]
-      parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses:
-        '200': { description: Đã bỏ nhận liều, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }
-        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
   /floors/{floorAreaId}/temporary-nurses:
     get:
       tags: [dose]
@@ -374,8 +402,30 @@ paths:
       x-fr: [FR-034, FR-034a, FR-034b, FR-035]
       x-br: [BR-M07-09, BR-M07-25]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string, enum: [ADMISSION, HOSPITAL_RETURN, PROFESSIONAL_REQUEST] }, reasonDetail: { type: string, description: 'Bắt buộc khi reason = PROFESSIONAL_REQUEST (FR-034b): không tạm dừng đơn, không có hạn' } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string, enum: [ADMISSION, HOSPITAL_RETURN, PROFESSIONAL_REQUEST] }, reasonDetail: { type: string, description: 'Bắt buộc khi reason = PROFESSIONAL_REQUEST (FR-034b): không tạm dừng đơn, không có hạn' }, facilityName: { type: string }, prescriberName: { type: string }, prescribedAt: { type: string, format: date }, comparisonSource: { type: string }, attachmentFileId: { type: integer, format: int64 }, attachmentName: { type: string }, nurseNote: { type: string } } } } } }
       responses: { '201': { description: Mở, headers: { ETag: { $ref: '#/components/headers/ETag' } } }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /medication-reconciliations/{id}/notes:
+    patch:
+      tags: [reconciliation]
+      summary: Cập nhật ghi chú điều dưỡng, kết luận bác sĩ, thông tin đơn đối chiếu
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                facilityName: { type: string }
+                prescriberName: { type: string }
+                prescribedAt: { type: string, format: date }
+                comparisonSource: { type: string }
+                attachmentFileId: { type: integer, format: int64 }
+                attachmentName: { type: string }
+                nurseNote: { type: string }
+                doctorConclusion: { type: string }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Reconciliation' } } } }
   /supplied-medication-intakes:
     post:
       tags: [supplied-medication]
@@ -425,6 +475,13 @@ paths:
       x-fr: [FR-034, FR-034a, FR-035]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: Chờ xác nhận }, '409': { $ref: '#/components/responses/Blocked' } }
+  /medication-reconciliations/{id}/draft:
+    post:
+      tags: [reconciliation]
+      summary: Lưu phiếu đối chiếu vào trạng thái Bản nháp (Bác sĩ)
+      x-fr: [FR-035]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: Bản nháp }, '409': { $ref: '#/components/responses/Blocked' } }
   /medication-reconciliations/{id}/return:
     post:
       tags: [reconciliation]
@@ -433,6 +490,14 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: Mở } }
+  /medication-reconciliations/{id}/cancel:
+    post:
+      tags: [reconciliation]
+      summary: Hủy phiếu đối chiếu đang Mở hoặc Chờ xác nhận (bắt buộc lý do)
+      x-fr: [FR-034]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/Blocked' } }
   /medication-reconciliations/{id}/confirm:
     post:
       tags: [reconciliation]
@@ -673,6 +738,7 @@ components:
         beforeWindowMinutes: { type: integer }
         afterWindowMinutes: { type: integer }
         specialControl: { type: boolean }
+        allowInternalPrescribe: { type: boolean, nullable: true }
         active: { type: boolean }
         missingPricingItem: { type: boolean, readOnly: true }
     Frequency:
@@ -742,7 +808,18 @@ components:
         issueConfirmations: { type: array, items: { type: object, required: [issueCode, reason], properties: { issueCode: { type: string }, reason: { $ref: '#/components/schemas/Reason' } } } }
         timeCriticality: { type: string, enum: [NORMAL, CRITICAL], description: 'Mức quan trọng về thời gian (BR-M07-27); mặc định NORMAL' }
         requiredMeasurements: { type: array, items: { type: string }, description: 'Chỉ số phải đo trước khi dùng (BR-M07-26)' }
-        indication: { type: string, maxLength: 500, description: 'Chỉ định dùng thuốc khi cần (PRN)' }
+        measurementConditions:
+          type: array
+          items:
+            type: object
+            required: [metric]
+            properties:
+              metric: { type: string }
+              minValue: { type: number, nullable: true }
+              maxValue: { type: number, nullable: true }
+              holdInstruction: { type: string, maxLength: 500 }
+        chronicDisease: { type: boolean }
+        indication: { type: string, maxLength: 500, description: 'Chỉ định dùng thuốc khi cần (PRN) hoặc chẩn đoán đơn nội bộ' }
     Prescription:
       allOf:
         - $ref: '#/components/schemas/NewPrescription'
@@ -750,6 +827,7 @@ components:
           properties:
             id: { type: integer, format: int64 }
             residentId: { type: integer, format: int64 }
+            prescriptionGroupId: { type: string, nullable: true }
             status: { $ref: '#/components/schemas/PrescriptionStatus' }
             suspensionReason: { type: string, enum: [ORDER, RECONCILIATION_PENDING] }
             pendingAdmission: { type: boolean }
@@ -838,6 +916,9 @@ components:
         admissionMedicationItemId: { type: integer, format: int64 }
         medicationDescription: { type: string }
         decision: { type: string, enum: [CONTINUE, DISCONTINUE, CHANGE_DOSE, ADD_NEW] }
+        nurseFinding: { type: string, enum: [NO_CHANGE, CONTINUE, DISCONTINUE, DOSE_CHANGED, NEW_MEDICATION, NOT_FOUND_IN_NEW, UNCLEAR_INDICATION] }
+        comparisonSummary: { type: string }
+        lastHospitalDoseAt: { type: string, format: date-time }
         reason: { type: string }
         newPrescription: { $ref: '#/components/schemas/NewPrescription' }
         discontinuedOutsideTicket: { type: boolean, readOnly: true }
@@ -956,7 +1037,17 @@ components:
         residentId: { type: integer, format: int64 }
         reason: { type: string, enum: [ADMISSION, HOSPITAL_RETURN, PROFESSIONAL_REQUEST] }
         reasonDetail: { type: string }
-        status: { type: string, enum: [OPEN, PENDING_CONFIRMATION, CONFIRMED, CANCELLED] }
+        facilityName: { type: string }
+        prescriberName: { type: string }
+        prescribedAt: { type: string, format: date }
+        comparisonSource: { type: string }
+        attachmentFileId: { type: integer, format: int64 }
+        attachmentName: { type: string }
+        nurseNote: { type: string }
+        doctorConclusion: { type: string }
+        returnReason: { type: string }
+        cancelReason: { type: string }
+        status: { type: string, enum: [OPEN, DRAFT, PENDING_CONFIRMATION, CONFIRMED, CANCELLED] }
         deadlineAt: { type: string, format: date-time }
         overdue: { type: boolean }
         createdBy: { type: string }
@@ -979,6 +1070,7 @@ components:
         confirmedBy: { type: string }
         confirmedAt: { type: string, format: date-time }
         returnReason: { type: string }
+        cancelReason: { type: string }
         allowedCommands: { type: array, items: { type: string, enum: [CONFIRM, RETURN] } }
     ReconciliationWorklistEntry:
       type: object

@@ -37,6 +37,14 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 - **Đối tượng thông tin** (FR-053, 009 FR-001a): thông báo tới người liên hệ chính, người đại diện về thuốc gia đình gửi (sắp hết FR-046, hết khi đến liều, hết hạn dùng BR-M07-11, cần nhận lại thuốc mang theo) khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN` (Q-362); phần `SUC_KHOE` (tên thuốc, hàm lượng) giữ như cũ để 009 lọc theo bản đồng ý; không yêu cầu nào mang mã Q-354 (research D-17).
 
+### Cập nhật 2026-11-26 (BF-07 Đợt 1 → Đợt 6)
+
+- **Đợt 1:** Bỏ `claim`/`release` và `FLOOR_SHARED`; chỉ điều dưỡng được phân công (hoặc phụ trách tạm BR-M07-31) xác nhận liều.
+- **Đợt 2:** Thêm `V006_18` (`prescription_group_id`) và `/prescriptions/batch` cho đơn nhiều dòng thuốc; bắt buộc `endedAt >= startedDate`.
+- **Đợt 3:** Thêm `allowInternalPrescribe` trên danh mục thuốc, `V006_19` (`chronic_disease`, `measurement_conditions`), `/medication-doses/{doseKey}/hold` (tạm giữ 1 liều), `/medication-doses/history`, và tab Theo dõi liều theo ngày trên Web.
+- **Đợt 4:** Thêm `V006_20` và `PATCH /medication-reconciliations/{id}/notes`; tách vai trò điều dưỡng ghi nhận đối chiếu vs bác sĩ quyết định 4 lựa chọn; bác sĩ trực tiếp lập phiếu được tự xác nhận.
+- **Đợt 5 & 6:** Kiểm tra 8 tiêu chí tiếp nhận & chặn lệch hàm lượng thuốc gia đình gửi; phân biệt uống muộn vs quên ghi nhận ở `LateDoseSheet` và phân loại sự cố ở `DoseSheet`.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
