@@ -171,11 +171,20 @@ public class SourceCostCommands {
             var result = new ArrayList<CostSourceCandidate>();
             for (var key : keys.stream().distinct().toList()) {
                 try {
-                    if (!key.sourceId().startsWith(r.residentId() + ":") || !unit.equals(key.billingUnit()))
+                    // Q-450: phí lưu trú cả tháng có mã residentId:yyyy-MM, đơn vị MONTH
+                    boolean monthly = r.sourceType().equals("RESIDENCY_DAY")
+                            && key.sourceId().matches("\\d+:\\d{4}-\\d{2}");
+                    String expected = monthly ? ResidencyMonthFee.UNIT : unit;
+                    // Mã tháng gửi theo danh sách sourceIds nhận đơn vị mặc định DAY: đổi sang MONTH
+                    String billingUnit = monthly && r.sourceUnits() == null ? expected : key.billingUnit();
+                    if (!key.sourceId().startsWith(r.residentId() + ":") || !expected.equals(billingUnit))
                         throw new IllegalArgumentException();
-                    var date = LocalDate.parse(key.sourceId().split(":")[1]);
-                    var found = lookup.find(r.residentId(), r.sourceType(), date, date).stream()
-                            .filter(c -> c.sourceId().equals(key.sourceId()))
+                    String period = key.sourceId().split(":")[1];
+                    var date = monthly ? YearMonth.parse(period).atDay(1) : LocalDate.parse(period);
+                    var last = monthly ? YearMonth.parse(period).atEndOfMonth() : date;
+                    var found = lookup.find(r.residentId(), r.sourceType(), date, last).stream()
+                            .filter(c -> c.sourceId().equals(key.sourceId())
+                                    && c.billingUnit().equals(expected))
                             .toList();
                     if (found.isEmpty()) throw new IllegalArgumentException();
                     result.addAll(found);

@@ -101,6 +101,8 @@ public class CostRecalculationService {
 
     private void refresh(
             Long resident, Long service, LocalDate from, LocalDate to, boolean missingOnly, String cause, String type) {
+        // Q-450: khoản cả tháng mang ngày tính phí đầu tiên, thay đổi giữa tháng vẫn phải xét lại khoản đó
+        if ("RESIDENCY_DAY".equals(type) && from != null) from = from.withDayOfMonth(1);
         var found = new ArrayList<>(store.affected(resident, service, from, to, missingOnly));
         // Q3: khoản chưa xác định được dịch vụ cũng được tính lại khi có phiên bản đơn giá mới.
         if (service != null && missingOnly)
