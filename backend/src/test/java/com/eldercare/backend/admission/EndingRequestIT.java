@@ -133,4 +133,50 @@ class EndingRequestIT extends EndingTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("ENDING_REQUEST_NOT_PENDING"));
     }
+
+    @Test
+    void officeListsViewsAndRejects_representativeNotifiedWithReason() throws Exception {
+        long residentId = inResidence();
+        long representative = representativeOf(residentId);
+        long id = idOf(submit(representative, residentId, d0.plusDays(5)).andExpect(status().isCreated()));
+
+        user.set(office.user());
+        JsonNode list = JSON.readTree(mvc.perform(get("/api/v1/residency-ending-requests?status=PENDING"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+        assertThat(list.valueStream().map(n -> n.get("id").asLong())).contains(id);
+        mvc.perform(get("/api/v1/residency-ending-requests/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.residentId").value(residentId));
+
+        String reason = "{\"reason\":\"Hợp đồng còn hiệu lực, cần trao đổi thêm\"}";
+        postAs(accountant, "/api/v1/residency-ending-requests/" + id + "/reject", reason)
+                .andExpect(status().isForbidden());
+        postAs(office, "/api/v1/residency-ending-requests/" + id + "/reject", reason)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("REJECTED"))
+                .andExpect(jsonPath("$.decisionReason").value("Hợp đồng còn hiệu lực, cần trao đổi thêm"));
+        assertThat(notices(residentId, "M02_ENDING_REQUEST_REJECTED"))
+                .singleElement()
+                .satisfies(n -> {
+                    assertThat(n.recipientGroups()).containsExactly(new RecipientGroup.Representative(residentId));
+                    assertThat(n.content().getFirst().content()).contains("Hợp đồng còn hiệu lực");
+                });
+        postAs(office, "/api/v1/residency-ending-requests/" + id + "/reject", reason)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("ENDING_REQUEST_NOT_PENDING"));
+    }
+
+    @Test
+    void familyCannotUseOfficeEndpoints() throws Exception {
+        long residentId = inResidence();
+        long representative = representativeOf(residentId);
+        long id = idOf(submit(representative, residentId, d0.plusDays(5)).andExpect(status().isCreated()));
+
+        mvc.perform(get("/api/v1/residency-ending-requests")).andExpect(status().isForbidden());
+        // Ngoài phạm vi xem thì 404, không lộ yêu cầu có tồn tại (RequiresPermissionAspect)
+        mvc.perform(get("/api/v1/residency-ending-requests/" + id)).andExpect(status().isNotFound());
+    }
 }

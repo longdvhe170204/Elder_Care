@@ -1,7 +1,9 @@
 package com.eldercare.backend.admission.web;
 
+import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.admission.api.dto.EndCase;
 import com.eldercare.backend.admission.internal.ending.service.EndingRequestService;
+import com.eldercare.backend.admission.web.request.ReasonBody;
 import com.eldercare.backend.admission.web.response.ResidencyEndingRequestBody;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.web.ProblemBody;
@@ -14,7 +16,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -112,5 +117,61 @@ class EndingRequestController {
     ResidencyEndingRequestBody cancel(
             @PathVariable long id, @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey) {
         return ResidencyEndingRequestBody.of(requests.cancel(id));
+    }
+
+    @GetMapping("/residency-ending-requests")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Không có quyền xem",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    List<ResidencyEndingRequestBody> list(
+            @RequestParam(name = "status", required = false) Set<ResidencyEndingRequestBody.RequestStatus> status) {
+        Set<String> statuses =
+                status == null ? Set.of() : status.stream().map(Enum::name).collect(Collectors.toSet());
+        return requests.list(Target.UNSPECIFIED, statuses).stream()
+                .map(ResidencyEndingRequestBody::of)
+                .toList();
+    }
+
+    @GetMapping("/residency-ending-requests/{id}")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Không có quyền xem",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Không có yêu cầu",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    ResidencyEndingRequestBody get(@PathVariable long id) {
+        return ResidencyEndingRequestBody.of(requests.get(requests.targetOf(id), id));
+    }
+
+    @PostMapping("/residency-ending-requests/{id}/reject")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã từ chối"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Chỉ Hành chính",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "ENDING_REQUEST_NOT_PENDING",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                description = "Thiếu lý do",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    ResidencyEndingRequestBody reject(
+            @PathVariable long id,
+            @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
+            @Valid @RequestBody ReasonBody body) {
+        return ResidencyEndingRequestBody.of(requests.reject(requests.targetOf(id), id, body.reason()));
     }
 }
