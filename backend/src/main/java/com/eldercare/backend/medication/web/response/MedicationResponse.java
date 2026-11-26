@@ -17,6 +17,7 @@ public record MedicationResponse(
         Integer beforeWindowMinutes,
         Integer afterWindowMinutes,
         boolean specialControl,
+        boolean allowInternalPrescribe,
         boolean active,
         boolean missingPricingItem,
         int version) {
@@ -33,6 +34,7 @@ public record MedicationResponse(
                 view.beforeWindowMinutes(),
                 view.afterWindowMinutes(),
                 view.specialControl(),
+                view.allowInternalPrescribe(),
                 view.active(),
                 view.missingPricingItem(),
                 view.version());

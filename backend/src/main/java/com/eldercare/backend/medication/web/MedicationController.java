@@ -95,7 +95,8 @@ public class MedicationController {
                 Set.copyOf(body.allergenIds()),
                 body.beforeWindowMinutes(),
                 body.afterWindowMinutes(),
-                Boolean.TRUE.equals(body.specialControl())));
+                Boolean.TRUE.equals(body.specialControl()),
+                !Boolean.FALSE.equals(body.allowInternalPrescribe())));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .eTag(VersionEtag.of(created.version()))
                 .build();
@@ -128,7 +129,8 @@ public class MedicationController {
                         Set.copyOf(body.allergenIds()),
                         body.beforeWindowMinutes(),
                         body.afterWindowMinutes(),
-                        Boolean.TRUE.equals(body.specialControl())));
+                        Boolean.TRUE.equals(body.specialControl()),
+                        !Boolean.FALSE.equals(body.allowInternalPrescribe())));
         return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).build();
     }
 
