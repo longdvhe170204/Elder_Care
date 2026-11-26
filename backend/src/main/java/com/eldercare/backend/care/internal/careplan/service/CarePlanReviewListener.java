@@ -131,7 +131,7 @@ class CarePlanReviewListener implements CarePlanReviewApi {
 
     private void review(
             long residentId, String source, long sourceId, String reference, String milestonePrefix, Instant now) {
-        reviews.open(residentId, source, sourceId, reference, now);
+        reviews.raise(residentId, source, sourceId, reference, now);
         var floor = allocations.openAt(residentId, now).map(BedAllocationView::floorAreaId);
         var target = new Target(CARE_PLAN, null, residentId, floor.orElse(null));
         var accounts = approvers.approvers(APPROVE, target);

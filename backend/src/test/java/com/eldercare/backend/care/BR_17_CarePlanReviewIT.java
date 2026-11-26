@@ -34,7 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
  * chăm sóc giảm nhẹ (chủ dự án duyệt 08/11, xác nhận 09/11; 005 không nghe sự kiện của 007). Lệnh báo điều dưỡng phụ trách
  * ({@code AssignedNurse}, 009 phân giải) và người có quyền duyệt kế hoạch ({@code ApproverApi} thật); cùng khóa nguồn chỉ
  * báo một lần. Nguồn 001, 004 kiểm ở lượt 03/11 (lớp cũ bỏ khi giảm bộ test 07/11). Q-448 (2026-11-26): mỗi lần báo lưu
- * thêm một yêu cầu xem xét {@code care_plan_review} Đang mở (FR-058), cùng khóa nguồn chỉ một dòng.
+ * thêm mốc phát sinh yêu cầu xem xét {@code M04.CARE_PLAN_REVIEW_RAISED} ở {@code reminder_marker} (FR-058, không có bảng
+ * riêng), cùng khóa nguồn chỉ một mốc.
  */
 @Transactional
 @RecordApplicationEvents
@@ -103,9 +104,7 @@ class BR_17_CarePlanReviewIT extends MySqlIntegrationTestBase {
             assertThat(r).containsEntry("source", "M05.INCIDENT");
             assertThat(r).containsEntry("source_id", incident);
             assertThat(r).containsEntry("reference", Long.toString(incident));
-            assertThat(r).containsEntry("status", "OPEN");
             assertThat(r.get("raised_at")).isNotNull();
-            assertThat(r.get("closed_at")).isNull();
         });
     }
 
@@ -118,10 +117,11 @@ class BR_17_CarePlanReviewIT extends MySqlIntegrationTestBase {
         review.palliativeCareChoiceRecorded(resident, first, time.now());
         review.palliativeCareChoiceRecorded(resident, second, time.now());
 
-        assertThat(reviews()).hasSize(2).allSatisfy(r -> {
-            assertThat(r).containsEntry("source", "M05.PALLIATIVE_CARE_CHOICE");
-            assertThat(r).containsEntry("status", "OPEN");
-        });
+        assertThat(reviews())
+                .hasSize(2)
+                .allSatisfy(r -> assertThat(r).containsEntry("source", "M05.PALLIATIVE_CARE_CHOICE"))
+                .extracting(r -> r.get("reference"))
+                .containsExactlyInAnyOrder(first, second);
     }
 
     @Test
@@ -134,15 +134,17 @@ class BR_17_CarePlanReviewIT extends MySqlIntegrationTestBase {
         assertThat(reviews()).singleElement().satisfies(r -> {
             assertThat(r).containsEntry("source", "M01.ASSESSMENT");
             assertThat(r).containsEntry("source_id", assessment);
-            assertThat(r).containsEntry("status", "OPEN");
         });
         assertThat(notices()).isNotEmpty();
     }
 
     private List<Map<String, Object>> reviews() {
         return jdbc.queryForList(
-                "SELECT source, source_id, reference, status, raised_at, closed_at FROM care_plan_review"
-                        + " WHERE resident_id = ? ORDER BY id",
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(details, '$.source')) AS source,"
+                        + " CAST(JSON_EXTRACT(details, '$.sourceId') AS SIGNED) AS source_id,"
+                        + " JSON_UNQUOTE(JSON_EXTRACT(details, '$.reference')) AS reference, marked_at AS raised_at"
+                        + " FROM reminder_marker WHERE kind = 'M04.CARE_PLAN_REVIEW_RAISED'"
+                        + " AND entity_type = 'M01.RESIDENT' AND entity_id = ? ORDER BY id",
                 resident);
     }
 

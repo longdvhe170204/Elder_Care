@@ -5,9 +5,12 @@
 **Goal:** Điều dưỡng mở màn Kế hoạch chăm sóc là thấy ngay ai cần lập hoặc sửa kế hoạch và vì sao. Người mới vào ở khỏe mạnh, không có nhu cầu chăm sóc, ở trạng thái "Theo lịch chung" và không bị coi là thiếu sót.
 
 **Architecture:**
-- Bảng mới `care_plan_review` lưu yêu cầu xem xét (module care). `CarePlanReviewListener` đang phát thông báo ở mọi nguồn; nay ghi thêm một dòng ở cùng chỗ, trong cùng giao dịch.
+- **Không tạo bảng mới** (chủ dự án 2026-11-26). Yêu cầu xem xét lưu ở bảng `reminder_marker` có sẵn, theo người cao tuổi (`entity_type` `M01.RESIDENT`):
+  - mốc phát sinh: kind `M04.CARE_PLAN_REVIEW_RAISED`, marker `nguồn:mã tham chiếu` (quá 80 ký tự thì băm), `details` {source, sourceId, reference}. `CarePlanReviewListener` ghi mốc này ở mọi nguồn, ngay trước khi báo.
+  - mốc "Không cần thay đổi": kind `M04.CARE_PLAN_REVIEW_DISMISSED`, marker là thời điểm, `details` {reason, accountId}; lệnh còn ghi nhật ký.
+  - Một mốc phát sinh R còn **Đang mở** khi: không có phiên bản kế hoạch nào có `approved_at` và `created_at` > R.marked_at, và không có mốc Không cần thay đổi nào sau R. `marked_at` lưu UTC, `care_plan.created_at` lưu giờ Việt Nam: so sánh trong Java sau khi đổi về `Instant`.
 - Nguồn mới: nghe `InitialAssessmentConfirmed`, tạo yêu cầu khi đánh giá đầu vào có ít nhất một nhu cầu và người cao tuổi chưa có kế hoạch EFFECTIVE hay PENDING_EFFECT.
-- Đóng yêu cầu: trong `CarePlanService.approve` (Đã xử lý) và lệnh mới `POST /residents/{residentId}/care-plan-reviews/dismiss` (Không cần thay đổi). Nghe `ResidentStatusChanged` sang trạng thái kết thúc lưu trú để đóng tự động.
+- Đóng yêu cầu: không cần ghi khi duyệt (suy ra từ phiên bản được duyệt); lệnh mới `POST /residents/{residentId}/care-plan-reviews/dismiss` ghi mốc Không cần thay đổi. Người không còn Đang lưu trú thì lọc khỏi hàng chờ, không cần đóng.
 - Đọc: `GET /care-plan-reviews/queue` trả hàng chờ theo phạm vi xem. `GET /residents/{residentId}/care-plans` trả thêm `planState` và `openReviews` (FR-009).
 - Web: `CarePlanPage` thay chữ "Chọn người cao tuổi để xem kế hoạch" bằng hàng chờ; `CarePlanDetail` có dải nguồn và nút "Không cần thay đổi". Menu có số đếm.
 - Mobile: màn kế hoạch đọc thêm `planState` để hiện nhãn. Hàng chờ trên mobile để đợt sau.
@@ -18,7 +21,7 @@
 
 ## Global Constraints
 
-- Migration `V005_104__q448_care_plan_review.sql`, chỉ cú pháp có ở cả MySQL 8.0 và 8.4 (research R-01).
+- Không migration, không bảng mới. Đọc `reminder_marker` chỉ qua `CarePlanReviewStore` (lọc theo `kind`, `entity_type`, `entity_id` để dùng khóa `uq_reminder_marker`).
 - Đổi hợp đồng thì sửa `contracts/api-005.yaml` trước. Kho web chạy `npm run gen:api`, không sửa tay `src/api/`.
 - Không đổi luồng Q-447 (lập, gửi, rút lại, duyệt, trả lại, bỏ). Không đổi phần lập công việc ca.
 - Giữ nguyên thông báo hiện có của BR-M04-20 và dấu chống báo lặp (`ReminderMarkers`, `M04.CARE_PLAN_REVIEW`). Yêu cầu chỉ được ghi khi dấu được đặt lần đầu, để báo một lần thì cũng chỉ một dòng.
@@ -28,10 +31,11 @@
   - Tiêu đề: `Cần lập hoặc sửa kế hoạch`, `Đang chờ Bác sĩ duyệt`. Nút: `Lập kế hoạch`, `Sửa kế hoạch`, `Sửa tiếp`, `Mở`, `Không cần thay đổi`. Ô nhập: `Lý do không cần thay đổi`.
 - Commit theo đợt, mỗi kho một commit riêng, message không ghi attribution. Không đổi nhánh: Elder_Care, Elder_Care_Frontend ở `fix/daily-care-and-meal-menu`, Elder_Care_Mobile ở `fix/daily-care-v2`.
 - Kho Elder_Care đang có `T022_WellbeingReadIT.java` sửa dở không thuộc việc này; kho mobile có 2 file staged sẵn. Không đưa vào commit Q-448.
+- Hạn chế tạo bảng mới (chủ dự án 2026-11-26): cần lưu gì thêm thì dùng bảng có sẵn hoặc tính lúc đọc; thật cần bảng thì hỏi trước.
 
 ## Review Focus
 
-1. **Dấu chống lặp và yêu cầu phải đi cùng nhau.** Gọi lặp cùng sự cố ngã không tạo dòng thứ hai (khóa duy nhất `resident_id, source, reference`). Test `Q448_repeatedFallCreatesOneOpenReview`.
+1. **Dấu chống lặp và yêu cầu phải đi cùng nhau.** Gọi lặp cùng sự cố ngã không tạo mốc thứ hai (khóa `uq_reminder_marker`). Test `Q448_repeatedFallCreatesOneOpenReview`.
 2. **Bản lập trước thời điểm phát sinh không được đóng yêu cầu.** Bản Nháp đã mở từ hôm qua, hôm nay ngã, Bác sĩ duyệt bản đó: yêu cầu ngã vẫn mở (dùng `care_plan.created_at` > `raised_at`). Test `Q448_approvingDraftCreatedBeforeIncidentKeepsReviewOpen`.
 3. **Bản bị trả lại hoặc bỏ không đóng yêu cầu.** Test `Q448_returnedOrCancelledPlanKeepsReviewOpen`.
 4. **Đánh giá đầu vào không nhu cầu không tạo yêu cầu**, và người đã có kế hoạch thì đánh giá đầu vào (sửa đính chính) không tạo. Test `Q448_initialAssessmentWithoutNeedsStaysOnGeneralSchedule`.
@@ -40,42 +44,16 @@
 
 ---
 
-### Task 1: Bảng và lưu yêu cầu khi có nguồn phát sinh (backend)
+### Task 1: Lưu mốc phát sinh khi có nguồn (backend) — xong, T071
 
 **Files:**
-- Create: `backend/src/main/resources/db/migration/V005_104__q448_care_plan_review.sql`
-- Create: `backend/src/main/java/com/eldercare/backend/care/internal/careplan/persistence/CarePlanReviewStore.java`
+- Create: `backend/src/main/java/com/eldercare/backend/care/internal/careplan/persistence/CarePlanReviewStore.java` (`raise`)
 - Modify: `backend/src/main/java/com/eldercare/backend/care/internal/careplan/service/CarePlanReviewListener.java`
-- Test: `backend/src/test/java/com/eldercare/backend/care/BR_17_CarePlanReviewIT.java`
+- Test: `backend/src/test/java/com/eldercare/backend/care/BR_17_CarePlanReviewIT.java`, `CarePlanReviewDedupTest.java`
 
-- [ ] Viết test đỏ trong `BR_17_CarePlanReviewIT`:
-  - `Q448_reassessmentOpensReview`: đánh giá lại đổi mức → 1 dòng `OPEN`, nguồn `M01.ASSESSMENT`, tham chiếu là mã đánh giá. Sửa ca cũ đang assert "không có bản ghi nghiệp vụ" cho đúng spec mới.
-  - `Q448_repeatedFallCreatesOneOpenReview`, `Q448_palliativeChoiceOpensReview`.
-  - `Q448_addendumAfterRevisedPlanCreatesNoReview` (Q-423).
-- [ ] Migration:
-  ```sql
-  CREATE TABLE care_plan_review (
-    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    resident_id BIGINT NOT NULL,
-    source VARCHAR(40) NOT NULL,          -- M01.ASSESSMENT, M01.INITIAL_ASSESSMENT, M02.ADDENDUM, M05.INCIDENT, M05.PALLIATIVE_CARE_CHOICE
-    source_id BIGINT NOT NULL,
-    reference VARCHAR(80) NOT NULL,
-    raised_at DATETIME(6) NOT NULL,
-    status VARCHAR(20) NOT NULL,          -- OPEN, RESOLVED, NO_CHANGE
-    closed_at DATETIME(6) NULL,
-    closed_by BIGINT NULL,                -- NULL khi hệ thống đóng
-    close_reason VARCHAR(500) NULL,
-    resolved_plan_id BIGINT NULL,
-    CONSTRAINT uq_care_plan_review_source UNIQUE (resident_id, source, reference),
-    CONSTRAINT fk_care_plan_review_plan FOREIGN KEY (resolved_plan_id) REFERENCES care_plan (id),
-    CONSTRAINT chk_care_plan_review_status CHECK (status IN ('OPEN','RESOLVED','NO_CHANGE')),
-    INDEX ix_care_plan_review_open (status, resident_id)
-  );
-  ```
-  `reference` của chăm sóc giảm nhẹ dùng băm của `eventKey` như dấu hiện có (cột 80 ký tự).
-- [ ] `CarePlanReviewStore`: `open(residentId, source, sourceId, reference, raisedAt)` dùng `INSERT IGNORE`; `openFor(residentId)`, `openForResidents(ids)`, `resolve(residentId, planId, planCreatedAt, now)` (đóng các dòng `OPEN` có `raised_at < planCreatedAt`), `dismissAll(residentId, accountId, reason, now)`, `closeBySystem(residentId, reason, now)`.
-- [ ] Trong `CarePlanReviewListener.review(...)` gọi `store.open(...)` trước khi phát thông báo. Các đường `onAssessment`, `onAddendum` chạy trong giao dịch của nguồn; kiểm `@EventListener` hiện có đang ở trong giao dịch (nếu không thì đổi sang `@TransactionalEventListener(phase = BEFORE_COMMIT)` để dòng và thông báo cùng thành công).
-- [ ] Chạy test xanh. Nhật ký vào `backend/logs/005/20261126-q448-t1-{red,green}.log`.
+- [x] Test đỏ `Q448_repeatedFallCreatesOneOpenReview`, `Q448_palliativeChoiceOpensOneReviewPerKey`, `Q448_reassessmentOpensReview` (đọc mốc ở `reminder_marker`).
+- [x] `CarePlanReviewStore.raise` ghi `INSERT IGNORE` (không bắt buộc giao dịch, vì `onAddendum` có thể chạy ngoài giao dịch); listener gọi trước khi báo.
+- [x] Xanh 4/4. Nhật ký `backend/logs/005/20261126-q448-t1-marker-green.log`.
 
 ### Task 2: Nguồn mới từ đánh giá đầu vào (backend)
 
@@ -88,19 +66,18 @@
 - [ ] Nếu `latestConfirmed` chưa thấy lần vừa xác nhận trong cùng giao dịch thì thêm `needIds` vào sự kiện `InitialAssessmentConfirmed` của 001 (cập nhật `AllocationSuitabilityListener` của 003 nếu chữ ký đổi).
 - [ ] Chạy test xanh.
 
-### Task 3: Đóng yêu cầu (backend)
+### Task 3: Lệnh "Không cần thay đổi" và quy tắc yêu cầu Đang mở (backend)
 
 **Files:**
-- Modify: `care/internal/careplan/service/CarePlanService.java` (`approve`)
-- Create: `care/internal/careplan/service/CarePlanReviewCommands.java`
+- Modify: `care/internal/careplan/persistence/CarePlanReviewStore.java` (`dismiss`, `raisedFor(residentIds)`, `dismissedFor(residentIds)`)
+- Create: `care/internal/careplan/service/CarePlanReviews.java` (quy tắc Đang mở, lệnh dismiss)
 - Modify: `care/web/CarePlanController.java`, `care/web/request/` (thêm `CarePlanReviewDismiss`)
 - Modify: `specs/005-daily-care-tasks/contracts/api-005.yaml`
-- Test: `BR_17_CarePlanReviewIT.java`, `FR_003_CarePlanLifecycleIT.java`
+- Test: `BR_17_CarePlanReviewIT.java`
 
-- [ ] Test đỏ: `Q448_approveResolvesReviewsRaisedBeforePlanCreated`, `Q448_approvingDraftCreatedBeforeIncidentKeepsReviewOpen`, `Q448_returnedOrCancelledPlanKeepsReviewOpen`, `Q448_dismissRequiresReason`, `Q448_dismissOutsideScopeForbidden`, `Q448_residentLeavesClosesOpenReviews`.
-- [ ] `approve`: sau khi đổi trạng thái, gọi `reviews.resolve(residentId, planId, plan.createdAt(), now)`.
-- [ ] Lệnh `POST /residents/{residentId}/care-plan-reviews/dismiss` body `{ reason }` (bắt buộc, ≤ 500), cần `CARE_PLAN.CREATE` hoặc `CARE_PLAN.APPROVE` trong phạm vi; có `Idempotency-Key` như các lệnh khác; ghi nhật ký `CARE_PLAN_REVIEW_DISMISSED`. Không có yêu cầu mở thì 409 `NO_OPEN_REVIEW`.
-- [ ] Nghe `ResidentStatusChanged` sang trạng thái kết thúc lưu trú: `closeBySystem(residentId, "Kết thúc lưu trú")`.
+- [ ] Test đỏ: `Q448_approvedPlanCreatedAfterRaiseClosesReview`, `Q448_approvingDraftCreatedBeforeIncidentKeepsReviewOpen`, `Q448_returnedOrCancelledPlanKeepsReviewOpen`, `Q448_dismissClosesAllOpenAndRequiresReason`, `Q448_newSourceAfterDismissOpensAgain`, `Q448_dismissOutsideScopeForbidden`.
+- [ ] Quy tắc Đang mở như mục Architecture; viết thành hàm thuần có test đơn vị (`CarePlanReviewsTest`) cho các mốc thời gian sát nhau.
+- [ ] Lệnh `POST /residents/{residentId}/care-plan-reviews/dismiss` body `{ reason }` (bắt buộc, ≤ 500), cần `CARE_PLAN.CREATE` hoặc `CARE_PLAN.APPROVE` trong phạm vi; `Idempotency-Key` như các lệnh khác; ghi nhật ký `CARE_PLAN_REVIEW_DISMISSED`. Không có yêu cầu Đang mở thì 409 `NO_OPEN_REVIEW`.
 - [ ] Cập nhật `api-005.yaml`, chạy test hợp đồng `FR_003_CarePlanContractTest`.
 
 ### Task 4: Đọc hàng chờ và trạng thái kế hoạch (backend)
