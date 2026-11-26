@@ -1541,6 +1541,18 @@ components:
                 type: array
                 items:
                   $ref: "#/components/schemas/CarePlanItem"
+              planOccurrences:
+                type: array
+                description: Mốc của mục kế hoạch rơi trong ca và đúng ngày kế hoạch hiệu lực (Q-452).
+                items:
+                  type: object
+                  properties:
+                    itemId:
+                      type: integer
+                      format: int64
+                    plannedAt:
+                      type: string
+                      format: date-time
               otherSources:
                 type: array
                 items:
