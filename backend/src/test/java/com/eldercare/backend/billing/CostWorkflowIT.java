@@ -332,6 +332,37 @@ class CostWorkflowIT extends MySqlIntegrationTestBase {
         assertThat(status("cost_statement", supp)).isEqualTo("AWAITING_FINALIZATION");
     }
 
+    // Demo 2026-11-26 (E): bảng kỳ cuối chốt thì Kế toán được báo việc cần làm (hoàn tiền hoặc ghi nộp, rồi xác nhận
+    // quyết
+    // toán); nguồn là số dư của người cao tuổi để nút Xử lý ở web mở thẳng số dư
+    @Test
+    void finalPeriod_finalized_accountantToldWhatToDoNext_sourceIsTheBalance() {
+        org.mockito.Mockito.doReturn(new com.eldercare.backend.resident.api.dto.IdentityView(
+                        resident, "NCT-T", "Lê Văn Thử", java.util.Optional.empty()))
+                .when(residentApi)
+                .identity(resident);
+        finalPeriod();
+        long id = item("EVENT_BASED", 2_083_325L, "");
+        items.check(selection(id));
+        statements.submit(statement);
+
+        var request = events.stream(com.eldercare.backend.common.notification.HasNotificationRequests.class)
+                .flatMap(e -> e.notificationRequests().stream())
+                .filter(r -> r.eventType().equals("COST_FINAL_STATEMENT_FOR_ACCOUNTANT"))
+                .filter(r -> r.residentId().orElse(0L) == resident)
+                .findFirst()
+                .orElseThrow();
+        assertThat(request.recipientGroups())
+                .containsExactly(
+                        new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(Role.ACCOUNTANT));
+        assertThat(request.sourceRecord().type()).isEqualTo("M11.BALANCE");
+        assertThat(request.sourceRecord().id()).isEqualTo(Long.toString(resident));
+        assertThat(request.content().getFirst().content())
+                .contains("Lê Văn Thử")
+                .contains("2.083.325 đ")
+                .contains("xác nhận quyết toán");
+    }
+
     @Test
     void regularStatement_submitStillWaitsForManager() {
         long id = item("EVENT_BASED", 300L, "");
