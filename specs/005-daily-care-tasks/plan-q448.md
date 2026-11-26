@@ -90,7 +90,7 @@ Bỏ: API đếm và số đếm trên menu; bộ lọc tầng, nguồn; nhóm "
 - [x] `GET /residents/{residentId}/care-plan-reviews` trả yêu cầu Đang mở của một người (thay cho `openReviews` trong danh sách kế hoạch: người chưa có bản nào thì danh sách rỗng).
 - [ ] Test: IT trong `FR_003_CarePlanLifecycleIT` (có trong hàng chờ khi có sự cố; rời hàng chờ khi duyệt; người ngoài phạm vi không thấy; bản bị trả lại có `returned`).
 
-### Task 5: Web hàng chờ và dải lý do
+### Task 5: Web hàng chờ và dải lý do — xong, T075
 
 - [ ] `CarePlanQueue.jsx`: tiêu đề "Cần lập hoặc sửa kế hoạch (n)", mỗi dòng tên, mã hồ sơ, nhãn nguồn, thời gian chờ, nút `Lập kế hoạch` / `Sửa kế hoạch` / `Sửa tiếp`; rỗng thì "Không có ai cần lập hoặc sửa kế hoạch". Hiện thay chữ "Chọn người cao tuổi để xem kế hoạch".
 - [ ] `CarePlanPage`: dải "Cần xem xét vì: …" và nút `Không cần thay đổi` (hộp thoại bắt buộc lý do) khi có `openReviews`.
