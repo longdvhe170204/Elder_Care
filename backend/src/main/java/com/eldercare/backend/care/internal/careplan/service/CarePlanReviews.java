@@ -83,7 +83,10 @@ public class CarePlanReviews {
         return open(residentId);
     }
 
-    /** Một dòng hàng chờ: yêu cầu Đang mở, bản Nháp (bị trả lại hay đang soạn), thời điểm bắt đầu chờ. */
+    /**
+     * Một dòng hàng chờ: yêu cầu Đang mở, bản đang xử lý (Nháp bị trả lại hay đang soạn, hoặc Chờ duyệt), thời điểm bắt
+     * đầu chờ (bản Chờ duyệt thì là lúc gửi).
+     */
     public record QueueRow(
             long residentId, List<CarePlanReviewRaised> reasons, Optional<CarePlan> draft, Instant waitingSince) {}
 
@@ -103,11 +106,16 @@ public class CarePlanReviews {
                     .allowed()) continue;
             var all = plans.list(residentId, false);
             var open = CarePlanReviewRule.open(reviews.raised(residentId), all, reviews.dismissals(residentId));
-            var draft =
-                    all.stream().filter(p -> p.status() == CarePlanStatus.DRAFT).findFirst();
+            var draft = all.stream()
+                    .filter(p -> p.status() == CarePlanStatus.DRAFT || p.status() == CarePlanStatus.PENDING_APPROVAL)
+                    .findFirst();
             if (open.isEmpty() && draft.isEmpty()) continue;
-            Instant since =
-                    open.isEmpty() ? draft.get().createdAt() : open.getFirst().raisedAt();
+            // Q-448 (sửa 2026-11-26): bản Chờ duyệt hiện ở nhóm "Đang chờ Bác sĩ duyệt", tính từ lúc gửi
+            boolean pending = draft.map(p -> p.status() == CarePlanStatus.PENDING_APPROVAL)
+                    .orElse(false);
+            Instant since = pending
+                    ? draft.get().submittedAt()
+                    : open.isEmpty() ? draft.get().createdAt() : open.getFirst().raisedAt();
             rows.add(new QueueRow(residentId, open, draft, since));
         }
         rows.sort(Comparator.comparing(QueueRow::waitingSince));

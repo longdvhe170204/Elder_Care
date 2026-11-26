@@ -2,6 +2,7 @@ package com.eldercare.backend.care.web;
 
 import com.eldercare.backend.administration.account.api.*;
 import com.eldercare.backend.administration.account.api.dto.*;
+import com.eldercare.backend.care.api.dto.CarePlanStatus;
 import com.eldercare.backend.care.internal.careplan.domain.CarePlan;
 import com.eldercare.backend.care.internal.careplan.service.*;
 import com.eldercare.backend.care.web.request.*;
@@ -242,8 +243,12 @@ public class CarePlanController {
                                     .toList(),
                             row.draft().map(CarePlan::id).orElse(null),
                             row.draft()
-                                    .map(p -> "RETURNED".equals(p.endReason()))
+                                    .map(p -> p.status() == CarePlanStatus.DRAFT && "RETURNED".equals(p.endReason()))
                                     .orElse(false),
+                            row.draft()
+                                    .map(p -> p.status() == CarePlanStatus.PENDING_APPROVAL)
+                                    .orElse(false),
+                            row.draft().map(p -> actor(p.createdBy())).orElse(null),
                             row.waitingSince());
                 })
                 .toList();

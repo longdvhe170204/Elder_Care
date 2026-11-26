@@ -237,9 +237,9 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM care_plan_item WHERE care_plan_id=?", Integer.class, revision))
                 .isEqualTo(1);
-        mvc.perform(write(post("/api/v1/care-plans/" + revision + "/submit"), "{}"))
-                .andExpect(status().isUnprocessableContent());
+        // Q-450: gửi bản sửa không còn bắt lý do (ca thiếu lý do ở Q450_*); lý do gửi kèm vẫn được lưu
         submit(revision, "{\"changeReason\":\"Sau ngã cần xoay trở dày hơn\"}");
+        assertThat(column("change_reason", revision)).isEqualTo("Sau ngã cần xoay trở dày hơn");
         approveAsDoctor(revision);
         assertThat(column("status", revision)).isEqualTo("PENDING_EFFECT");
         assertThat(column("effective_from", revision))
@@ -460,5 +460,34 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
         mvc.perform(write(post("/api/v1/care-plans/" + id + "/cancel"), "{}"))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
+    }
+
+    @Test
+    void Q450_revisionSubmittedWithoutReasonTakesReasonFromOpenReviewsAndShowsAsPending() throws Exception {
+        effectivePlan();
+        reviewApi.fallIncidentRecorded(residentId, TestUsers.nextId());
+        long revision = createCopy();
+
+        submit(revision, "{}");
+
+        assertThat(column("status", revision)).isEqualTo("PENDING_APPROVAL");
+        assertThat(column("change_reason", revision)).startsWith("Theo sự cố ngã ngày ");
+        mvc.perform(get("/api/v1/care-plan-reviews/queue"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.residentId==" + residentId + ")].pendingApproval")
+                        .value(org.hamcrest.Matchers.contains(true)))
+                .andExpect(jsonPath("$[?(@.residentId==" + residentId + ")].draftId")
+                        .value(org.hamcrest.Matchers.contains((int) revision)));
+    }
+
+    @Test
+    void Q450_revisionWithoutOpenReviewsNeedsNoReason() throws Exception {
+        effectivePlan();
+        long revision = createCopy();
+
+        submit(revision, "{}");
+
+        assertThat(column("status", revision)).isEqualTo("PENDING_APPROVAL");
+        assertThat(column("change_reason", revision)).isNull();
     }
 }

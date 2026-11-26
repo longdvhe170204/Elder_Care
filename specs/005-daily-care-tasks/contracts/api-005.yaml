@@ -1044,6 +1044,8 @@ components:
         reasons: { type: array, items: { $ref: '#/components/schemas/CarePlanReview' } }
         draftId: { type: [integer, 'null'], format: int64 }
         draftReturned: { type: boolean }
+        pendingApproval: { type: boolean, description: 'Bản đã gửi Bác sĩ duyệt (Q-448 sửa 2026-11-26); waitingSince khi đó là lúc gửi' }
+        createdBy: { type: [string, 'null'], description: 'Người lập bản đang xử lý' }
         waitingSince: { type: string, format: date-time }
     CarePlanComparison:
       type: object

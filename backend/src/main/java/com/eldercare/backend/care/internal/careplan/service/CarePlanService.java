@@ -47,6 +47,7 @@ public class CarePlanService {
     private final CarePlanNotices notices;
     private final AccountApi accounts;
     private final CarePlanActivation activation;
+    private final CarePlanReviews reviews;
 
     public CarePlanService(
             CarePlanStore store,
@@ -62,7 +63,9 @@ public class CarePlanService {
             CareRiskStore risks,
             CarePlanNotices notices,
             AccountApi accounts,
-            CarePlanActivation activation) {
+            CarePlanActivation activation,
+            CarePlanReviews reviews) {
+        this.reviews = reviews;
         this.store = store;
         this.locks = locks;
         this.catalogs = catalogs;
@@ -231,7 +234,8 @@ public class CarePlanService {
         var status = CarePlanTransitions.next(plan.status(), "SUBMIT");
         var items = store.lockedItems(id);
         if (items.isEmpty()) throw conflict("EMPTY_PLAN", "Kế hoạch cần ít nhất một mục công việc");
-        if (plan.previousPlanId() != null && reason == null) throw new ReasonRequiredException();
+        // Q-450: không bắt Điều dưỡng nhập lý do sửa; không gửi thì hệ thống ghi từ các yêu cầu xem xét đang mở
+        if (reason == null) reason = reviewReason(plan.residentId());
         var frozen = new ArrayList<CarePlanItem>();
         for (var item : items) {
             validate(item.data());
@@ -377,6 +381,28 @@ public class CarePlanService {
                 .reason(reason)
                 .build());
     }
+
+    /** Q-450: lý do sửa ghi từ các yêu cầu xem xét đang mở; không có thì để trống. */
+    private Reason reviewReason(long residentId) {
+        var open = reviews.open(residentId);
+        if (open.isEmpty()) return null;
+        var parts = open.stream()
+                .map(r -> REVIEW_SOURCES.getOrDefault(r.source(), "Yêu cầu xem xét") + " ngày "
+                        + LocalDate.ofInstant(r.raisedAt(), BusinessTime.ZONE).format(DAY))
+                .distinct()
+                .toList();
+        String text = "Theo " + String.join("; ", parts);
+        return Reason.of(text.length() <= Reason.MAX_LENGTH ? text : text.substring(0, Reason.MAX_LENGTH));
+    }
+
+    private static final java.time.format.DateTimeFormatter DAY =
+            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final Map<String, String> REVIEW_SOURCES = Map.of(
+            "M01.INITIAL_ASSESSMENT", "đánh giá đầu vào",
+            "M01.ASSESSMENT", "Bác sĩ đánh giá lại",
+            "M02.ADDENDUM", "phụ lục đổi mức chăm sóc",
+            "M05.INCIDENT", "sự cố ngã",
+            "M05.PALLIATIVE_CARE_CHOICE", "lựa chọn chăm sóc giảm nhẹ");
 
     private BusinessException conflict(String code, String message) {
         return new BusinessException(HttpStatus.CONFLICT, code, message);

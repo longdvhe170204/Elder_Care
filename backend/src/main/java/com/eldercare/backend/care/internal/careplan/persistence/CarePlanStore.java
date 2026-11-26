@@ -75,9 +75,10 @@ public class CarePlanStore {
                 residentId);
     }
 
-    /** Người cao tuổi đang có bản Nháp (hàng chờ Q-448, FR-059). */
+    /** Người cao tuổi đang có bản Nháp hoặc Chờ duyệt (hàng chờ Q-448, FR-059). */
     public List<Long> residentsWithDraft() {
-        return jdbc.queryForList("SELECT DISTINCT resident_id FROM care_plan WHERE status='DRAFT'", Long.class);
+        return jdbc.queryForList(
+                "SELECT DISTINCT resident_id FROM care_plan WHERE status IN ('DRAFT','PENDING_APPROVAL')", Long.class);
     }
 
     public CarePlan create(long residentId, int revision, Long previous, long actor, Instant now) {
