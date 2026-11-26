@@ -75,6 +75,7 @@ public class MedicationService {
                 cmd.afterWindowMinutes(),
                 cmd.specialControl(),
                 cmd.allergenIds());
+        med.setAllowInternalPrescribe(cmd.allowInternalPrescribe());
 
         Medication saved = medications.save(med);
         return toView(saved);
@@ -113,6 +114,7 @@ public class MedicationService {
                 cmd.afterWindowMinutes(),
                 cmd.specialControl(),
                 cmd.allergenIds());
+        med.setAllowInternalPrescribe(cmd.allowInternalPrescribe());
 
         return toView(medications.save(med));
     }
@@ -182,6 +184,7 @@ public class MedicationService {
                 m.getBeforeWindowMinutes(),
                 m.getAfterWindowMinutes(),
                 m.isSpecialControl(),
+                m.isAllowInternalPrescribe(),
                 m.isActive(),
                 missingPricing,
                 m.getVersion());
@@ -196,7 +199,31 @@ public class MedicationService {
             Set<Long> allergenIds,
             Integer beforeWindowMinutes,
             Integer afterWindowMinutes,
-            boolean specialControl) {}
+            boolean specialControl,
+            boolean allowInternalPrescribe) {
+        public CreateMedicationCommand(
+                String name,
+                String concentration,
+                String dosageForm,
+                String defaultRoute,
+                String usageUnit,
+                Set<Long> allergenIds,
+                Integer beforeWindowMinutes,
+                Integer afterWindowMinutes,
+                boolean specialControl) {
+            this(
+                    name,
+                    concentration,
+                    dosageForm,
+                    defaultRoute,
+                    usageUnit,
+                    allergenIds,
+                    beforeWindowMinutes,
+                    afterWindowMinutes,
+                    specialControl,
+                    true);
+        }
+    }
 
     public record UpdateMedicationCommand(
             String name,
@@ -207,7 +234,31 @@ public class MedicationService {
             Set<Long> allergenIds,
             Integer beforeWindowMinutes,
             Integer afterWindowMinutes,
-            boolean specialControl) {}
+            boolean specialControl,
+            boolean allowInternalPrescribe) {
+        public UpdateMedicationCommand(
+                String name,
+                String concentration,
+                String dosageForm,
+                String defaultRoute,
+                String usageUnit,
+                Set<Long> allergenIds,
+                Integer beforeWindowMinutes,
+                Integer afterWindowMinutes,
+                boolean specialControl) {
+            this(
+                    name,
+                    concentration,
+                    dosageForm,
+                    defaultRoute,
+                    usageUnit,
+                    allergenIds,
+                    beforeWindowMinutes,
+                    afterWindowMinutes,
+                    specialControl,
+                    true);
+        }
+    }
 
     public record MedicationDetailView(
             Long id,
@@ -220,7 +271,39 @@ public class MedicationService {
             Integer beforeWindowMinutes,
             Integer afterWindowMinutes,
             boolean specialControl,
+            boolean allowInternalPrescribe,
             boolean active,
             boolean missingPricingItem,
-            int version) {}
+            int version) {
+        public MedicationDetailView(
+                Long id,
+                String name,
+                String concentration,
+                String dosageForm,
+                String defaultRoute,
+                String usageUnit,
+                List<Long> allergenIds,
+                Integer beforeWindowMinutes,
+                Integer afterWindowMinutes,
+                boolean specialControl,
+                boolean active,
+                boolean missingPricingItem,
+                int version) {
+            this(
+                    id,
+                    name,
+                    concentration,
+                    dosageForm,
+                    defaultRoute,
+                    usageUnit,
+                    allergenIds,
+                    beforeWindowMinutes,
+                    afterWindowMinutes,
+                    specialControl,
+                    true,
+                    active,
+                    missingPricingItem,
+                    version);
+        }
+    }
 }

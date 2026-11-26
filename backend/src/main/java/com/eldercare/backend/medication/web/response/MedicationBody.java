@@ -17,6 +17,7 @@ public record MedicationBody(
         Integer beforeWindowMinutes,
         Integer afterWindowMinutes,
         Boolean specialControl,
+        Boolean allowInternalPrescribe,
         Boolean active,
         Boolean missingPricingItem) {
 
@@ -33,6 +34,7 @@ public record MedicationBody(
                 r.beforeWindowMinutes(),
                 r.afterWindowMinutes(),
                 r.specialControl(),
+                r.allowInternalPrescribe(),
                 r.active(),
                 r.missingPricingItem());
     }

@@ -1,6 +1,7 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.admission.api.events.ResidencyChangeReturnedToDraft;
@@ -40,6 +41,11 @@ class FR_043e_ReturnToDraftIT extends ChangeTestBase {
         user.set(manager.user());
         generic(id, "return-to-draft", "{\"reason\":\"Sửa ngày hiệu lực\"}").andExpect(status().isOk());
 
+        // Quản lý viện không xem được bản Nháp của người khác (chỉ thấy khi đã gửi duyệt)
+        mvc.perform(get("/api/v1/residency-change-requests/" + id)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/approval-requests/" + id)).andExpect(status().isNotFound());
+
+        user.set(office.user());
         assertThat(requestStatus(id)).isEqualTo("DRAFT");
         JsonNode view = getChange(id);
         assertThat(view.has("representativeConfirmation"))
@@ -48,7 +54,6 @@ class FR_043e_ReturnToDraftIT extends ChangeTestBase {
         assertThat(events.stream(ResidencyChangeReturnedToDraft.class))
                 .anyMatch(e -> e.requestId() == id && e.reason().equals("Sửa ngày hiệu lực"));
 
-        user.set(office.user());
         MvcResult blocked =
                 generic(id, "submit", "{}").andExpect(status().isConflict()).andReturn();
         assertThat(blocked.getResponse().getContentAsString()).contains("REPRESENTATIVE_CONFIRMATION_REQUIRED");

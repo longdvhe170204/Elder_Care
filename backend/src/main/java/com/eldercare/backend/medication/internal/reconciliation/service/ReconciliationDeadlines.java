@@ -39,7 +39,7 @@ public class ReconciliationDeadlines {
     private static final List<PrescriptionStatus> UNENDED =
             List.of(PrescriptionStatus.ACTIVE, PrescriptionStatus.PENDING_EFFECTIVE);
     private static final List<ReconciliationStatus> OPEN =
-            List.of(ReconciliationStatus.OPEN, ReconciliationStatus.PENDING_CONFIRMATION);
+            List.of(ReconciliationStatus.OPEN, ReconciliationStatus.DRAFT, ReconciliationStatus.PENDING_CONFIRMATION);
 
     private final PrescriptionRepository prescriptions;
     private final MedicationDoseRepository doses;

@@ -31,4 +31,32 @@ public record MedicationRequest(
         Integer beforeWindowMinutes,
         Integer afterWindowMinutes,
         Boolean specialControl,
-        Boolean active) {}
+        Boolean allowInternalPrescribe,
+        Boolean active) {
+    public MedicationRequest(
+            Long id,
+            String name,
+            String concentration,
+            String dosageForm,
+            String defaultRoute,
+            String usageUnit,
+            List<Long> allergenIds,
+            Integer beforeWindowMinutes,
+            Integer afterWindowMinutes,
+            Boolean specialControl,
+            Boolean active) {
+        this(
+                id,
+                name,
+                concentration,
+                dosageForm,
+                defaultRoute,
+                usageUnit,
+                allergenIds,
+                beforeWindowMinutes,
+                afterWindowMinutes,
+                specialControl,
+                true,
+                active);
+    }
+}

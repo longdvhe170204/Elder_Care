@@ -4,6 +4,7 @@ import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
 import com.eldercare.backend.medication.internal.dose.domain.DoseDetailView;
 import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
+import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
 import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
 import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
 import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
@@ -22,7 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for calculating medication schedules and medication administration rounds (FR-018 -> FR-023; research D-06, D-09).
+ * Service for calculating medication schedules and medication administration
+ * rounds (FR-018 -> FR-023; research D-06, D-09).
  */
 @Service
 public class MedicationScheduleService {
@@ -54,7 +56,8 @@ public class MedicationScheduleService {
     }
 
     /**
-     * Retrieves resident medication schedule for a date range (combines pure calculator and materialized doses).
+     * Retrieves resident medication schedule for a date range (combines pure
+     * calculator and materialized doses).
      */
     @Transactional(readOnly = true)
     public List<CalculatedDoseSlot> getResidentSchedule(
@@ -120,13 +123,16 @@ public class MedicationScheduleService {
     }
 
     /**
-     * Retrieves list of doses for a medication round by floor area and time interval (FR-026, FR-026a).
+     * Retrieves list of doses for a medication round by floor area and time
+     * interval (FR-026, FR-026a).
      */
     @Transactional(readOnly = true)
     public List<DoseDetailView> getMedicationRound(Long floorAreaId, Instant fromTime, Instant toTime, Instant now) {
 
         List<MedicationDose> doses =
-                doseRepository.findByFloorAreaIdAndScheduledTimeBetween(floorAreaId, fromTime, toTime);
+                doseRepository.findByFloorAreaIdAndScheduledTimeBetween(floorAreaId, fromTime, toTime).stream()
+                        .filter(d -> d.getStatus() != DoseStatus.CANCELLED)
+                        .toList();
         List<DoseDetailView> views = new ArrayList<>();
 
         for (MedicationDose d : doses) {

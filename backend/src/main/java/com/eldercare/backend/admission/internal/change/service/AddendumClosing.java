@@ -55,7 +55,10 @@ class AddendumClosing {
                 beds.getObject()
                         .cancelScheduledAllocation(
                                 approvalRequestId,
-                                new Reason(cancelled ? "Yêu cầu bị hủy (FR-043f)" : "Phụ lục không áp dụng (FR-045)"));
+                                new Reason(
+                                        cancelled
+                                                ? "Yêu cầu điều chỉnh hợp đồng đã bị hủy"
+                                                : "Phụ lục hợp đồng không áp dụng"));
             }
             Addendum.Status to = cancelled ? Addendum.Status.CANCELLED : Addendum.Status.NOT_APPLIED;
             auditLog.write(AuditLogEntry.builder()

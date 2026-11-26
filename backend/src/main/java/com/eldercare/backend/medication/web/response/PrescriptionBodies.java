@@ -80,6 +80,7 @@ public final class PrescriptionBodies {
     public record PrescriptionBody(
             Long id,
             Long residentId,
+            String prescriptionGroupId,
             @Schema(requiredMode = RequiredMode.REQUIRED) Long medicationId,
             @Schema(requiredMode = RequiredMode.REQUIRED) BigDecimal dosage,
             @Schema(requiredMode = RequiredMode.REQUIRED) String route,
@@ -124,9 +125,19 @@ public final class PrescriptionBodies {
             String timeCriticality,
 
             List<String> requiredMeasurements,
+            List<MeasurementConditionBody> measurementConditions,
+            Boolean chronicDisease,
             String indication,
             Instant tempResumedAt,
             String tempResumeBasis) {
+
+        public record MeasurementConditionBody(
+                @Schema(requiredMode = RequiredMode.REQUIRED)
+                String metric,
+
+                BigDecimal minValue,
+                BigDecimal maxValue,
+                String holdInstruction) {}
 
         public static PrescriptionBody of(PrescriptionResponse p) {
             PrescriptionResponse.FrequencyResponse f = p.frequency();
@@ -134,6 +145,7 @@ public final class PrescriptionBodies {
             return new PrescriptionBody(
                     p.id(),
                     p.residentId(),
+                    p.prescriptionGroupId(),
                     p.medicationId(),
                     p.dosage(),
                     p.route(),
@@ -171,6 +183,13 @@ public final class PrescriptionBodies {
                     p.hiddenFields(),
                     p.timeCriticality(),
                     p.requiredMeasurements(),
+                    p.measurementConditions() == null
+                            ? List.of()
+                            : p.measurementConditions().stream()
+                                    .map(c -> new MeasurementConditionBody(
+                                            c.metric(), c.minValue(), c.maxValue(), c.holdInstruction()))
+                                    .toList(),
+                    p.chronicDisease(),
                     p.indication(),
                     p.tempResumedAt(),
                     p.tempResumeBasis());

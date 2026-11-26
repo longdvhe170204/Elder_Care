@@ -29,6 +29,7 @@ import com.eldercare.backend.medication.internal.dose.service.DoseReviewService;
 import com.eldercare.backend.medication.internal.dose.service.DoseViewService;
 import com.eldercare.backend.medication.internal.dose.service.DoseWorkflowService;
 import com.eldercare.backend.medication.web.DoseController;
+import com.eldercare.backend.medication.web.request.DoseRequests.DoseResultRequest;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -73,8 +74,7 @@ class DoseCommandPermissionTest {
                 () -> controller.refuse(KEY, null, null),
                 () -> controller.skip(KEY, null, null),
                 () -> controller.postpone(KEY, null, null),
-                () -> controller.claim(KEY, null),
-                () -> controller.release(KEY, null));
+                () -> controller.hold(KEY, null, null));
     }
 
     private void staff(Set<PermissionKey> granted) {
@@ -109,12 +109,14 @@ class DoseCommandPermissionTest {
     }
 
     @Test
-    void nurseWithValidLicense_claimReachesTheService() {
+    void nurseWithValidLicense_holdReachesTheService() {
         staff(Set.of(ADMINISTER));
         when(licenses.valid(eq(70L), eq("NURSING_LICENSE"), any()))
                 .thenReturn(Optional.of(new LicenseValidity(1L, "Giấy phép", null, Set.of())));
+        DoseResultRequest request = mock(DoseResultRequest.class);
         // Bản giả DoseViewService không dựng phản hồi; chỉ kiểm lệnh không bị chặn và tới được service
-        assertThat(catchThrowable(() -> controller.claim(KEY, null))).isNotInstanceOf(PermissionDeniedException.class);
-        verify(workflow).claim(eq(KEY), eq(7L), any());
+        assertThat(catchThrowable(() -> controller.hold(KEY, null, request)))
+                .isNotInstanceOf(PermissionDeniedException.class);
+        verify(workflow).hold(eq(KEY), any(), eq(7L), any());
     }
 }

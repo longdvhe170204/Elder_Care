@@ -1276,7 +1276,9 @@ Module quản lý đơn thuốc, lịch thuốc, thực hiện thuốc, đối c
 
 Đơn thuốc có: người cao tuổi; thuốc; liều; đường dùng; thời gian; người kê; cơ sở kê; nguồn thuốc; ghi chú. Mọi thay đổi phải lưu lịch sử.
 
-Đơn thuốc có thêm: hoạt chất; ngày bắt đầu; ngày kết thúc (nếu có); loại đơn (định kỳ / khi cần – PRN); với PRN: chỉ định dùng, khoảng cách tối thiểu giữa hai lần và số lần tối đa mỗi ngày (BR-M07-04); mức quan trọng về thời gian: Thường (mặc định) hoặc Quan trọng (BR-M07-27); chỉ số cần đo trước khi dùng, nếu có (BR-M07-26); nguồn thuốc (viện cung cấp / gia đình gửi). Trạng thái đơn: Chờ hiệu lực, Hiệu lực, Tạm dừng, Đã ngừng, Hết hạn (bảng dưới).
+Đơn thuốc có thêm: nhóm đơn (`prescriptionGroupId`) cho phép một đơn gồm nhiều dòng thuốc; hoạt chất; ngày bắt đầu; ngày kết thúc bắt buộc (`>= ngày bắt đầu`); loại đơn (định kỳ / khi cần – PRN); với PRN: chỉ định dùng, khoảng cách tối thiểu giữa hai lần và số lần tối đa mỗi ngày (BR-M07-04); mức quan trọng về thời gian: Thường (mặc định) hoặc Quan trọng (BR-M07-27); chỉ số cần đo trước khi dùng kèm điều kiện ngưỡng an toàn và hướng dẫn tạm giữ 1 liều (nếu có, BR-M07-26); cờ điều trị mạn tính / dài ngày; nguồn thuốc (viện cung cấp / gia đình gửi). Trạng thái đơn: Chờ hiệu lực, Hiệu lực, Tạm dừng, Đã ngừng, Hết hạn (bảng dưới).
+
+- **Phạm vi kê & nhập đơn (cập nhật 2026-11-26):** Chỉ Bác sĩ có GPHN còn hiệu lực mới được kê đơn nội bộ (`PrescribingAuthority`) trực tiếp tại màn **Đơn thuốc**. Chặn kê nội bộ đối với thuốc kiểm soát đặc biệt (`specialControl`) và thuốc bị đánh dấu ngoài phạm vi viện (`allowInternalPrescribe = false` trong Danh mục thuốc). Đơn nội bộ bắt buộc nhập Chẩn đoán / Chỉ định lâm sàng và có thời hạn tối đa **30 ngày** (hoặc **90 ngày** khi đánh dấu điều trị mạn tính / dài ngày). **Mọi đơn thuốc từ cơ sở bên ngoài** đều đi qua luồng **Đối chiếu thuốc (11.5)** để Bác sĩ rà soát với đơn hiện tại trước khi áp dụng; Điều dưỡng không tự nhập đơn mới trực tiếp.
 
 Đơn thuốc đã Hiệu lực **không sửa liều, thuốc hay tần suất**. Đổi liều hoặc đổi thuốc = ngừng đơn cũ và tạo đơn thay thế, hai đơn liên kết với nhau ("thay thế cho"). Chỉ được sửa các trường không ảnh hưởng đến việc dùng thuốc, như ghi chú hướng dẫn, và vẫn lưu lịch sử. Mức quan trọng về thời gian và chỉ số cần đo trước khi dùng cũng sửa được theo cách này (không đổi thuốc, liều, tần suất), do người có quyền Tạm dừng đơn đó.
 
@@ -1284,7 +1286,7 @@ Vòng đời đơn thuốc; Đã ngừng và Hết hạn là trạng thái cuố
 
 | Trạng thái | Lệnh / sự kiện | Trạng thái mới | Người thực hiện |
 | --- | --- | --- | --- |
-| — | Nhập đơn | Hiệu lực (ngày bắt đầu không sau hôm nay) hoặc Chờ hiệu lực | Bác sĩ; Điều dưỡng chỉ với đơn kê bên ngoài (BR-M07-05) |
+| — | Nhập đơn | Hiệu lực (ngày bắt đầu không sau hôm nay) hoặc Chờ hiệu lực | Bác sĩ (nội bộ & đơn ngoài theo toa; BR-M07-05) |
 | — | Phiếu đối chiếu "tiếp nhận" được xác nhận khi hồ sơ còn Đang tiếp nhận (Q-57) | Chờ hiệu lực (dấu "chờ tiếp nhận") | Hệ thống |
 | Chờ hiệu lực | Tới ngày giờ bắt đầu; hoặc lệnh Hoàn tất tiếp nhận với đơn "chờ tiếp nhận" | Hiệu lực | Bộ lập lịch; Hệ thống |
 | Hiệu lực | Tạm dừng đơn (bắt buộc lý do) | Tạm dừng | Bác sĩ; Điều dưỡng chỉ với đơn bên ngoài có căn cứ từ cơ sở kê |
@@ -1354,8 +1356,10 @@ Số lần tối đa mỗi ngày của thuốc khi cần (PRN) được tính th
 
 Ghi nhận: đã thực hiện (kể cả đã dùng muộn, ghi giờ thực tế); hoãn có chủ đích; không thực hiện; từ chối; chưa thực hiện; lý do (bắt buộc với hoãn, từ chối, không thực hiện); chỉ số đo trước khi dùng (khi đơn yêu cầu); phản ứng; hiệu quả (thuốc khi cần); ghi chú. Các trường hợp bất thường tạo cảnh báo/sự cố theo chính sách.
 
-- **Nhận liều (Q-428, BR-M07-26):** trước khi soạn thuốc, Điều dưỡng ghi "Nhận liều"; liều đã có người nhận thì Điều dưỡng khác không xác nhận được. Nhận liều tự hết sau \[15 phút\] (CFG-M07-08) nếu chưa xác nhận.
-- **Liều chung của tầng (Q-61):** khi người cao tuổi không có điều dưỡng được phân công trong ca, liều thành "liều chung của tầng". Mọi Điều dưỡng có ca tại tầng thấy được, và người có giấy phép còn hiệu lực xác nhận được. Trưởng tầng và Người phụ trách ca được thông báo. Tầng không có Điều dưỡng nào có ca: BR-M07-21, BR-M07-31.
+- **Phân quyền thực hiện liều & Bỏ Nhận liều (cập nhật 2026-11-26):** Bỏ chức năng Nhận liều / Bỏ nhận và bỏ quy chế Liều chung của tầng. Chỉ Điều dưỡng được phân công chăm sóc cho người cao tuổi trong ca (hoặc Điều dưỡng phụ trách tạm của tầng theo BR-M07-31) mới được xác nhận liều; backend kiểm tra quyền và chống xác nhận trùng liều.
+- **Tạm giữ 1 liều (cập nhật 2026-11-26):** Khi chỉ số đo trước khi dùng vượt ngưỡng chỉ định, Điều dưỡng dùng lệnh **Tạm giữ 1 liều** (`hold`, bắt buộc lý do) để chuyển riêng liều đó sang `Tạm dừng`, không ngừng các liều khác của đơn và không tính là Bỏ lỡ.
+- **Đính chính liều Bỏ lỡ & Phân loại sự cố (cập nhật 2026-11-26):** Khi ghi bổ sung cho liều đã Bỏ lỡ, Điều dưỡng phải chọn rõ **Uống thuốc muộn thực tế** hoặc **Đã uống đúng giờ nhưng quên ghi nhận**, đồng thời kiểm tra khoảng cách với liều kế tiếp để tránh dùng trùng. Khi ghi nhận liều đã dùng có phản ứng/sự cố, chọn phân loại sự cố đi kèm để phát cảnh báo cho người phụ trách.
+- **Màn theo dõi liều theo ngày (cập nhật 2026-11-26):** Cho phép xem lịch sử trạng thái các liều thuốc của người cao tuổi theo khoảng ngày và lọc theo trạng thái mà không ảnh hưởng luồng checklist ca.
 - **Liều Mang theo (Q-54):** chỉ Điều dưỡng ghi nhận. Điều dưỡng đi cùng thì ghi tại chỗ. Không có điều dưỡng đi cùng thì Điều dưỡng phụ trách ghi sau khi người cao tuổi trở về, theo báo lại của nhân viên đi cùng hoặc người thân; bản ghi gắn căn cứ "ghi theo báo lại" và lưu người báo lại.
 - **Giao thuốc mang theo (Q-58):** khi người cao tuổi rời viện có mang thuốc, điều dưỡng ghi "Giao thuốc mang theo" với số lượng từng đơn. Với thuốc viện, lần giao là sự kiện tính phí (BR-M07-14); thuốc gia đình gửi chỉ ghi số lượng đã giao, không trừ số lượng của lô (Q-393). Khi trở về, điều dưỡng ghi "Nhận lại" với số lượng mang về; với thuốc viện, phần nhận lại giảm số tính phí. Liều ghi sau đó không tính phí lần nữa.
 - **Trở về sớm (Q-60, Q-65):** liều Mang theo chưa tới giờ thôi thuộc lần giao. Điều dưỡng chỉ dùng viên thuốc đã giao cho liều ở viện sau khi đã ghi "Nhận lại". Liều dùng ở viện tính phí như bình thường (thuốc viện). Nếu lần giao còn mở khi xác nhận liều, hệ thống nhắc ghi nhận lại, không chặn.
@@ -1368,7 +1372,7 @@ Ghi nhận: đã thực hiện (kể cả đã dùng muộn, ghi giờ thực t�
 
 ### 11.4. Thuốc gia đình gửi
 
-Khi tiếp nhận: tên thuốc; hàm lượng; số lượng; hạn dùng; bao bì; đơn thuốc/toa; người giao; người nhận; kết quả kiểm tra Đạt hoặc Không đạt cho nhãn thuốc, hạn dùng, bao bì, đúng tên người cao tuổi (BR-M07-30).
+Khi tiếp nhận: tên thuốc; hàm lượng; số lượng; hạn dùng; bao bì; đơn thuốc/toa; người giao; người nhận; kết quả kiểm tra Đạt hoặc Không đạt cho **8 tiêu chí**: nhãn thuốc, hạn dùng, bao bì, đúng tên người cao tuổi, đúng hoạt chất, đúng hàm lượng, đúng dạng thuốc và điều kiện bảo quản (BR-M07-30, cập nhật 2026-11-26). Nếu lô thuốc khác hàm lượng với đơn/danh mục hoặc chưa có chỉ định hợp lệ, hệ thống chặn chuyển sang `Được sử dụng` và yêu cầu giữ hộ để báo bác sĩ xử lý.
 
 Thuốc gia đình gửi không tự động trở thành lịch thuốc. Phải được đối chiếu với đơn thuốc hiện hành và xác nhận bởi vai trò được cơ sở phân quyền. Nếu không rõ nguồn gốc hoặc không có căn cứ sử dụng: chỉ ghi nhận/giữ hộ, không đưa vào lịch sử dụng.
 
@@ -1394,14 +1398,15 @@ Người thân không cần bản đồng ý chia sẻ dữ liệu để xem thu
 
 Thuốc mua hộ (15.2) được tiếp nhận như thuốc gia đình gửi, có tham chiếu tới đề nghị mua hộ. Liều dùng thuốc này không là sự kiện tính phí thuốc (BR-M07-14 chỉ áp cho nguồn "viện cung cấp"); thuốc đã được tính một lần ở khoản mua hộ.
 
-### 11.5. Đối chiếu thuốc
+### 11.5. Đối chiếu thuốc *(cập nhật luồng mới 2026-11-26)*
 
-Đối chiếu thuốc là bước bắt buộc khi tiếp nhận, khi người cao tuổi trở về từ bệnh viện và khi có thay đổi lớn về tình trạng điều trị theo quy trình của viện (phiếu "theo yêu cầu chuyên môn", BR-M07-25, Q-340). Mỗi thuốc trong danh sách hiện có và trong đơn ra viện/thuốc đang dùng khi tiếp nhận được xem xét và chọn một trong: Tiếp tục / Ngừng / Thay đổi liều / Thêm mới. Phiếu đối chiếu có người thực hiện, người xác nhận, thời gian và được lưu lịch sử.
+Đối chiếu thuốc là bước bắt buộc khi tiếp nhận, khi người cao tuổi trở về từ bệnh viện và khi có thay đổi lớn về tình trạng điều trị theo quy trình của viện (phiếu "theo yêu cầu chuyên môn", BR-M07-25, Q-340).
 
-- **Người xác nhận (Q-55):** Bác sĩ hoặc Điều dưỡng lập phiếu; một Bác sĩ hoặc Điều dưỡng **khác** xác nhận, theo quy tắc hai người, không tự xác nhận. Quy tắc áp như nhau khi cơ sở có hay không có phạm vi khám chữa bệnh. Phiếu có dòng tạo đơn nội bộ chỉ được xác nhận bởi Bác sĩ có quyền kê đơn.
+- **Điều dưỡng lập phiếu:** Hệ thống tự động lấy toàn bộ đơn thuốc hiện tại của người cao tuổi để so sánh song song **Đơn hiện tại | Đơn đối chiếu | Khác biệt**, kèm nút thêm thuốc mới từ đơn đối chiếu, thông tin cơ sở/bác sĩ/ngày kê, tài liệu đính kèm và ghi chú. Điều dưỡng chỉ ghi nhận kết quả đối chiếu (`Không thay đổi`, `Có chỉ định tiếp tục`, `Có chỉ định ngừng`, `Khác liều lượng`, `Thuốc mới`, `Không tìm thấy trong đơn mới`, `Chưa rõ chỉ định`), không tự chọn quyết định điều trị; có nút **Lưu nháp** và **Gửi bác sĩ đối chiếu**. Khi lý do là `Trở về từ bệnh viện`, có thể ghi nhận thêm **thời điểm dùng liều cuối tại bệnh viện** trên từng dòng.
+- **Bác sĩ xử lý & xác nhận:** Bác sĩ xem toàn bộ thông tin điều dưỡng đã nhập, tài liệu đính kèm và chọn 1 trong 4 quyết định cuối cùng cho từng thuốc (**Tiếp tục**, **Ngừng**, **Thay đổi liều**, **Thêm mới**), nhập kết luận chuyên môn và bấm **Xác nhận đối chiếu** (chỉ bật khi tất cả thuốc đã có quyết định), hoặc **Trả lại phiếu** kèm lý do bắt buộc để điều dưỡng chỉnh sửa.
+- **Bác sĩ trực tiếp lập phiếu:** Bác sĩ có quyền kê đơn được trực tiếp lập phiếu và tự xác nhận áp dụng quyết định mà không cần gửi qua người thứ hai. Các trường hợp khác vẫn giữ quy tắc hai người.
 - **Người mới tiếp nhận (Q-57):** phiếu "tiếp nhận" được lập, gửi, xác nhận khi hồ sơ còn Đang tiếp nhận. Đơn tạo ra ở trạng thái chờ và có hiệu lực ngay tại lệnh Hoàn tất tiếp nhận. Nếu tới lúc đó phiếu chưa được xác nhận thì chưa có liều, và hạn CFG-M07-05 tính từ Hoàn tất tiếp nhận.
-- **Trả lại, hạn, giấy ra viện (BR-M07-29, Q-431):** người xác nhận Trả lại phiếu kèm lý do để đưa về Mở; phiếu trở về từ bệnh viện được so với giấy ra viện và đơn trước khi nhập viện; quá 8 giờ chưa xác nhận thì báo thêm Trưởng tầng và Quản lý viện.
-- **Kiểm đủ dòng và căn cứ (Q-411):** hệ thống chặn gửi khi đơn hiện có của người đó chưa có dòng; thuốc đang dùng khi tiếp nhận (ghi bằng chữ ở hồ sơ sức khỏe ban đầu) do người xác nhận so với phiếu và trả lại khi thiếu. Phiếu không có dòng gửi được khi người cao tuổi không có đơn nào phải đối chiếu. Dòng Ngừng, Thay đổi liều do Bác sĩ có quyền kê đơn quyết, hoặc ghi căn cứ từ cơ sở kê bên ngoài (cơ sở, người, ngày); phiếu không thay việc khám, chẩn đoán, kê đơn.
+- **Hạn xử lý (BR-M07-29):** quá 8 giờ chưa xác nhận thì báo thêm Trưởng tầng và Quản lý viện.
 
 Các quy tắc chi tiết của mục này mang mã BR-M07-15 → BR-M07-23, BR-M07-25, BR-M07-28, BR-M07-29 (11.6).
 
@@ -1419,7 +1424,7 @@ Các quy tắc chi tiết của mục này mang mã BR-M07-15 → BR-M07-23, BR-
 
 **Kê và thay đổi đơn**
 
-- **BR-M07-05:** Chỉ người có quyền kê đơn hợp lệ (BR-M06-05) mới tạo đơn nội bộ; nếu cơ sở không có phạm vi khám chữa bệnh, đơn chỉ được nhập từ cơ sở kê bên ngoài và bắt buộc có thông tin cơ sở kê.
+- **BR-M07-05:** Chỉ Bác sĩ có quyền kê đơn hợp lệ (BR-M06-05) mới tạo đơn nội bộ trực tiếp tại màn Đơn thuốc. Mọi đơn từ cơ sở bên ngoài (tiếp nhận, trở về từ bệnh viện, khám ngoại trú mang toa về) đều đi qua Phiếu đối chiếu thuốc (11.5) để Bác sĩ kiểm tra và xác nhận áp dụng.
 - **BR-M07-06:** Khi thêm đơn mới (kể cả đơn thay thế), hệ thống kiểm tra trùng hoạt chất với các đơn Hiệu lực và đối chiếu với dị ứng trong hồ sơ. Có vấn đề thì cảnh báo; chỉ được tiếp tục khi người nhập xác nhận lý do.
 - **BR-M07-07:** Khi ngừng thuốc hoặc đổi liều (ngừng đơn cũ và tạo đơn thay thế), lịch thuốc từ thời điểm hiệu lực trở đi được tính lại; liều đã ghi nhận giữ nguyên.
 - **BR-M07-08:** Đơn có ngày kết thúc được nhắc trước \[3 ngày\] để bác sĩ quyết định gia hạn hay ngừng; đến ngày kết thúc thì tự chuyển Hết hạn.

@@ -170,7 +170,7 @@ public class ResidencyChangeService {
                 .orElseThrow(() -> new BusinessException(
                         HttpStatus.CONFLICT,
                         "CONTRACT_NOT_ACTIVE",
-                        "Người cao tuổi không có hợp đồng đang Hiệu lực (FR-037)"));
+                        "Người cao tuổi hiện không có hợp đồng nào đang trong trạng thái Hiệu lực."));
     }
 
     /** Đối tượng của hợp đồng để kiểm quyền; không có hợp đồng thì 404. */
@@ -526,7 +526,7 @@ public class ResidencyChangeService {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
                     "CONTRACT_NOT_ACTIVE",
-                    "Yêu cầu điều chỉnh hợp đồng cần hợp đồng đang Hiệu lực (FR-037)");
+                    "Yêu cầu điều chỉnh hợp đồng cần hợp đồng đang trong trạng thái Hiệu lực.");
         }
         if (requestedEffectiveDate == null) {
             throw new InvalidValueException("requestedEffectiveDate là ngày bắt buộc");
@@ -535,7 +535,7 @@ public class ResidencyChangeService {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_CONTENT,
                     "EFFECTIVE_DATE_BEFORE_CONTRACT_START",
-                    "Ngày hiệu lực mong muốn sớm hơn ngày bắt đầu hợp đồng gốc (FR-040)");
+                    "Ngày hiệu lực mong muốn không được sớm hơn ngày bắt đầu của hợp đồng gốc.");
         }
         ContractVersion base = handler.base(contract.id())
                 .orElseThrow(() -> new BusinessException(
@@ -569,7 +569,7 @@ public class ResidencyChangeService {
         }
         Long confirmer = confirmation.get().representativeFamilyMemberId();
         if (confirmer == null) {
-            throw new InvalidValueException("Cần chọn người đại diện đã xác nhận (Q-415)");
+            throw new InvalidValueException("Vui lòng chọn người đại diện đã xác nhận nội dung thay đổi.");
         }
         if (!representatives
                 .getObject()
