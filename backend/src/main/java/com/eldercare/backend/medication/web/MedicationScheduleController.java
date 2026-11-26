@@ -53,7 +53,15 @@ public class MedicationScheduleController {
             com.eldercare.backend.medication.internal.dose.service.DoseExtrasService doseExtras,
             BusinessTime businessTime,
             MedicationScheduleCalculator scheduleCalculator) {
-        this(scheduleService, doseAdministrationService, doseViews, doseExtras, businessTime, scheduleCalculator, null, null);
+        this(
+                scheduleService,
+                doseAdministrationService,
+                doseViews,
+                doseExtras,
+                businessTime,
+                scheduleCalculator,
+                null,
+                null);
     }
 
     @Autowired
@@ -135,8 +143,8 @@ public class MedicationScheduleController {
         Instant effectiveFrom = fromTime != null ? fromTime : now.minusSeconds(defaultWindowMinutes * 60L);
         Instant effectiveTo = toTime != null ? toTime : now.plusSeconds(defaultWindowMinutes * 60L);
 
-        List<DoseDetailView> round = filterForCurrentUser(
-                scheduleService.getMedicationRound(floorAreaId, effectiveFrom, effectiveTo, now));
+        List<DoseDetailView> round =
+                filterForCurrentUser(scheduleService.getMedicationRound(floorAreaId, effectiveFrom, effectiveTo, now));
         return doseViews.views(round).stream()
                 .map(v -> DoseBody.of(v, doseExtras.of(v)))
                 .toList();
@@ -150,7 +158,8 @@ public class MedicationScheduleController {
         }
         Set<PermissionKey> granted = perms.permissions(user);
         boolean isDoctor = granted.contains(new PermissionKey(Function.PRESCRIPTION, Operation.PROFESSIONAL));
-        boolean isNurse = granted.contains(new PermissionKey(Function.MEDICATION_ADMINISTRATION, Operation.PROFESSIONAL));
+        boolean isNurse =
+                granted.contains(new PermissionKey(Function.MEDICATION_ADMINISTRATION, Operation.PROFESSIONAL));
         if (isDoctor || !isNurse || user.staffId().isEmpty()) {
             return round;
         }

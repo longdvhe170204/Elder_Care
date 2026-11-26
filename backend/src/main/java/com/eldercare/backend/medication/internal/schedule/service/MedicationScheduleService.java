@@ -63,7 +63,8 @@ public class MedicationScheduleService {
     public List<CalculatedDoseSlot> getResidentSchedule(
             Long residentId, LocalDate fromDate, LocalDate toDate, Instant now) {
 
-        Instant fromTime = fromDate.atStartOfDay(MedicationScheduleCalculator.ZONE_VN).toInstant();
+        Instant fromTime =
+                fromDate.atStartOfDay(MedicationScheduleCalculator.ZONE_VN).toInstant();
         Instant toTime = toDate.atTime(LocalTime.MAX)
                 .atZone(MedicationScheduleCalculator.ZONE_VN)
                 .toInstant();
@@ -72,8 +73,8 @@ public class MedicationScheduleService {
         List<CalculatedDoseSlot> allSlots = new ArrayList<>();
 
         // Load all materialized doses for this resident in the range
-        List<MedicationDose> materializedDoses = doseRepository.findByResidentIdAndScheduledTimeBetween(residentId,
-                fromTime, toTime);
+        List<MedicationDose> materializedDoses =
+                doseRepository.findByResidentIdAndScheduledTimeBetween(residentId, fromTime, toTime);
         Map<String, MedicationDose> materializedMap = new HashMap<>();
         for (MedicationDose md : materializedDoses) {
             String key = String.format(
@@ -128,10 +129,10 @@ public class MedicationScheduleService {
     @Transactional(readOnly = true)
     public List<DoseDetailView> getMedicationRound(Long floorAreaId, Instant fromTime, Instant toTime, Instant now) {
 
-        List<MedicationDose> doses = doseRepository
-                .findByFloorAreaIdAndScheduledTimeBetween(floorAreaId, fromTime, toTime).stream()
-                .filter(d -> d.getStatus() != DoseStatus.CANCELLED)
-                .toList();
+        List<MedicationDose> doses =
+                doseRepository.findByFloorAreaIdAndScheduledTimeBetween(floorAreaId, fromTime, toTime).stream()
+                        .filter(d -> d.getStatus() != DoseStatus.CANCELLED)
+                        .toList();
         List<DoseDetailView> views = new ArrayList<>();
 
         for (MedicationDose d : doses) {
@@ -139,8 +140,8 @@ public class MedicationScheduleService {
             Medication med = medicationRepository.findById(d.getMedicationId()).orElse(null);
             String medName = med != null ? med.getName() : "Medication";
 
-            DoseAssigneeResolver.DoseAssignee assignee = assigneeResolver.resolve(d.getResidentId(), d.getFloorAreaId(),
-                    d.getScheduledTime(), now);
+            DoseAssigneeResolver.DoseAssignee assignee =
+                    assigneeResolver.resolve(d.getResidentId(), d.getFloorAreaId(), d.getScheduledTime(), now);
 
             String doseKey = String.format(
                     "%d-%s",
