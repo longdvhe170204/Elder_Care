@@ -213,6 +213,25 @@ class US6_BalanceTransactionIT extends BalanceTestBase {
                 .doesNotContain("M11_BALANCE_PAYMENT_RECORDED", "M11_BALANCE_PAYMENT_SUFFICIENT");
     }
 
+    // Demo 2026-11-26 (E): thông báo yêu cầu duyệt hoàn tiền nêu loại, số tiền, người cao tuổi; tiêu đề là tên chức
+    // năng
+    @Test
+    void refundSubmitted_approverNoticeNamesTypeAmountAndResident() throws Exception {
+        long a = sentForSignature(TestUsers.nextId(), null);
+        long p = TestUsers.nextId();
+        representatives.representative(a, p);
+        cash(a, "BALANCE", 2_000_000);
+        long request = requestOf(id(newTransaction(refund(a, 500_000, p)).andExpect(status().isCreated())));
+
+        var notice = events.stream(com.eldercare.backend.administration.approval.api.events.RequestSubmitted.class)
+                .filter(e -> e.request().id() == request)
+                .flatMap(e -> e.notificationRequests().stream())
+                .findFirst()
+                .orElseThrow();
+        assertThat(notice.title()).contains("Hoàn số dư");
+        assertThat(notice.content().getFirst().content()).startsWith("Hoàn số dư 500.000 đ cho Nguyễn Văn " + a + ".");
+    }
+
     private List<String> familyTexts(long resident) {
         return events.stream(com.eldercare.backend.common.notification.HasNotificationRequests.class)
                 .flatMap(e -> e.notificationRequests().stream())
