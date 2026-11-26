@@ -88,6 +88,10 @@ class T022_WellbeingReadIT extends CareResultTestBase {
     private void FR_053_readsWeeklyParticipationAndSessionCommunicationAndLeavesUnknownAlertsUnavailable()
             throws Exception {
         long activity = TestUsers.nextId(), session = TestUsers.nextId(), registration = TestUsers.nextId();
+        var endedAt = time.now();
+        var startsAt = local(endedAt.minusSeconds(1800));
+        // Hồ sơ lọc theo ngày bắt đầu buổi, kể cả khi buổi kéo qua nửa đêm.
+        String profileDate = startsAt.toLocalDate().toString();
         jdbc.update(
                 "INSERT INTO simple_record(id,kind,module,status,content,created_by,created_at)"
                         + " VALUES(?,'M04.ACTIVITY','M04','ACTIVE',?, ?,NOW(6))",
@@ -100,8 +104,8 @@ class T022_WellbeingReadIT extends CareResultTestBase {
                         + " VALUES(?,?,?,?,'SINGLE',?,'ATTENDANCE_TAKEN',NOW(6),?)",
                 session,
                 activity,
-                local(time.now().minusSeconds(1800)),
-                local(time.now()),
+                startsAt,
+                local(endedAt),
                 floor,
                 baseManager.accountId());
         jdbc.update(
@@ -135,8 +139,8 @@ class T022_WellbeingReadIT extends CareResultTestBase {
                         floor,
                         SessionKinds.key(registration)));
         mvc.perform(get("/api/v1/residents/" + resident + "/wellbeing-profile")
-                        .param("from", time.today().toString())
-                        .param("to", time.today().toString()))
+                        .param("from", profileDate)
+                        .param("to", profileDate))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.weeklyParticipation[0].presentCount").value(1))
                 .andExpect(jsonPath("$.sessions[0].sessionId").value(session))

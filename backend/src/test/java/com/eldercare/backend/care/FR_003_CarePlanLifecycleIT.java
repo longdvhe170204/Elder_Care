@@ -77,7 +77,7 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
 
     long residentId, taskTypeId;
     long floorAreaId;
-    TestUsers.TestUser nurse, doctor;
+    TestUsers.TestUser nurse, author, doctor;
 
     @BeforeEach
     void setup() {
@@ -89,6 +89,7 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
         residents.resident(residentId, "[Họ tên kiểm thử]", Gender.MALE, ResidentStatus.IN_RESIDENCE);
         var users = new TestUsers(jdbc, time);
         nurse = users.staff(Role.NURSING_STAFF);
+        author = users.staff(Role.DOCTOR);
         doctor = users.staff(Role.DOCTOR);
         assignments.assign(
                 nurse.staffId(),
@@ -100,7 +101,7 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                         null,
                         time.now().minus(Duration.ofDays(1)),
                         null));
-        user.set(nurse.user());
+        user.set(author.user());
         taskTypeId = TestUsers.nextId();
         jdbc.update(
                 "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
@@ -161,7 +162,7 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
     private void approveAsDoctor(long id) throws Exception {
         user.set(doctor.user());
         mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{}")).andExpect(status().isOk());
-        user.set(nurse.user());
+        user.set(author.user());
     }
 
     /** Kế hoạch Hiệu lực đầu tiên của người cao tuổi, lập và duyệt qua API. */
@@ -178,6 +179,28 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
 
     private com.eldercare.backend.care.internal.careplan.service.CarePlanActivation activation() {
         return context.getBean(com.eldercare.backend.care.internal.careplan.service.CarePlanActivation.class);
+    }
+
+    @Test
+    void FR_003_onlyDoctorCanCreateAndEditDraft() throws Exception {
+        var create = post("/api/v1/residents/" + residentId + "/care-plans");
+        user.set(nurse.user());
+        mvc.perform(write(create, "{}")).andExpect(status().isForbidden());
+
+        user.set(doctor.user());
+        long id = create();
+        String etag = etag(id);
+        user.set(nurse.user());
+        mvc.perform(get("/api/v1/care-plans/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.allowedCommands").isEmpty());
+        mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", etag), items()))
+                .andExpect(status().isForbidden());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/submit"), "{}")).andExpect(status().isForbidden());
+
+        user.set(doctor.user());
+        submit(id);
+        assertThat(column("status", id)).isEqualTo("PENDING_APPROVAL");
     }
 
     @Test
@@ -210,24 +233,14 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
 
     @Test
     void Q447_selfApprovalOfFirstPlanNeedsReason() throws Exception {
-        var both = new TestUsers(jdbc, time).staff(Role.NURSING_STAFF, Role.DOCTOR);
-        assignments.assign(
-                both.staffId(),
-                new AssignmentView(
-                        AssignmentKind.SHIFT_MEMBER,
-                        null,
-                        null,
-                        residentId,
-                        null,
-                        time.now().minus(Duration.ofDays(1)),
-                        null));
-        user.set(both.user());
         long id = create();
         submit(id);
         mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{}"))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
-        mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{\"reason\":\"Tự duyệt khi Bác sĩ vắng\"}"))
+        mvc.perform(write(
+                        post("/api/v1/care-plans/" + id + "/approve"),
+                        "{\"reason\":\"Tự duyệt khi Bác sĩ khác vắng\"}"))
                 .andExpect(status().isOk());
         assertThat(column("status", id)).isEqualTo("EFFECTIVE");
         assertThat(column("self_approved", id)).isEqualTo("1");
@@ -306,7 +319,7 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
         submit(id);
         user.set(doctor.user());
         mvc.perform(write(post("/api/v1/care-plans/" + id + "/retract"), "{}")).andExpect(status().isForbidden());
-        user.set(nurse.user());
+        user.set(author.user());
         mvc.perform(write(post("/api/v1/care-plans/" + id + "/retract"), "{}")).andExpect(status().isOk());
         assertThat(column("status", id)).isEqualTo("DRAFT");
         mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", etag(id)), items()))
@@ -415,7 +428,7 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
         user.set(doctor.user());
         mvc.perform(write(post("/api/v1/care-plans/" + id + "/return"), "{\"reason\":\"Thiếu mục uống nước\"}"))
                 .andExpect(status().isOk());
-        user.set(nurse.user());
+        user.set(author.user());
 
         queue().andExpect(jsonPath(row() + ".draftReturned").value(org.hamcrest.Matchers.contains(true)))
                 .andExpect(jsonPath(row() + ".reasons[*]").isEmpty());

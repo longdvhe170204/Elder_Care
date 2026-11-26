@@ -753,7 +753,7 @@ Mỗi tài sản thuộc một **bộ phận quản lý** (13.1a), ví dụ: gi�
 
 ### 8.1. Kế hoạch chăm sóc
 
-Kế hoạch được lập dựa trên kết quả đánh giá (nhận xét đánh giá của Bác sĩ, 5.3; điều dưỡng lập tay, hệ thống không chép sẵn hoạt động mẫu). Mỗi hoạt động chăm sóc có: nội dung; tần suất; thời gian; vai trò thực hiện; kết quả cần ghi; ngày hiệu lực.
+Chỉ Bác sĩ lập và sửa kế hoạch chăm sóc, dựa trên nhận xét đánh giá (5.3). Bác sĩ lập tay từng hoạt động. Mỗi hoạt động chăm sóc có: nội dung; tần suất; thời gian; vai trò thực hiện; kết quả cần ghi; ngày hiệu lực.
 
 Mỗi hoạt động có thêm: khung thời gian cho phép (ví dụ ±\[15 phút\]); mức quan trọng (Thường / Quan trọng / Bắt buộc); có tính phí hay không.
 
@@ -761,12 +761,12 @@ Ví dụ: xoay trở mỗi 2 giờ; hỗ trợ uống nước 3 giờ/lần; tha
 
 Kế hoạch chăm sóc được quản lý theo **phiên bản**: Nháp → Hiệu lực từ ngày X → Hết hiệu lực (khi phiên bản mới có hiệu lực). Không sửa phiên bản đang hiệu lực; mọi thay đổi tạo phiên bản mới, kèm người lập, người duyệt và lý do.
 
-Vòng đời đầy đủ của phiên bản kế hoạch; bảng dưới là căn cứ khi khác câu trên. **(Sửa 2026-11-25, Q-447)** Phiên bản chỉ lưu trong dữ liệu, giao diện không hiện số phiên bản: người dùng thấy kế hoạch hiện hành và bản sửa đang xử lý; Điều dưỡng bấm "Sửa kế hoạch" rồi "Gửi Bác sĩ duyệt", không nhập ngày hiệu lực.
+Vòng đời của phiên bản kế hoạch theo bảng dưới. Theo Q-447, giao diện hiện kế hoạch hiện hành và bản sửa đang xử lý. Bác sĩ bấm "Sửa kế hoạch" rồi gửi duyệt. Hệ thống xác định ngày hiệu lực khi duyệt.
 
 | Trạng thái | Lệnh / sự kiện | Trạng thái mới | Người thực hiện |
 | --- | --- | --- | --- |
-| — | Lập kế hoạch, Sửa kế hoạch (chép phiên bản Chờ hiệu lực, không có thì phiên bản Hiệu lực) | Nháp | Điều dưỡng (hệ thống không tự lập bản nháp khi bác sĩ xác nhận đánh giá) |
-| Nháp | Gửi duyệt | Chờ duyệt | Điều dưỡng |
+| — | Lập kế hoạch, Sửa kế hoạch (chép phiên bản Chờ hiệu lực, không có thì phiên bản Hiệu lực) | Nháp | Bác sĩ |
+| Nháp | Gửi duyệt | Chờ duyệt | Bác sĩ |
 | Chờ duyệt | Rút lại | Nháp | Người lập |
 | Chờ duyệt | Duyệt, người cao tuổi chưa có phiên bản Hiệu lực; ngày hiệu lực là ngày duyệt | Hiệu lực | Người có quyền Duyệt kế hoạch chăm sóc (2.4) |
 | Chờ duyệt | Duyệt, người cao tuổi đã có phiên bản Hiệu lực; ngày hiệu lực là ngày hôm sau ngày duyệt (Q-34) | Chờ hiệu lực | Người có quyền Duyệt kế hoạch chăm sóc (2.4) |
@@ -3120,7 +3120,7 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-19 | Cấu hình khu, tầng, phòng, giường     | Quản lý viện                            | 003      | 7.1, 7.2 (tạo giường tự ghi tăng tài sản, giường không Ngừng hiệu lực: Q-237, Q-238; Tạm ngừng sử dụng, Sử dụng lại giường: Q-246) |
 | UC-20 | Phân bổ giường                        | Hành chính                              | 003      | BR-M03-01, 02       |
 | UC-21 | Chuyển giường                         | Trưởng tầng, Hành chính                 | 003      | BR-M03-04, 07       |
-| UC-22 | Lập phiên bản kế hoạch chăm sóc       | Điều dưỡng                              | 005      | 8.1                 |
+| UC-22 | Lập phiên bản kế hoạch chăm sóc       | Bác sĩ                                  | 005      | 8.1                 |
 | UC-23 | Duyệt kế hoạch chăm sóc               | Bác sĩ                                  | 005      | BR-M04-19           |
 | UC-24 | Lập công việc của ca                | Trưởng tầng (Q-444)                                         | 005      | BR-M04-01 → 04      |
 | UC-25 | Xem checklist ca                      | Nhân viên chăm sóc, Điều dưỡng  | 005      | 8.5                 |
@@ -3227,7 +3227,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Phân bổ, chuyển giường | UC-20, 21, Q-43 | X, D | T | — | — | — | — | T | — | — | — |
 | Xử lý hư hỏng, đưa giường vào bảo trì | UC-74 | T | T | — | — | — | — | X | — | — | — |
 | Xác nhận giường sẵn sàng | UC-74 | X | T | — | T⁴⁰ | T⁴⁰ | — | X | — | — | — |
-| Kế hoạch chăm sóc | UC-22, 23 | X | X | D | T | P | — | — | — | — | — |
+| Kế hoạch chăm sóc | UC-22, 23 | X | X | T, D | P | P | — | — | — | — | — |
 | Lập công việc tháng, công việc phát sinh | UC-24 | X | T⁵³ | — | P⁴¹ | — | — | — | — | — | — |
 | Mốc sinh hoạt cố định | Q-440 | T | X | X | X | X | — | — | — | — | — |
 | Lịch chăm sóc hằng ngày | Q-440 | — | — | — | — | — | — | — | X⁵⁴ | — | X⁴⁵ |
