@@ -100,10 +100,15 @@ public final class ReturnRecipient {
     }
 
     private static Result verifyDocument(Declared recipient, FamilyFacts family) {
-        if (blank(recipient.documentType()) || blank(recipient.documentNumber())) {
+        // Demo 2026-11-25 (chủ dự án chốt): chọn người thân trong danh sách, không nhập giấy tờ thì nhân viên đối chiếu
+        // tại chỗ với giấy tờ đã đăng ký; hồ sơ chưa có giấy tờ thì đối chiếu họ tên như dưới
+        if (blank(recipient.documentType()) && blank(recipient.documentNumber())) {
+            if (family.registeredDocument().isPresent()) {
+                return Result.allowed(ReturnBasis.ENTITLED_RECIPIENT, VerificationResult.MATCHED);
+            }
+        } else if (blank(recipient.documentType()) || blank(recipient.documentNumber())) {
             return Result.blocked(ReturnBlockReason.ID_DOCUMENT_MISMATCH);
-        }
-        if (family.registeredDocument().isPresent()) {
+        } else if (family.registeredDocument().isPresent()) {
             RegisteredDocument registered = family.registeredDocument().get();
             return same(registered.type(), recipient.documentType())
                             && same(registered.number(), recipient.documentNumber())

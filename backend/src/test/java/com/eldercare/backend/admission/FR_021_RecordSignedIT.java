@@ -90,4 +90,25 @@ class FR_021_RecordSignedIT extends ContractTestBase {
                         .filter(event -> event.contractId() == id && event.to() == ContractStatus.ACTIVE))
                 .hasSize(1);
     }
+
+    /**
+     * FR-021 (A chọn 2026-11-25, như phụ lục FR-043d): ngày ký không sau hôm nay, không trước ngày lập hợp đồng; sai thì
+     * 422 SIGNED_DATE_INVALID, hợp đồng vẫn Chờ ký.
+     */
+    @Test
+    void FR_021_signedDateAfterTodayOrBeforeCreation_isRejected() throws Exception {
+        long residentId = residentWithRepresentative();
+        ObjectNode body = body(residentId);
+        body.putArray("services").add(line(basicCare));
+        long id = pendingContract(residentId, body);
+        bedForSigning(residentId);
+
+        recordSignedRaw(id, signedBody(residentId, today().plusDays(1)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errorCode").value("SIGNED_DATE_INVALID"));
+        recordSignedRaw(id, signedBody(residentId, today().minusDays(1)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errorCode").value("SIGNED_DATE_INVALID"));
+        assertThat(contractStatus(id)).isEqualTo("PENDING_SIGNATURE");
+    }
 }

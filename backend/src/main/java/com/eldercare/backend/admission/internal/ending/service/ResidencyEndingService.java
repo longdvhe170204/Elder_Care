@@ -127,7 +127,7 @@ public class ResidencyEndingService {
             Long familyMemberId,
             String facilityName,
             Instant handoverAt,
-            long handoverStaffId,
+            Long handoverStaffId,
             Long pickupRecordId) {}
 
     /** Hồ sơ kèm lần bàn giao hiện hành. */
@@ -298,6 +298,10 @@ public class ResidencyEndingService {
         CurrentUser user = currentUser.getObject();
         requireOfficeOrDoctor(user);
         validate(input);
+        // Bỏ trống nhân viên bàn giao: chính người ghi (Hành chính không xem được hồ sơ nhân viên, Phụ lục 27)
+        long handoverStaffId = input.handoverStaffId() != null
+                ? input.handoverStaffId()
+                : user.staffId().orElseThrow(() -> new InvalidValueException("Chọn nhân viên bàn giao (FR-063 (e))"));
         ResidencyEnding ending = lockedPreparing(id);
         Long pickupRecordId = input.pickupRecordId();
         if (pickupRecordId != null) {
@@ -313,7 +317,7 @@ public class ResidencyEndingService {
                                 ? input.facilityName().strip()
                                 : null,
                         input.handoverAt(),
-                        input.handoverStaffId(),
+                        handoverStaffId,
                         user.accountId(),
                         time.now()),
                 pickupRecordId);
@@ -405,7 +409,9 @@ public class ResidencyEndingService {
     }
 
     private static void validate(HandoverInput input) {
-        if (input.recipientType() == null || input.handoverAt() == null || input.handoverStaffId() <= 0) {
+        if (input.recipientType() == null
+                || input.handoverAt() == null
+                || (input.handoverStaffId() != null && input.handoverStaffId() <= 0)) {
             throw new InvalidValueException("Bàn giao cần người nhận, thời điểm và nhân viên bàn giao (FR-063 (e))");
         }
         boolean family = input.recipientType() == RecipientType.FAMILY_MEMBER;

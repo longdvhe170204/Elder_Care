@@ -1,5 +1,7 @@
 package com.eldercare.backend.incident.internal.incident.service;
 
+import static com.eldercare.backend.incident.internal.incident.domain.IncidentActions.CLOSED;
+import static com.eldercare.backend.incident.internal.incident.domain.IncidentActions.RECEIVED;
 import static com.eldercare.backend.incident.internal.incident.domain.IncidentActions.RECORDED;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
@@ -22,6 +24,7 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.incident.api.dto.FamilyNotice;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
 import com.eldercare.backend.incident.api.events.ContactListRequested;
 import com.eldercare.backend.incident.api.events.FallIncidentRecorded;
@@ -63,10 +66,22 @@ import org.springframework.transaction.annotation.Transactional;
 public class IncidentRecordService {
     private static final String ENTITY = "M05.INCIDENT";
     private static final String FACILITY = "FACILITY";
+    /** Giới hạn độ dài văn bản tự do (khớp ô nhập trên web) và độ lệch đồng hồ cho phép khi so với hiện tại. */
+    static final int MAX_TEXT = 2000;
+
+    static final long CLOCK_SKEW_MINUTES = 5;
     private static final String FALL = "FALL";
     private static final String SUSPECTED_INFECTION = "SUSPECTED_INFECTION";
     /** FR-043 (b) sửa theo spec 013 FR-022: không báo đánh giá lại ở mọi mức. */
     static final Set<String> NO_REASSESSMENT = Set.of("BELONGINGS_LOST", "BELONGINGS_DAMAGED");
+    /** BF-06: người có chuyên môn y tế ghi sự cố đang xảy ra thì được ghi là người xử lý (tự tiếp nhận). */
+    private static final Set<com.eldercare.backend.common.Role> AUTO_RECEIVERS =
+            Set.of(com.eldercare.backend.common.Role.DOCTOR, com.eldercare.backend.common.Role.NURSING_STAFF);
+    /** BF-06: người đóng được sự cố khi ghi nhận sau (như đóng sự cố Trung bình, Khẩn cấp). */
+    private static final Set<com.eldercare.backend.common.Role> RECORD_CLOSERS = Set.of(
+            com.eldercare.backend.common.Role.DOCTOR,
+            com.eldercare.backend.common.Role.NURSING_STAFF,
+            com.eldercare.backend.common.Role.FLOOR_MANAGER);
 
     private final IncidentStore incidents;
     private final IncidentCatalogService catalog;
@@ -134,7 +149,24 @@ public class IncidentRecordService {
         if (command.description() == null || command.description().isBlank()) {
             throw new InvalidValueException("Thiếu mô tả sự cố");
         }
+        if (command.description().length() > MAX_TEXT) {
+            throw new InvalidValueException("Mô tả sự cố tối đa " + MAX_TEXT + " ký tự");
+        }
+        checkTimes(command, time.now());
         IncidentLevel level = level(command.level());
+        var familyNotice = checkedFamilyNotice(command, time.now());
+        if (command.closeNow()) {
+            if (!command.recordedLater()) throw new InvalidValueException("Chỉ ghi nhận sau mới đóng luôn được");
+            if (command.resolution() == null || command.resolution().isBlank()) {
+                throw new InvalidValueException("Thiếu kết quả xử lý");
+            }
+            if (command.resolution().length() > MAX_TEXT) {
+                throw new InvalidValueException("Kết quả xử lý tối đa " + MAX_TEXT + " ký tự");
+            }
+            if (user.roles().stream().noneMatch(RECORD_CLOSERS::contains)) {
+                throw new PermissionDeniedException("Chỉ Điều dưỡng, Trưởng tầng, Bác sĩ đóng sự cố khi ghi nhận");
+            }
+        }
         if (level.ordinal() < type.defaultLevel().ordinal()
                 && (command.lowerLevelReason() == null
                         || command.lowerLevelReason().isBlank())) {
@@ -154,9 +186,18 @@ public class IncidentRecordService {
             if (residents.isPresent() && residents.get().isFinalStatus(residentId)) {
                 throw blocked("FR-041", "Người cao tuổi đã ở trạng thái cuối");
             }
+            // Cụ đang ở bệnh viện: không ghi sự cố mới đang diễn ra; ghi nhận sau (việc đã xảy ra trước đó) vẫn được
+            // (BF-06)
+            if (!command.recordedLater()
+                    && residents.isPresent()
+                    && residents.get().status(residentId)
+                            == com.eldercare.backend.resident.api.dto.ResidentStatus.HOSPITALIZED) {
+                throw blocked("FR-040", "Người cao tuổi đang ở bệnh viện, không ghi sự cố mới");
+            }
             monitoringLock.lock(residentId);
             var open = incidents.openEmergency(residentId);
-            if (open.isPresent() && !command.createDespiteExisting()) {
+            // Ghi nhận sau: việc đã xong, không hỏi tham gia hay tạo riêng như sự cố đang diễn ra (BF-06)
+            if (open.isPresent() && !command.createDespiteExisting() && !command.recordedLater()) {
                 throw new BusinessException(
                         HttpStatus.CONFLICT,
                         "OPEN_EMERGENCY_INCIDENT_EXISTS",
@@ -168,7 +209,9 @@ public class IncidentRecordService {
         var now = time.now();
         boolean noOnDutyDoctor = level == IncidentLevel.CRITICAL
                 && staff.map(port -> port.onDutyDoctors(now).isEmpty()).orElse(true);
-        var deadline = AcknowledgementDeadlines.of(level, now, floorAreaId, parameters, staff);
+        var deadline = command.recordedLater()
+                ? null
+                : AcknowledgementDeadlines.of(level, now, floorAreaId, parameters, staff);
         long id = incidents.insert(new NewIncident(
                 residentId,
                 type.id(),
@@ -190,10 +233,53 @@ public class IncidentRecordService {
                 noOnDutyDoctor,
                 sourceAlertId));
 
+        if (command.recordedLater() || familyNotice != null) {
+            incidents.saveFamilyNotice(
+                    id,
+                    command.recordedLater(),
+                    familyNotice == null ? "NONE" : familyNotice.state(),
+                    familyNotice != null && FamilyNotice.INFORMED.equals(familyNotice.state())
+                            ? user.accountId()
+                            : null,
+                    familyNotice != null && FamilyNotice.INFORMED.equals(familyNotice.state())
+                            ? familyNotice.at() == null ? now : familyNotice.at()
+                            : null,
+                    familyNotice == null ? null : familyNotice.method(),
+                    familyNotice == null ? null : familyNotice.note());
+        }
+        if (command.closeNow()) {
+            incidents.closeRecordedLater(id, command.resolution().strip(), user.accountId(), now);
+            audit.write(AuditLogEntry.builder()
+                    .action(CLOSED)
+                    .entity(ENTITY, id)
+                    .resident(residentId)
+                    .before(Map.of("status", "NEW"))
+                    .after(Map.of("status", "CLOSED", "recordedLater", true))
+                    .build());
+            if (residentId != null) {
+                events.publishEvent(
+                        new com.eldercare.backend.incident.internal.governance.domain.ResidentItemClosed(residentId));
+            }
+        } else if (command.autoReceive()
+                && !command.recordedLater()
+                && sourceAlertId == null
+                && user.roles().stream().anyMatch(AUTO_RECEIVERS::contains)) {
+            // Người ghi là Bác sĩ, Điều dưỡng: ghi là người xử lý, không phải bấm Tiếp nhận (BF-06)
+            var state = incidents.lock(id).orElseThrow();
+            incidents.receive(id, user.accountId(), now, state.version());
+            audit.write(AuditLogEntry.builder()
+                    .action(RECEIVED)
+                    .entity(ENTITY, id)
+                    .resident(residentId)
+                    .before(Map.of("status", "NEW"))
+                    .after(Map.of("status", "IN_PROGRESS", "receivedBy", user.accountId(), "auto", true))
+                    .build());
+        }
         var after = new HashMap<String, Object>();
         after.put("type", type.code());
         after.put("level", level.name());
         after.put("outOfScope", outOfScope);
+        if (command.recordedLater()) after.put("recordedLater", true);
         audit.write(AuditLogEntry.builder()
                 .action(RECORDED)
                 .entity(ENTITY, id)
@@ -206,13 +292,24 @@ public class IncidentRecordService {
                     !NO_REASSESSMENT.contains(type.code()) && (level != IncidentLevel.LOW || FALL.equals(type.code()));
             events.publishEvent(new IncidentRecorded(id, residentId, type.code(), level.name(), needsReassessment));
         }
-        events.publishEvent(new IncidentNotificationCreated(
-                id,
-                level.name(),
-                ENTITY + ":" + id + ":RECORDED",
-                now,
-                IncidentNotices.recorded(id, residentId, floorAreaId, level, noOnDutyDoctor, user.accountId(), now)));
-        if (residentId != null && level == IncidentLevel.CRITICAL) {
+        if (command.recordedLater()) {
+            boolean familyNotYet = familyNotice != null && FamilyNotice.NOT_YET.equals(familyNotice.state());
+            events.publishEvent(new IncidentNotificationCreated(
+                    id,
+                    IncidentLevel.LOW.name(),
+                    ENTITY + ":" + id + ":RECORDED_LATER",
+                    now,
+                    IncidentNotices.recordedLater(id, residentId, floorAreaId, familyNotYet, user.accountId(), now)));
+        } else {
+            events.publishEvent(new IncidentNotificationCreated(
+                    id,
+                    level.name(),
+                    ENTITY + ":" + id + ":RECORDED",
+                    now,
+                    IncidentNotices.recorded(
+                            id, residentId, floorAreaId, level, noOnDutyDoctor, user.accountId(), now)));
+        }
+        if (!command.recordedLater() && residentId != null && level == IncidentLevel.CRITICAL) {
             events.publishEvent(new EmergencyActivationRequested(
                     id, residentId, floorAreaId, noOnDutyDoctor, user.accountId(), now));
         }
@@ -261,6 +358,43 @@ public class IncidentRecordService {
                 ENTITY + ":" + incidentId + ":POST_FALL_FOLLOW_UP",
                 now,
                 IncidentNotices.postFallFollowUp(incidentId, residentId, floorAreaId, actor, now)));
+    }
+
+    /** Ghi nhận sau phải nói rõ đã báo người nhà chưa (BF-06); ghi thường thì không bắt buộc. */
+    /** Giờ xảy ra, giờ phát hiện không ở tương lai; giờ xảy ra không sau giờ phát hiện (BF-06). */
+    static void checkTimes(RecordIncidentCommand command, Instant now) {
+        var limit = now.plus(java.time.Duration.ofMinutes(CLOCK_SKEW_MINUTES));
+        if (command.occurredAt() != null && command.occurredAt().isAfter(limit)) {
+            throw new InvalidValueException("Giờ xảy ra không được sau hiện tại");
+        }
+        if (command.detectedAt() != null && command.detectedAt().isAfter(limit)) {
+            throw new InvalidValueException("Giờ phát hiện không được sau hiện tại");
+        }
+        if (command.occurredAt() != null
+                && command.detectedAt() != null
+                && command.occurredAt().isAfter(command.detectedAt())) {
+            throw new InvalidValueException("Giờ xảy ra không được sau giờ phát hiện");
+        }
+    }
+
+    static FamilyNotice checkedFamilyNotice(RecordIncidentCommand command, Instant now) {
+        var notice = command.familyNotice();
+        if (notice == null) {
+            if (command.recordedLater() && command.residentId() != null) {
+                throw new InvalidValueException("Ghi nhận sau phải chọn đã báo người nhà chưa");
+            }
+            return null;
+        }
+        if (!FamilyNotice.INFORMED.equals(notice.state()) && !FamilyNotice.NOT_YET.equals(notice.state())) {
+            throw new InvalidValueException("Trạng thái báo người nhà không hợp lệ");
+        }
+        if (FamilyNotice.INFORMED.equals(notice.state()) && !FamilyNoticeMethods.VALID.contains(notice.method())) {
+            throw new InvalidValueException("Cách báo người nhà không hợp lệ");
+        }
+        if (notice.at() != null && notice.at().isAfter(now.plus(java.time.Duration.ofMinutes(CLOCK_SKEW_MINUTES)))) {
+            throw new InvalidValueException("Thời điểm báo người nhà không được sau hiện tại");
+        }
+        return notice;
     }
 
     private IncidentTypeView activeType(long typeId) {

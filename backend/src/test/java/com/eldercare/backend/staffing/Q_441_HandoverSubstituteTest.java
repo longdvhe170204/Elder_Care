@@ -95,6 +95,30 @@ class Q_441_HandoverSubstituteTest {
                 .isFalse();
     }
 
+    // team-plan mục 8 (2026-11-18, D): ca toàn viện không có tầng (scopeId rỗng) làm GET /shift-schedules trả 500 vì
+    // tra Trưởng tầng với tầng null. Ca toàn viện không có Trưởng tầng nhận thay: trả false, không lỗi.
+    @Test
+    void facilityShiftWithoutFloor_hasNoFloorManagerSubstitute_andDoesNotFail() {
+        var facility = new WorkShift(
+                98,
+                1,
+                1,
+                STARTS,
+                STARTS.plus(Duration.ofHours(8)),
+                "FACILITY",
+                null,
+                true,
+                "IN_PROGRESS",
+                LEAD,
+                false,
+                0);
+        when(shifts.members(facility.id()))
+                .thenReturn(List.of(new ShiftMember(LEAD, false, STARTS, null, null, null, null)));
+        var access = at(STARTS.plus(Duration.ofMinutes(5)));
+        assertThat(access.receiver(facility, user(MANAGER, Role.FLOOR_MANAGER))).isFalse();
+        assertThat(access.sender(facility, user(MANAGER, Role.FLOOR_MANAGER))).isFalse();
+    }
+
     @Test
     void Q_441_noSubstituteBeforeNextShiftStarts() {
         leadPresent(false);

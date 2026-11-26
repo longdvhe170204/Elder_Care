@@ -1,10 +1,13 @@
 package com.eldercare.backend.admission;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.admission.internal.ending.service.EndingHandovers;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -37,4 +40,26 @@ class ResidencyEndingIT extends EndingTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
     }
+
+    /**
+     * BF-10 bước 6 (phương án A, 2026-11-24): Hành chính không xem được hồ sơ nhân viên (Phụ lục 27) nên không chọn được
+     * nhân viên bàn giao; bỏ trống thì nhân viên bàn giao là chính người ghi.
+     */
+    @Test
+    void FR_063e_handoverWithoutStaff_recordsTheRecorderAsHandoverStaff() throws Exception {
+        long residentId = inResidence();
+        long id = createEnding(residentId, d0.plusDays(10));
+        var body = handoverBody();
+        body.remove("handoverStaffId");
+
+        handoverRaw(office, id, body).andExpect(status().isCreated());
+
+        assertThat(handovers.effective(id))
+                .singleElement()
+                .extracting(EndingHandovers.Effective::handoverStaffId)
+                .isEqualTo(office.staffId());
+    }
+
+    @Autowired
+    EndingHandovers handovers;
 }

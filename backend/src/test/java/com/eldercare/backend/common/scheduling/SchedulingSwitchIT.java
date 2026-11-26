@@ -32,5 +32,8 @@ class SchedulingSwitchIT extends MySqlIntegrationTestBase {
         // BF-16 (chủ dự án duyệt 2026-11-22): job số dư chạy được qua runJobs để test báo sắp hết tiền trên demo
         assertThat(Arrays.stream(TestJob.values()).map(Enum::name))
                 .contains("COMPUTE_BALANCE_STATUS", "M12_DAILY", "M12_MINUTE");
+        // BF-12 (chủ dự án duyệt 2026-11-24): ba job của 012 (đêm ở lại, nhắc yêu cầu đổi quyền, việc theo phút)
+        assertThat(Arrays.stream(TestJob.values()).map(Enum::name))
+                .contains("M10_MINUTE", "M10_HOURLY", "M10_MIDNIGHT");
     }
 }
