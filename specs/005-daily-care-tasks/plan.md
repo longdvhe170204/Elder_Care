@@ -1049,3 +1049,16 @@ Kịch bản demo:
 1. Trên web với quyền Trưởng tầng, chọn ca đã công bố. Lập một việc cá nhân theo chế độ Công việc phát sinh và một việc theo mục kế hoạch hoặc sự kiện có sẵn. Mở tùy chọn nâng cao để xem khung, rồi gửi lô. Với ca qua đêm, nhập giờ sau nửa đêm để kiểm tra ngày hiển thị.
 2. Trên checklist nhân viên được giao, mở một việc có loại kết quả Thực hiện và còn quyền ghi nhận. Bấm Đánh dấu hoàn thành, thử Vừa hoàn thành trên một việc và Đã hoàn thành trước đó trên một việc khác. Chọn giờ thực hiện thật trong khung nếu cần kiểm nhãn ghi nhận muộn. Xác nhận và đối chiếu trạng thái sau khi danh sách tải lại. Với việc đo chỉ số, kiểm tra biểu mẫu vẫn yêu cầu giá trị đo.
 3. Trên app, tải checklist khi có mạng rồi tắt mạng. Ghi một công việc đủ điều kiện bằng nút nhanh, kiểm Chưa đồng bộ và bật mạng lại. Mở Đồng bộ để kiểm kết quả; tải lại checklist để kiểm trạng thái từ backend.
+
+### Ghi chú triển khai — kiểm giờ thực hiện trên web (2026-11-26)
+
+T073: form ghi kết quả ở checklist kiểm giờ nhập trước đầu khung hoặc sau giờ hiện tại trên trình duyệt. Hiển thị lỗi cạnh ô, liên kết qua `aria-describedby` và giữ ô đang nhập. Vừa hoàn thành vẫn lấy giờ backend qua lệnh ghi hiện hành. Backend vẫn quyết định tính hợp lệ và trạng thái kết quả. Test mới đỏ trước khi cài và xanh sau sửa, kiểm cả giờ đúng đầu khung.
+
+Edge chạy với dữ liệu test ở 1366px chế độ sáng và 375px chế độ tối, dùng Enter mở form và kiểm xác nhận, tải lại, không tràn ngang. Toàn web 1470 test/205 file xanh ở lượt chạy sau khi đóng Edge, lint/build qua. Chưa kiểm trình đọc màn hình hoặc demo kết nối backend thật. Việc kiểm bản demo cho lập công việc và app vẫn theo kịch bản trên. Ghi tiến độ mốc này tại đây để tránh chỉnh nhật ký chung khi luồng kết thúc lưu trú đang được sửa song song.
+
+### Đề xuất hợp đồng cho phần còn thiếu của T069 và T070
+
+- T069: thêm tham số thời điểm tùy chọn `plannedAt` cho truy vấn nguồn ca của 005. Khi có tham số, trả người cao tuổi đủ điều kiện tại thời điểm đó và nguồn được provider xác nhận ở thời điểm đó. Truy vấn không có tham số tiếp tục trả dữ liệu cả ca để dùng cho màn đối chiếu nguồn. Dùng quyền xem lập việc và cùng điều kiện hiện có ở lệnh lưu, gồm trong ca, lưu trú, có mặt bán trú, quyền và hiệu lực nguồn. Lệnh lưu vẫn kiểm lại vì dữ liệu có thể đổi sau khi đọc.
+- T070: thêm trường chỉ đọc `defaultWindowMinutes` vào phản hồi nguồn ca để người có quyền xem lập việc đọc được giá trị CFG-M04-02 dùng cho đúng luồng này. Web chỉ áp vào phía còn thiếu mặc định sau khi xét mục kế hoạch và loại công việc. Trường hợp khung toàn ca vẫn theo luật hiện có. Không mở quyền xem danh sách tham số và không sửa migration.
+
+Hai thay đổi hợp đồng cần chủ dự án duyệt trước khi triển khai, C review phần 005.

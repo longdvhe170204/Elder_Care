@@ -430,3 +430,4 @@ Chia nhỏ theo kho để người dùng tự commit từng mốc; không tự c
   - 2026-11-26: 101 ca đơn vị/kiến trúc, 25 ca tích hợp riêng biệt qua các lượt, gồm `ApiContractIT`, `PermissionMatrixIT`, bàn giao và chuỗi tính phí thật. Test mới kiểm hai yêu cầu ghi muộn cùng lúc. Không đổi mã nghiệp vụ.
 - [x] T072 Mobile: áp dụng thao tác hoàn thành tương ứng tại `lib/staff/care_tasks`, giữ giờ thiết bị và luồng ngoại tuyến; flutter analyze/test.
   - 2026-11-26: hai ca mới chạy đỏ trước khi cài, toàn app 652 test xanh sau sửa, phân tích sạch. Chưa demo trên thiết bị thật.
+- [x] T073 Web: kiểm giờ thực hiện trước đầu khung hoặc trong tương lai ngay tại ô nhập, giữ ô nhập và liên kết lỗi bằng thuộc tính trợ năng. Kiểm Edge cho nút nhanh ở 1366px sáng, 375px tối và Enter với dữ liệu test. Toàn web 1470 test xanh, lint/build qua.
