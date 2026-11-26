@@ -36,46 +36,20 @@
 
 ---
 
-### Task 1: Trạng thái Nháp của công việc
+## Cắt bớt (chủ dự án 2026-11-26) và kết quả
 
-- [ ] Migration `V005_105__q453_care_task_draft.sql`: thêm `DRAFT` vào enum `care_task.status`. Kiểm tra `duplicate_key` vẫn chặn trùng giữa bản Nháp và bản đã công bố.
-- [ ] `CareTaskClockProcessor`, nhắc quá hạn, checklist, lịch hằng ngày người thân, thống kê (`CareTaskStatistics`) bỏ qua `DRAFT`.
-- [ ] IT: tạo việc Nháp rồi qua giờ: không chuyển Đến hạn, không nhắc, không hiện ở `GET /checklist`.
+Chỉ làm phần lõi; các phần sau gác lại, làm khi cần:
+- Nhắc ngày 25 (CFG-M04-14) và báo Quản lý viện ngày đầu tháng (Task 5 cũ).
+- Tự hủy việc theo bản kế hoạch cũ khi kế hoạch đổi giữa tháng (Task 4 cũ): vẫn chỉ báo như FR-006 hiện hành; Trưởng tầng bấm "Chép từ kế hoạch" lại, hệ thống không tạo trùng.
+- Chép riêng theo một người từ một ngày: chép lại cả tháng cũng bổ sung người mới.
+- Sửa từng trường của việc Nháp: người làm lấy theo phân công ca (người phụ trách chính, vai trò khớp), không có thì việc chung; sai thì bỏ dòng.
+- Màn web vẫn giữ phần lập theo ca (chọn ngày, ca) bên dưới khối "Công việc tháng" để bổ sung và lập việc phát sinh cho một ca cụ thể.
 
-### Task 2: Lệnh "Chép từ kế hoạch" theo tháng
+Đã làm:
+- [x] Backend (kho Elder_Care 805543a9): `TaskStatus.DRAFT`, migration `V005_105` (sửa enum, không bảng mới); việc Nháp bị loại khỏi checklist, lịch theo người (FR-048), lịch hằng ngày người thân, thống kê; `CareMonthPlanning` + `CareMonthPlanningController`: `POST /care-tasks/month-drafts` (chép tháng, dùng mốc `planOccurrences` của Q-452 cho mọi ca đã công bố của tầng), `GET` (danh sách Nháp), `POST /publish`, `POST /{id}/discard` (bảng không cho xóa nên chuyển Hủy với `closure_rule` DRAFT_DISCARDED). IT `BR_18_ShiftTaskPlanningIT` 7/7 (thêm 3 ca Q453), `ApiContractIT` và 9 IT checklist, quá hạn, bàn giao, lịch, thống kê xanh.
+- [x] Web (kho Elder_Care_Frontend 7f297c7): `MonthTaskPlanning.jsx` trên đầu màn Lập công việc ca: chọn tháng (mặc định tháng sau), "Chép từ kế hoạch", bảng Nháp 10 dòng mỗi trang, "Bỏ", "Công bố công việc tháng (n)" có hộp xác nhận; tầng lấy từ lịch ca của Trưởng tầng, nhiều tầng thì báo và khóa. Vitest care-tasks 123/123, lint xanh.
 
-- [ ] `POST /care-tasks/month-drafts` với body `{ month: "2026-12" }` hoặc `{ residentId, fromDate }`. Quyền là quyền lập công việc ca của Trưởng tầng (Phụ lục 27, dòng 53).
-- [ ] Với mỗi người cao tuổi của tầng và mỗi ngày trong tháng: lấy mục của kế hoạch Hiệu lực ngày đó, tính các mốc (dùng lại phần tính mốc của Q-452 ở `CareTaskQueries` hoặc `CareShiftSources`), tìm ca đã công bố chứa mốc, xác định người thực hiện như mục Architecture, rồi tạo việc `DRAFT` với căn cứ `CARE_PLAN_ITEM`. Mốc đã có thì bỏ qua.
-- [ ] Người cao tuổi vào giữa tháng: chép từ ngày muộn nhất trong ba ngày: hợp đồng hiệu lực, Hoàn tất tiếp nhận, kế hoạch hiệu lực.
-- [ ] Trả về tóm tắt: số việc tạo, số mốc bỏ qua, các ngày chưa có ca công bố, người chưa có kế hoạch.
-- [ ] IT: tháng có lịch ca qua đêm; mục "theo ngày trong tuần"; chép lại không trùng; không có ca thì báo ngày.
-
-### Task 3: Sửa bản Nháp và Công bố tháng
-
-- [ ] Trưởng tầng đổi người thực hiện, bỏ, thêm việc Nháp (dùng lại kiểm tra của FR-017). Bỏ việc Nháp thì xóa hoặc chuyển Hủy, theo quy định hiện có.
-- [ ] `POST /care-tasks/month-drafts/publish` `{ month }`: chuyển toàn bộ Nháp của tầng và tháng sang Chưa đến hạn, rồi cho bộ chạy theo giờ chuyển tiếp (BR-M04-26). Công bố lại sau khi bổ sung dùng cùng lệnh.
-- [ ] IT: công bố xong thì việc hiện trên checklist đúng ca; người làm nhận được việc.
-
-### Task 4: Kế hoạch đổi giữa tháng và phân công đổi
-
-- [ ] Nghe `CarePlanChanged` (hoặc sửa chỗ phát trong `CarePlanActivation`): hủy việc `DRAFT`, `NOT_YET_DUE` theo mục của bản cũ từ ngày hiệu lực, rồi báo Trưởng tầng "kế hoạch đã đổi, hãy chép bổ sung".
-- [ ] `SharedCareTasks.reassignShift` gán cả việc Nháp khi phân công ca công bố.
-- [ ] IT cho cả hai.
-
-### Task 5: Nhắc ngày 25 (CFG-M04-14)
-
-- [ ] Thêm `CFG_M04_14` vào `ParameterCode` và một dòng tham số (mặc định 25).
-- [ ] Việc định kỳ hằng ngày: đúng ngày CFG-M04-14 mà tháng sau của tầng chưa công bố thì nhắc Trưởng tầng. 00:00 ngày đầu tháng vẫn chưa công bố thì báo Quản lý viện (mức Trung bình). Đặt dấu `reminder_marker` để không nhắc lặp.
-
-### Task 6: Web màn Lập công việc theo tháng
-
-- [ ] Bỏ ô ngày, ô ca, ô tầng. Màn có ô chọn tháng (mặc định tháng sau), nút "Chép từ kế hoạch", và bản xem trước nhóm theo ngày rồi theo người, mỗi dòng gồm giờ, việc, người làm, trạng thái Nháp.
-- [ ] Đổi người làm, bỏ dòng, thêm việc phát sinh (dùng lại hộp thoại Q-452, ngày giờ suy ra ca). Nút chính "Công bố công việc tháng" có hộp xác nhận nêu số việc.
-- [ ] Hiện tóm tắt của lệnh chép: ngày chưa có ca, người chưa có kế hoạch.
-- [ ] Giữ phần lịch sử công việc đã lập như hiện nay.
-- [ ] Test Vitest; xem trên trình duyệt bằng tài khoản Trưởng tầng mẫu.
-
-### Task 7: Dữ liệu demo, tài liệu
-
-- [ ] Sửa dữ liệu demo: mỗi Trưởng tầng một tầng. Hiện `demo.truongtang` (staff 9003) có hai phân công cùng hiệu lực (tầng 9001 và 9002). Đảm bảo tháng sau có lịch ca công bố để thử.
-- [ ] Cập nhật tasks.md (Phase 16), progress.md, DESIGN.md (bố cục màn mới). Chạy `./mvnw clean verify -Dit.forkCount=3` trước khi mở PR.
+Còn tồn:
+- Dữ liệu demo: `demo.truongtang` (staff 9003) có hai phân công Trưởng tầng cùng hiệu lực (tầng 9001 từ 2026-10-21, 9002 từ 2026-11-22), nên màn báo "đang phụ trách nhiều tầng" và không chép được. Cần kết thúc phân công cũ (dữ liệu demo hoặc lệnh của 008).
+- `TimeArchTest` đỏ do hằng số `APPROVAL_WINDOW` (7 ngày) của Q-451 trong `CarePlanReviews`; cần chuyển thành tham số.
+- Chưa chạy `clean verify` toàn bộ.
