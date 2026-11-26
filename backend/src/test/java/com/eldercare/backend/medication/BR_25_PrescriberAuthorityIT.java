@@ -16,6 +16,8 @@ import com.eldercare.backend.medication.internal.reconciliation.service.Reconcil
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,6 +101,8 @@ class BR_25_PrescriberAuthorityIT extends M07IntegrationTestBase {
         body.setPrescriptionType("REGULAR");
         body.setMedicationSource("FACILITY");
         body.setStartedAt(Instant.now());
+        body.setEndedAt(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusDays(7));
+        body.setIndication("Nhiễm khuẩn");
         FrequencyBody freq = new FrequencyBody();
         freq.setType("TIMED_SLOTS");
         freq.setTimedSlots(List.of("08:00"));
@@ -125,6 +129,8 @@ class BR_25_PrescriberAuthorityIT extends M07IntegrationTestBase {
         body.setPrescriptionType("REGULAR");
         body.setMedicationSource("FACILITY");
         body.setStartedAt(Instant.now());
+        body.setEndedAt(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusDays(7));
+        body.setIndication("Nhiễm khuẩn");
 
         FrequencyBody freq = new FrequencyBody();
         freq.setType("TIMED_SLOTS");

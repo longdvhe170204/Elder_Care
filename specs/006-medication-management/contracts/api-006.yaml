@@ -1073,7 +1073,6 @@ components:
         confirmedBy: { type: string }
         confirmedAt: { type: string, format: date-time }
         returnReason: { type: string }
-        cancelReason: { type: string }
         allowedCommands: { type: array, items: { type: string, enum: [CONFIRM, RETURN] } }
     ReconciliationWorklistEntry:
       type: object
