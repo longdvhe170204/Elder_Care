@@ -179,7 +179,7 @@ paths:
       x-implementation-phase: 3
       operationId: listApprovedCarePlans
       tags: [ke-hoach]
-      summary: Kế hoạch được duyệt trong 7 ngày qua theo phạm vi xem, mới nhất trước (Q-451)
+      summary: Kế hoạch được duyệt trong khoảng CFG-M04-15 (mặc định 7 ngày), theo phạm vi xem, mới nhất trước (Q-451)
       x-fr: [FR-059]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanApprovedRow' } } } } } }
   /residents/{residentId}/care-plan-reviews:

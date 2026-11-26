@@ -7,6 +7,8 @@ import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.dto.CarePlanStatus;
 import com.eldercare.backend.care.internal.careplan.domain.CarePlan;
 import com.eldercare.backend.care.internal.careplan.domain.CarePlanReviewRaised;
@@ -21,7 +23,7 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.ResidentApi;
-import java.time.Duration;
+import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class CarePlanReviews {
-    private static final Duration APPROVAL_WINDOW = Duration.ofDays(7);
     private static final PermissionKey VIEW = new PermissionKey(Function.CARE_PLAN, Operation.VIEW);
     private static final PermissionKey CREATE = new PermissionKey(Function.CARE_PLAN, Operation.CREATE);
     private static final PermissionKey APPROVE = new PermissionKey(Function.CARE_PLAN, Operation.APPROVE);
@@ -54,6 +56,7 @@ public class CarePlanReviews {
     private final PermissionApi permissions;
     private final AuditLogApi audit;
     private final BusinessTime time;
+    private final ParameterApi parameters;
 
     public CarePlanReviews(
             CarePlanReviewStore reviews,
@@ -63,7 +66,8 @@ public class CarePlanReviews {
             CurrentUser user,
             PermissionApi permissions,
             AuditLogApi audit,
-            BusinessTime time) {
+            BusinessTime time,
+            ParameterApi parameters) {
         this.reviews = reviews;
         this.plans = plans;
         this.locks = locks;
@@ -72,6 +76,7 @@ public class CarePlanReviews {
         this.permissions = permissions;
         this.audit = audit;
         this.time = time;
+        this.parameters = parameters;
     }
 
     /** Yêu cầu Đang mở của người cao tuổi, cũ trước. */
@@ -101,6 +106,7 @@ public class CarePlanReviews {
     public List<QueueRow> queue() {
         var candidates = new TreeSet<Long>(reviews.residentsRaised());
         candidates.addAll(plans.residentsWithDraft());
+        candidates.retainAll(nonFinalResidentIds());
         var rows = new ArrayList<QueueRow>();
         for (long residentId : candidates) {
             if (!canViewResident(residentId)) continue;
@@ -122,20 +128,31 @@ public class CarePlanReviews {
         return rows;
     }
 
-    /** Bản đã duyệt trong 7 ngày gần nhất, theo cùng phạm vi xem với hàng chờ (Q-451). */
+    /** Bản đã duyệt trong khoảng CFG-M04-15, theo cùng phạm vi xem với hàng chờ (Q-451). */
     @Transactional(readOnly = true)
     public List<CarePlan> approved() {
+        var existingResidents = nonFinalResidentIds();
         var visibleResidents = new HashMap<Long, Boolean>();
-        return plans.approvedSince(time.now().minus(APPROVAL_WINDOW)).stream()
+        var window = parameters.read(ParameterCode.CFG_M04_15).asDuration();
+        return plans.approvedSince(time.now().minus(window)).stream()
+                .filter(plan -> existingResidents.contains(plan.residentId()))
                 .filter(plan -> visibleResidents.computeIfAbsent(plan.residentId(), this::canViewResident))
                 .toList();
     }
 
+    private Set<Long> nonFinalResidentIds() {
+        return Set.copyOf(residents.byStatus(Set.of(
+                ResidentStatus.ADMISSION_IN_PROGRESS,
+                ResidentStatus.IN_RESIDENCE,
+                ResidentStatus.TEMPORARILY_ABSENT,
+                ResidentStatus.OFF_SITE_ACTIVITY,
+                ResidentStatus.HOSPITALIZED)));
+    }
+
     private boolean canViewResident(long residentId) {
-        return !residents.isFinalStatus(residentId)
-                && permissions
-                        .hasPermission(user, VIEW, CarePlanService.residentTarget(residentId, 0))
-                        .allowed();
+        return permissions
+                .hasPermission(user, VIEW, CarePlanService.residentTarget(residentId, 0))
+                .allowed();
     }
 
     /** "Không cần thay đổi": người có quyền Lập hoặc Duyệt kế hoạch chăm sóc trong phạm vi, lý do bắt buộc. */

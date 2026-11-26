@@ -51,5 +51,5 @@ Chỉ làm phần lõi; các phần sau gác lại, làm khi cần:
 
 Còn tồn:
 - Dữ liệu demo: `demo.truongtang` (staff 9003) có hai phân công Trưởng tầng cùng hiệu lực (tầng 9001 từ 2026-10-21, 9002 từ 2026-11-22), nên màn báo "đang phụ trách nhiều tầng" và không chép được. Cần kết thúc phân công cũ (dữ liệu demo hoặc lệnh của 008).
-- `TimeArchTest` đỏ do hằng số `APPROVAL_WINDOW` (7 ngày) của Q-451 trong `CarePlanReviews`; cần chuyển thành tham số.
+- PR #242: khoảng ngày Q-451 đọc từ `CFG-M04-15` (mặc định 7 ngày); migration `V099_11` đồng thời khai báo `CFG-M04-14` theo Phụ lục 25. Job nhắc công bố tháng vẫn gác lại.
 - Chưa chạy `clean verify` toàn bộ.

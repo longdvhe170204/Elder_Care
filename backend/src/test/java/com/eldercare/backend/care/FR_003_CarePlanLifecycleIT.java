@@ -401,9 +401,18 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
     @Test
     void Q448_fallPutsResidentInQueueUntilRevisedPlanIsApproved() throws Exception {
         long incident = TestUsers.nextId();
+        long missingResident = TestUsers.nextId();
         reviewApi.fallIncidentRecorded(residentId, incident);
+        jdbc.update(
+                "INSERT INTO reminder_marker (kind, entity_type, entity_id, marker, marked_at, details)"
+                        + " SELECT kind, entity_type, ?, marker, marked_at, details FROM reminder_marker"
+                        + " WHERE kind='M04.CARE_PLAN_REVIEW_RAISED' AND entity_id=?",
+                missingResident,
+                residentId);
 
-        queue().andExpect(jsonPath(row() + ".reasons[0].source").value("M05.INCIDENT"))
+        queue().andExpect(
+                        jsonPath("$[?(@.residentId==" + missingResident + ")]").isEmpty())
+                .andExpect(jsonPath(row() + ".reasons[0].source").value("M05.INCIDENT"))
                 .andExpect(jsonPath(row() + ".reasons[0].reference").value(Long.toString(incident)))
                 .andExpect(jsonPath(row() + ".profileCode").value("NCT-2026-" + residentId))
                 .andExpect(jsonPath(row() + ".draftId").value(org.hamcrest.Matchers.contains((Object) null)));
