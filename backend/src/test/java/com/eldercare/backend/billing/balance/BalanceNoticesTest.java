@@ -38,11 +38,13 @@ class BalanceNoticesTest {
                 .notificationRequests();
     }
 
+    // Demo 2026-11-26: nộp tiền báo bằng thông báo biến động số dư (TransactionNotices), không còn PAYMENT_RECORDED
+    // riêng
     @Test
     void familyNoticesAreAboutTheFamilysOwnMatter() {
         assertThat(requests())
                 .filteredOn(r -> r.recipientGroups().contains(new RecipientGroup.Representative(9004)))
-                .hasSize(2)
+                .hasSize(1)
                 .allSatisfy(r -> assertThat(r.informationSubject()).contains(InformationSubject.ABOUT_FAMILY_MATTER));
     }
 
@@ -52,7 +54,7 @@ class BalanceNoticesTest {
                 .map(r -> r.sourceRecord().type() + "|" + r.sourceRecord().id() + "|" + r.eventKey())
                 .toList();
 
-        assertThat(keys).hasSize(4).doesNotHaveDuplicates();
+        assertThat(keys).hasSize(3).doesNotHaveDuplicates();
     }
 
     /**

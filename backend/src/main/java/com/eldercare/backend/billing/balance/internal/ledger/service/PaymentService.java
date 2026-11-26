@@ -50,6 +50,7 @@ public class PaymentService {
     private final AuditLogApi audit;
     private final CurrentUser user;
     private final BusinessTime time;
+    private final TransactionFamilyNotices familyNotices;
 
     public PaymentService(
             LedgerPosting posting,
@@ -60,7 +61,8 @@ public class PaymentService {
             org.springframework.beans.factory.ObjectProvider<PaymentRecordedHook> hooks,
             AuditLogApi audit,
             CurrentUser user,
-            BusinessTime time) {
+            BusinessTime time,
+            TransactionFamilyNotices familyNotices) {
         this.posting = posting;
         this.ledgers = ledgers;
         this.transactions = transactions;
@@ -70,6 +72,7 @@ public class PaymentService {
         this.audit = audit;
         this.user = user;
         this.time = time;
+        this.familyNotices = familyNotices;
     }
 
     @RequiresPermission(function = Function.BALANCE_LEDGER, operation = Operation.CREATE)
@@ -164,6 +167,7 @@ public class PaymentService {
                 .reduce((first, second) -> second)
                 .ifPresent(r -> deposits.recheck(residentId, r.id(), r.createdBy()));
         hooks.orderedStream().forEach(h -> h.paymentRecorded(residentId, rows));
+        familyNotices.confirmed(residentId, rows);
         var ledger = ledgers.find(residentId).orElseThrow();
         return new Payments.Result(
                 rows.stream()

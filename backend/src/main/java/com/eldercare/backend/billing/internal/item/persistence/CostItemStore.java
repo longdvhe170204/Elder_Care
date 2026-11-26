@@ -40,6 +40,18 @@ public class CostItemStore {
         return jdbc.query("SELECT * FROM cost_item WHERE statement_id=? ORDER BY id FOR UPDATE", this::map, statement);
     }
 
+    /**
+     * Bảng còn khoản Đã kiểm tra phải chờ Quản lý viện duyệt riêng (BR-M11-04): mọi khoản trừ khoản theo sự kiện và khoản
+     * bổ sung muộn do gom từ nguồn (có nguồn, không trỏ về khoản gốc). Demo 2026-11-26.
+     */
+    public boolean hasCheckedItemsAwaitingManager(long statement) {
+        return jdbc.queryForObject("""
+                SELECT COUNT(*) FROM cost_item WHERE statement_id=? AND status='CHECKED'
+                  AND NOT (origin='EVENT_BASED'
+                    OR (adjustment_type='LATE_ADDITION' AND source_id IS NOT NULL AND original_item_id IS NULL))
+                """, Long.class, statement) > 0;
+    }
+
     public List<CostItemRecord> ofStatement(long id) {
         return jdbc.query("SELECT * FROM cost_item WHERE statement_id=? ORDER BY id", this::map, id);
     }

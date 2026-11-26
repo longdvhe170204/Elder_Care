@@ -234,17 +234,19 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " WHERE a.license_plate IS NOT NULL",
                         Integer.class))
                 .isEqualTo(2);
-        // V900_17: mười người Đang lưu trú, mỗi người có giường, hợp đồng Hiệu lực, sổ số dư, người đại diện, phân công
-        // Điều dưỡng phụ trách trong mọi ca từ ngày nạp
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM resident r WHERE r.status='IN_RESIDENCE'"
+        // V900_17 và V900_19–21: hai mươi người Đang lưu trú có giường, hợp đồng Hiệu lực, sổ số dư, người đại diện.
+        assertThat(jdbc.queryForList(
+                        "SELECT r.id FROM resident r WHERE r.status='IN_RESIDENCE'"
                                 + " AND EXISTS (SELECT 1 FROM bed_allocation a WHERE a.resident_id=r.id AND a.status='ACTIVE')"
                                 + " AND EXISTS (SELECT 1 FROM contract c WHERE c.resident_id=r.id AND c.status='ACTIVE')"
                                 + " AND EXISTS (SELECT 1 FROM resident_balance b WHERE b.resident_id=r.id)"
                                 + " AND EXISTS (SELECT 1 FROM family_relationship f WHERE f.resident_id=r.id"
                                 + " AND f.representative)",
-                        Integer.class))
-                .isEqualTo(10);
+                        Long.class))
+                .containsExactlyInAnyOrder(
+                        9001L, 9002L, 9003L, 9004L, 9005L, 9006L, 9007L, 9008L, 9009L, 9010L, 9021L, 9022L, 9101L,
+                        9102L, 9103L, 9104L, 9105L, 9106L, 9107L, 9108L);
+        // V900_17: mười người có phân công Điều dưỡng phụ trách trong mọi ca từ ngày nạp.
         assertThat(jdbc.queryForList(
                         "SELECT COUNT(*) FROM staff_assignment a JOIN work_shift s ON s.id=a.shift_id"
                                 + " WHERE a.target_type='RESIDENT' AND a.assigned_nurse"

@@ -14,12 +14,15 @@ import com.eldercare.backend.support.fake.care.*;
 import com.eldercare.backend.support.fake.resident.*;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutorService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.event.*;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.test.web.servlet.*;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +36,9 @@ class FR_034_CareResultRecordingIT extends CareResultTestBase {
 
     @Autowired
     FakeVitalSigns vitalSigns;
+
+    @Autowired
+    com.eldercare.backend.administration.parameter.api.ParameterApi parameters;
 
     void resultValue(String type, String code) {
         long id = TestUsers.nextId();
@@ -92,5 +98,56 @@ class FR_034_CareResultRecordingIT extends CareResultTestBase {
         record(measurementBody())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.vitalSignRecordId").isNumber());
+    }
+
+    @Test
+    void FR_035_lateOnlineRecordingKeepsOnTimePerformanceWhenTwoRequestsCompete() throws Exception {
+        var recordedAt = time.now();
+        var delay = parameters
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M04_06)
+                .asDuration();
+        var performedAt = recordedAt.minus(delay).minusSeconds(60).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        data("PERFORMED", false);
+        jdbc.update(
+                "UPDATE care_task SET status='OVERDUE', planned_at=?, window_from=?, window_to=? WHERE id=?",
+                local(performedAt),
+                local(performedAt.minusSeconds(30)),
+                local(performedAt.plusSeconds(30)),
+                task);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+
+        String body = "{\"performedAt\":\"" + performedAt + "\"}";
+        var ready = new CountDownLatch(2);
+        var start = new CountDownLatch(1);
+        Callable<ResultActions> send = () -> {
+            ready.countDown();
+            if (!start.await(10, TimeUnit.SECONDS)) throw new IllegalStateException("Chưa bắt đầu kiểm thử đồng thời");
+            return record(body);
+        };
+        ResultActions first;
+        ResultActions second;
+        try (var executor = new DelegatingSecurityContextExecutorService(Executors.newFixedThreadPool(2))) {
+            var a = executor.submit(send);
+            var b = executor.submit(send);
+            assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+            first = a.get(30, TimeUnit.SECONDS);
+            second = b.get(30, TimeUnit.SECONDS);
+        }
+        assertThat(List.of(
+                        first.andReturn().getResponse().getStatus(),
+                        second.andReturn().getResponse().getStatus()))
+                .containsExactlyInAnyOrder(200, 409);
+        boolean firstSaved = first.andReturn().getResponse().getStatus() == 200;
+        (firstSaved ? first : second)
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.result.performedAt").value(performedAt.toString()))
+                .andExpect(jsonPath("$.result.lateRecording").value(true));
+        (firstSaved ? second : first).andExpect(jsonPath("$.errorCode").value("CARE_TASK_CLOSED"));
+        assertThat(jdbc.queryForObject(
+                        "SELECT result_recorded_at FROM care_task WHERE id=?", LocalDateTime.class, task))
+                .isAfter(local(performedAt.plus(delay)));
+        assertThat(storedStatus()).isEqualTo("COMPLETED");
     }
 }
