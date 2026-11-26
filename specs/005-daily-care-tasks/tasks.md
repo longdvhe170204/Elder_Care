@@ -414,3 +414,14 @@ Kết quả kiểm ngày01/11/2026: scoped61unit/kiến trúc+67IT xanh; web389t
   - *(2026-11-10, A)* Hết 76 dòng api-005: tên schema riêng cho record ghi `CarePlanItemInput`, `ResultValueInput`, `TaskTypeInput` (trùng tên với record trả về làm springdoc gộp, mất `version`, trường bắt buộc); trường bắt buộc của thỏa thuận rủi ro và các phần con, ghi phát sinh; `CareTaskDetail.result` khai kiểu `CareResultResponse`; checklist ca trả `RiskAgreement` đủ (`sourceAgreementId`, `participants`, `opinions`) qua `CareRiskStore.effectiveByResident`. `./mvnw clean verify -Dit.forkCount=3` 2026-11-10: unit 1099, IT 662 xanh (21 phút 37 giây).
 - [x] T066 Cài `PUT /api/v1/testing/fakes/{module}` (body `{ "enabled": boolean }`, 204; chỉ profile test/demo, module 006/007/008/011/012/014) đã có trong api-005 và được chủ dự án duyệt 2026-10-26, rồi bỏ dòng này khỏi `pending` của `ApiContractIT`; hoặc xin chủ dự án bỏ operation khỏi hợp đồng nếu không còn cần per plan: mục duyệt 2026-10-26 (missing)
   - *(2026-11-10, A)* Đã có sẵn `FakeM04Controller` (test classpath, đăng ký qua `FakeM04Config`, đúng plan duyệt 2026-10-26); phát hiện lúc converge sai. Thêm `BR_18_ShiftTaskPlanningIT.T066_testingFakesSwitch_…` (tắt, bật, 400 module ngoài danh sách, thiếu `enabled`); `ApiContractIT` giữ operation ở pending vì context không import cấu hình giả, ghi lý do tại chỗ. `./mvnw clean verify -Dit.forkCount=3` 2026-11-10: unit 1099, IT 662 xanh (21 phút 37 giây).
+
+## Phase 14: Cải thiện lập việc và hoàn thành (yêu cầu 2026-11-26)
+
+Chia nhỏ theo kho để người dùng tự commit từng mốc; không tự commit, push hoặc đổi nhánh. Không đổi nghiệp vụ hay hợp đồng khi chưa có quyết định tương ứng.
+
+- [x] T067 Web: form kết quả `PERFORMED` có Vừa hoàn thành / Đã hoàn thành trước đó; bắt buộc giờ khi chọn trước đó, không gửi giờ cũ khi đổi lại Vừa hoàn thành; giữ form chuyên môn và lý do trễ. Test trước: 3 đỏ, 1 xanh; sau sửa 4 xanh; toàn web 1454 test xanh, lint/build qua. Chưa nghiệm thu trực quan.
+- [ ] T068 Web: nút hoàn thành từ danh sách, đọc quyền/trạng thái hiện hành, chống gửi đồng thời, xử lý lỗi và làm mới từ backend; kiểm trình duyệt laptop, 375px, bàn phím, nền tối.
+- [ ] T069 Web: hai chế độ căn cứ theo yêu cầu, đối tượng người/vị trí loại trừ nhau, nguồn thật và trạng thái rỗng; rà dữ liệu cấp tầng theo hợp đồng trước khi sửa.
+- [ ] T070 Web/backend: kiểm biên ca ngày/qua đêm và giá trị mặc định khung thời gian; thu gọn tùy chọn nâng cao, không tự đặt ngưỡng mới.
+- [ ] T071 Backend: kiểm hồi quy thời điểm thực hiện/ghi nhận, quyền, căn cứ, đồng thời, bàn giao và sự kiện; sửa chỉ khi có lỗi được chứng minh. Quy tắc mới hoặc đổi hợp đồng phải chốt trước.
+- [ ] T072 Mobile: áp dụng thao tác hoàn thành tương ứng tại `lib/staff/care_tasks`, giữ giờ thiết bị và luồng ngoại tuyến; flutter analyze/test.

@@ -997,3 +997,13 @@ Nhánh phát sinh đo không nguy hiểm (`SAVED`, `BLOCKED`) không mâu thuẫ
 
 - Quyết định 05/11 mục 1, 2 cài đủ: lệnh ghi kết quả có tính phí đọc dịch vụ qua `admission.api.UnitPriceApi.service` (004, có sẵn) và chỉ phát `BillableCareResultRecorded` khi kỳ tính khớp loại kết quả (`PERFORMED` ↔ `OCCURRENCE`/`SESSION` là 1; `ITEM_QUANTITY` ↔ `UNIT` là lượng thực); không khớp hoặc không thấy dịch vụ thì 503 `CARE_SOURCE_UNAVAILABLE`, không mặc định 1. Loại kết quả khác vẫn chặn theo mục 2 cho tới khi có quyết định quy đổi riêng.
 - Nghiệm thu chuỗi bean thật `T033_RealCareBillingChainIT` (005 → chỉ mục 010 → khoản theo đơn giá 004 → đính chính, Hủy ghi nhận).
+
+### Ghi chú triển khai — UX chăm sóc, mốc 1 (2026-11-26)
+
+Theo yêu cầu trực tiếp của người dùng, chia T067–T072 thành các mốc commit nhỏ ở từng kho. Checkout web thực tế là `frontend-source/` nằm trong kho backend, remote Elder_Care_Frontend; mobile ở `../Elder_Care_Mobile`. Cả ba đang dùng `fix/bf10-demo-followup`; không đổi nhánh hoặc tự commit. Các thư mục chưa theo dõi `frontend/`, `mobile/`, `frontend-source/` và `docs/demo-010-notes.md` có từ đầu phiên, không đưa vào commit backend.
+
+T067 sửa `src/features/care-tasks/CareResultForm.jsx` và thêm test cùng tên. Giữ mẫu Dòng thời gian ca, form trong khung chi tiết hiện có. Chỉ `PERFORMED` có hai lựa chọn thời điểm. Vừa hoàn thành bỏ `performedAt` để `CareResultService` dùng `BusinessTime`; chọn trước đó bắt buộc nhập giờ Việt Nam. Không gửi `recordedAt`. Form chuyên môn vẫn giữ dữ liệu bắt buộc, form Quan trọng/Bắt buộc vẫn có lý do hoàn thành trễ. Chặn submit khi busy. Chưa làm T068 (nút ngay trên danh sách và kiểm đồng thời toàn luồng).
+
+Đối chiếu: `CareResultTiming` đã xét trạng thái bằng `performedAt`; `CareResultService` lưu giờ server và nhãn ghi nhận muộn riêng, từ chối thời điểm tương lai/trước đầu khung. Không sửa state machine, schema, API, sự kiện tính phí hoặc quy tắc Q-32/Q-37 của bàn giao. Không mở lại công việc đã đóng bằng thao tác nhanh. Chưa chạy test backend trong mốc chỉ sửa web này.
+
+TDD: 4 ca form, trước sửa 3 đỏ vì thiếu lựa chọn mới, 1 xanh kiểm form số đo; sau sửa 4/4 xanh. Form + checklist 10/10; toàn web 205 file, 1454 test xanh; npm run lint/build exit 0. Build có cảnh báo chunk lớn; jsdom báo navigation chưa hỗ trợ nhưng không có test thất bại. Chưa kiểm trực quan trình duyệt; không coi toàn Phase 14 hoàn tất. Không thêm thuật ngữ API/domain mới nên glossary giữ nguyên. C cần review phần 005.
