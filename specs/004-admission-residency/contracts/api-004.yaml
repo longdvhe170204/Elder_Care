@@ -725,7 +725,7 @@ paths:
                 destination: { type: string }
                 requestedBy: { type: string }
                 reason: { $ref: '#/components/schemas/Reason' }
-                endingRequestId: { type: integer, format: int64, description: 'Bổ sung 2026-11-26: lập từ yêu cầu của người thân thì yêu cầu chuyển Đã xử lý, người đại diện được báo; yêu cầu phải còn Chờ xử lý và cùng người cao tuổi (409 ENDING_REQUEST_NOT_PENDING).' }
+                endingRequestId: { type: integer, format: int64, description: 'Bổ sung 2026-11-26: lập từ yêu cầu của người thân thì yêu cầu chuyển Đã xử lý, người đại diện được báo; yêu cầu phải còn Chờ xử lý và cùng người cao tuổi (409 ENDING_REQUEST_NOT_PENDING). Lập không nêu mã mà người cao tuổi đang có yêu cầu Chờ xử lý thì yêu cầu đó cũng chuyển Đã xử lý (chốt 2026-11-27).' }
       responses: { '201': { description: Đã lập, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyEnding' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Conflict' }, '422': { $ref: '#/components/responses/Problem' } }
   /residency-endings/{id}:
     get:

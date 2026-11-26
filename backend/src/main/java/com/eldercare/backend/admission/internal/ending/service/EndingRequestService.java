@@ -39,6 +39,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -52,6 +53,7 @@ public class EndingRequestService {
     static final AuditAction SUBMITTED = new AuditAction("M02_ENDING_REQUEST_SUBMITTED", false);
     static final AuditAction CANCELLED = new AuditAction("M02_ENDING_REQUEST_CANCELLED", false);
     static final AuditAction REJECTED = new AuditAction("M02_ENDING_REQUEST_REJECTED", true);
+    static final AuditAction HANDLED = new AuditAction("M02_ENDING_REQUEST_HANDLED", false);
 
     private static final Set<ResidentStatus> CAN_END =
             Set.of(ResidentStatus.IN_RESIDENCE, ResidentStatus.TEMPORARILY_ABSENT, ResidentStatus.HOSPITALIZED);
@@ -256,11 +258,57 @@ public class EndingRequestService {
         return view;
     }
 
+    /** Yêu cầu nêu ở lệnh lập hồ sơ phải còn Chờ xử lý và đúng người cao tuổi; khóa tới hết lệnh. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void requireUsable(long requestId, long residentId) {
+        SimpleRecord<EndingRequestContent> record = records.lockForUpdate(EndingRequestContent.KIND, requestId);
+        requirePending(record);
+        if (record.residentId() == null || record.residentId() != residentId) {
+            throw notPending();
+        }
+    }
+
+    /**
+     * Tác động kèm lệnh lập hồ sơ kết thúc (Q-306): yêu cầu đang chờ của người cao tuổi chuyển Đã xử lý, người đại diện được
+     * báo, kể cả khi Hành chính lập hồ sơ trực tiếp (chủ dự án chọn 2026-11-27).
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void handledBy(long endingId, long residentId, LocalDate expectedEndDate) {
+        for (var pending :
+                records.listByResident(EndingRequestContent.KIND, residentId, Set.of(EndingRequestContent.PENDING))) {
+            SimpleRecord<EndingRequestContent> record = records.lockForUpdate(EndingRequestContent.KIND, pending.id());
+            if (!EndingRequestContent.PENDING.equals(record.status())) {
+                continue;
+            }
+            Instant now = time.now();
+            SimpleRecord<EndingRequestContent> after = change(
+                    record,
+                    EndingRequestContent.HANDLED,
+                    record.content().decided(currentUser.getObject().accountId(), now, null, endingId));
+            auditLog.write(AuditLogEntry.builder()
+                    .action(HANDLED)
+                    .entity(EndingRequestContent.KIND.code(), record.id())
+                    .resident(residentId)
+                    .details(Map.of("residencyEndingId", endingId))
+                    .build());
+            events.publishEvent(new ResidencyEndingRequestChanged(
+                    record.id(),
+                    residentId,
+                    "HANDLED",
+                    "Viện đã lập hồ sơ kết thúc lưu trú cho " + view(after).residentName() + ", ngày kết thúc dự kiến "
+                            + expectedEndDate.format(DATE) + ".",
+                    now));
+        }
+    }
+
     static void requirePending(SimpleRecord<EndingRequestContent> record) {
         if (!EndingRequestContent.PENDING.equals(record.status())) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT, "ENDING_REQUEST_NOT_PENDING", "Yêu cầu không còn chờ xử lý");
+            throw notPending();
         }
+    }
+
+    private static BusinessException notPending() {
+        return new BusinessException(HttpStatus.CONFLICT, "ENDING_REQUEST_NOT_PENDING", "Yêu cầu không còn chờ xử lý");
     }
 
     SimpleRecord<EndingRequestContent> change(

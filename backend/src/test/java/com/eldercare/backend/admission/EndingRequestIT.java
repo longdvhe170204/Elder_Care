@@ -169,6 +169,69 @@ class EndingRequestIT extends EndingTestBase {
                 .andExpect(jsonPath("$.errorCode").value("ENDING_REQUEST_NOT_PENDING"));
     }
 
+    private JsonNode requestAsOffice(long id) throws Exception {
+        user.set(office.user());
+        return JSON.readTree(mvc.perform(get("/api/v1/residency-ending-requests/" + id))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+    }
+
+    @Test
+    void officeCreatesEndingFromRequest_requestHandled_representativeNotified() throws Exception {
+        long residentId = inResidence();
+        long representative = representativeOf(residentId);
+        long id = idOf(submit(representative, residentId, d0.plusDays(5)).andExpect(status().isCreated()));
+
+        var body = endingBody(residentId, "CONTRACT_EXPIRED", d0.plusDays(5));
+        body.put("endingRequestId", id);
+        long endingId = idOf(createEndingRaw(office, body).andExpect(status().isCreated()));
+
+        JsonNode request = requestAsOffice(id);
+        assertThat(request.get("status").asString()).isEqualTo("HANDLED");
+        assertThat(request.get("residencyEndingId").asLong()).isEqualTo(endingId);
+        assertThat(notices(residentId, "M02_ENDING_REQUEST_HANDLED"))
+                .singleElement()
+                .satisfies(n ->
+                        assertThat(n.recipientGroups()).containsExactly(new RecipientGroup.Representative(residentId)));
+    }
+
+    @Test
+    void officeCreatesEndingDirectly_pendingRequestAlsoHandled() throws Exception {
+        long residentId = inResidence();
+        long representative = representativeOf(residentId);
+        long id = idOf(submit(representative, residentId, d0.plusDays(5)).andExpect(status().isCreated()));
+
+        long endingId = createEnding(residentId, d0.plusDays(7));
+
+        JsonNode request = requestAsOffice(id);
+        assertThat(request.get("status").asString()).isEqualTo("HANDLED");
+        assertThat(request.get("residencyEndingId").asLong()).isEqualTo(endingId);
+        assertThat(notices(residentId, "M02_ENDING_REQUEST_HANDLED")).hasSize(1);
+    }
+
+    @Test
+    void createWithCancelledOrOtherResidentsRequest_rejected() throws Exception {
+        long residentId = inResidence();
+        long representative = representativeOf(residentId);
+        long cancelled = idOf(submit(representative, residentId, d0.plusDays(5)).andExpect(status().isCreated()));
+        cancel(representative, cancelled).andExpect(status().isOk());
+        long otherResident = inResidence();
+        long other = idOf(submit(representativeOf(otherResident), otherResident, d0.plusDays(5))
+                .andExpect(status().isCreated()));
+
+        for (long requestId : new long[] {cancelled, other}) {
+            var body = endingBody(residentId, "CONTRACT_EXPIRED", d0.plusDays(5));
+            body.put("endingRequestId", requestId);
+            createEndingRaw(office, body)
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.errorCode").value("ENDING_REQUEST_NOT_PENDING"));
+        }
+        assertThat(requestAsOffice(other).get("status").asString()).isEqualTo("PENDING");
+        createEnding(residentId, d0.plusDays(5));
+    }
+
     @Test
     void familyCannotUseOfficeEndpoints() throws Exception {
         long residentId = inResidence();
