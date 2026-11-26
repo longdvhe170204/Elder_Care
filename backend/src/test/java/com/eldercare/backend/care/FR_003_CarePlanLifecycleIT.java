@@ -69,6 +69,9 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
     @Autowired
     FakeBedAllocations bedAllocations;
 
+    @Autowired
+    com.eldercare.backend.care.api.CarePlanReviewApi reviewApi;
+
     long residentId, taskTypeId;
     long floorAreaId;
     TestUsers.TestUser nurse, doctor;
@@ -312,5 +315,62 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
         long id = create();
         mvc.perform(write(post("/api/v1/care-plans/" + id + "/withdraw-approval"), "{\"reason\":\"Cần xem lại\"}"))
                 .andExpect(status().isNotFound());
+    }
+
+    private org.springframework.test.web.servlet.ResultActions dismiss(String body) throws Exception {
+        return mvc.perform(write(post("/api/v1/residents/" + residentId + "/care-plan-reviews/dismiss"), body));
+    }
+
+    @Test
+    void Q448_dismissNeedsReasonClosesOpenReviewsThenNothingLeft() throws Exception {
+        reviewApi.fallIncidentRecorded(residentId, TestUsers.nextId());
+
+        dismiss("{}")
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
+        dismiss("{\"reason\":\"Đã xem, kế hoạch hiện hành vẫn phù hợp\"}").andExpect(status().isOk());
+        dismiss("{\"reason\":\"Lần hai\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("NO_OPEN_REVIEW"));
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM audit_log WHERE action = 'CARE_PLAN_REVIEW_DISMISSED' AND entity_id = ?",
+                        Integer.class,
+                        residentId))
+                .isEqualTo(1);
+    }
+
+    @Test
+    void Q448_approvedPlanCreatedAfterRaiseClosesReview() throws Exception {
+        reviewApi.fallIncidentRecorded(residentId, TestUsers.nextId());
+
+        effectivePlan();
+
+        dismiss("{\"reason\":\"Không còn gì để xem\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("NO_OPEN_REVIEW"));
+    }
+
+    @Test
+    void Q448_approvingDraftCreatedBeforeIncidentKeepsReviewOpen() throws Exception {
+        long id = create();
+        reviewApi.fallIncidentRecorded(residentId, TestUsers.nextId());
+        submit(id);
+        approveAsDoctor(id);
+
+        dismiss("{\"reason\":\"Bản vừa duyệt lập trước khi ngã, đã xem lại\"}").andExpect(status().isOk());
+    }
+
+    @Test
+    void Q448_dismissOutsideScopeForbidden() throws Exception {
+        reviewApi.fallIncidentRecorded(residentId, TestUsers.nextId());
+        user.set(new TestUsers(jdbc, time).staff(Role.NURSING_STAFF).user());
+
+        // Ngoài phạm vi: không lộ hồ sơ, như các lệnh khác
+        dismiss("{\"reason\":\"Không thuộc phạm vi\"}").andExpect(status().isNotFound());
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM reminder_marker WHERE kind = 'M04.CARE_PLAN_REVIEW_DISMISSED' AND entity_id = ?",
+                        Integer.class,
+                        residentId))
+                .isZero();
     }
 }

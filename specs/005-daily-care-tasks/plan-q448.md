@@ -40,7 +40,7 @@
 3. **Bản bị trả lại hoặc bỏ không đóng yêu cầu.** Test `Q448_returnedOrCancelledPlanKeepsReviewOpen`.
 4. **Đánh giá đầu vào không nhu cầu không tạo yêu cầu**, và người đã có kế hoạch thì đánh giá đầu vào (sửa đính chính) không tạo. Test `Q448_initialAssessmentWithoutNeedsStaysOnGeneralSchedule`.
 5. **Q-423 vẫn đúng:** phụ lục đổi mức không tạo yêu cầu thứ hai khi đã có bản lập sau lần đánh giá lại; khi yêu cầu từ đánh giá lại còn mở thì cũng không tạo thêm (đã có dòng cho người đó).
-6. **Phạm vi:** Điều dưỡng tầng 2 không thấy người tầng 3 trong hàng chờ; lệnh "Không cần thay đổi" ngoài phạm vi trả 403.
+6. **Phạm vi:** Điều dưỡng tầng 2 không thấy người tầng 3 trong hàng chờ; lệnh "Không cần thay đổi" ngoài phạm vi trả 404 (không lộ hồ sơ, như các lệnh khác).
 
 ---
 
@@ -66,7 +66,7 @@
 - [ ] Nếu `latestConfirmed` chưa thấy lần vừa xác nhận trong cùng giao dịch thì thêm `needIds` vào sự kiện `InitialAssessmentConfirmed` của 001 (cập nhật `AllocationSuitabilityListener` của 003 nếu chữ ký đổi).
 - [ ] Chạy test xanh.
 
-### Task 3: Lệnh "Không cần thay đổi" và quy tắc yêu cầu Đang mở (backend)
+### Task 3: Lệnh "Không cần thay đổi" và quy tắc yêu cầu Đang mở (backend) — xong, T073
 
 **Files:**
 - Modify: `care/internal/careplan/persistence/CarePlanReviewStore.java` (`dismiss`, `raisedFor(residentIds)`, `dismissedFor(residentIds)`)
@@ -77,7 +77,7 @@
 
 - [ ] Test đỏ: `Q448_approvedPlanCreatedAfterRaiseClosesReview`, `Q448_approvingDraftCreatedBeforeIncidentKeepsReviewOpen`, `Q448_returnedOrCancelledPlanKeepsReviewOpen`, `Q448_dismissClosesAllOpenAndRequiresReason`, `Q448_newSourceAfterDismissOpensAgain`, `Q448_dismissOutsideScopeForbidden`.
 - [ ] Quy tắc Đang mở như mục Architecture; viết thành hàm thuần có test đơn vị (`CarePlanReviewsTest`) cho các mốc thời gian sát nhau.
-- [ ] Lệnh `POST /residents/{residentId}/care-plan-reviews/dismiss` body `{ reason }` (bắt buộc, ≤ 500), cần `CARE_PLAN.CREATE` hoặc `CARE_PLAN.APPROVE` trong phạm vi; `Idempotency-Key` như các lệnh khác; ghi nhật ký `CARE_PLAN_REVIEW_DISMISSED`. Không có yêu cầu Đang mở thì 409 `NO_OPEN_REVIEW`.
+- [ ] Lệnh `POST /residents/{residentId}/care-plan-reviews/dismiss` body `{ reason }` (bắt buộc, khuôn `Reason` chung ≤ 2000 như các lệnh kế hoạch), cần `CARE_PLAN.CREATE` hoặc `CARE_PLAN.APPROVE` trong phạm vi; `Idempotency-Key` như các lệnh khác; ghi nhật ký `CARE_PLAN_REVIEW_DISMISSED`. Không có yêu cầu Đang mở thì 409 `NO_OPEN_REVIEW`.
 - [ ] Cập nhật `api-005.yaml`, chạy test hợp đồng `FR_003_CarePlanContractTest`.
 
 ### Task 4: Đọc hàng chờ và trạng thái kế hoạch (backend)

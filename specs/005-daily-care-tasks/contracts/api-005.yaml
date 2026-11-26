@@ -165,6 +165,16 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
       responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /residents/{residentId}/care-plan-reviews/dismiss:
+    post:
+      x-implementation-phase: 3
+      operationId: dismissCarePlanReviews
+      tags: [ke-hoach]
+      summary: Không cần thay đổi kế hoạch, đóng mọi yêu cầu xem xét Đang mở (người có quyền Lập hoặc Duyệt; Q-448)
+      x-fr: [FR-058]
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
+      responses: { '200': { description: Đã đóng }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/compare:
     get:
       x-implementation-phase: 3

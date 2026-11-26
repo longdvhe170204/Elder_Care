@@ -29,6 +29,7 @@ public class CarePlanController {
     private final CurrentUser user;
     private final CareRiskService risks;
     private final BusinessTime time;
+    private final CarePlanReviews reviews;
 
     public CarePlanController(
             CarePlanService service,
@@ -37,7 +38,9 @@ public class CarePlanController {
             PermissionApi permissions,
             CurrentUser user,
             CareRiskService risks,
-            BusinessTime time) {
+            BusinessTime time,
+            CarePlanReviews reviews) {
+        this.reviews = reviews;
         this.service = service;
         this.queries = queries;
         this.accounts = accounts;
@@ -214,6 +217,22 @@ public class CarePlanController {
     public void cancel(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
         service.cancel(service.target(id), id, body.reason());
+    }
+
+    /** Q-448 (FR-058): "Không cần thay đổi" đóng mọi yêu cầu xem xét Đang mở của người cao tuổi. */
+    @PostMapping("/residents/{residentId}/care-plan-reviews/dismiss")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public void dismissReviews(
+            @PathVariable long residentId,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody CareCatalogReason body) {
+        reviews.dismiss(CarePlanService.residentTarget(residentId, 0), residentId, body.reason());
     }
 
     private String actor(Long accountId) {
