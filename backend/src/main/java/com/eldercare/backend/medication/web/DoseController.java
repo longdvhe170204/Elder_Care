@@ -195,32 +195,22 @@ public class DoseController {
         return view(doseWorkflow.postpone(doseKey, body.reason(), currentUser.accountId(), businessTime.now()));
     }
 
-    @PostMapping("/api/v1/medication-doses/{doseKey}/claim")
+    @PostMapping("/api/v1/medication-doses/{doseKey}/hold")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Đã nhận liều"),
+        @ApiResponse(responseCode = "200", description = "Tạm giữ 1 liều"),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
-    })
-    public DoseBody claim(
-            @PathVariable("doseKey") String doseKey,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-        doseCommands.require(currentUser);
-        return view(doseWorkflow.claim(doseKey, currentUser.accountId(), businessTime.now()));
-    }
-
-    @PostMapping("/api/v1/medication-doses/{doseKey}/release")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Đã bỏ nhận liều"),
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
-                responseCode = "409",
+                responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
-    public DoseBody release(
+    public DoseBody hold(
             @PathVariable("doseKey") String doseKey,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody DoseResultRequest body) {
         doseCommands.require(currentUser);
-        return view(doseWorkflow.release(doseKey, currentUser.accountId(), businessTime.now()));
+        return view(doseWorkflow.hold(doseKey, body.reason(), currentUser.accountId(), businessTime.now()));
     }
 
     @GetMapping("/api/v1/dose-reviews")

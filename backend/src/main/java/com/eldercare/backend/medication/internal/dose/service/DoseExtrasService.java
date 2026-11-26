@@ -52,7 +52,6 @@ public class DoseExtrasService {
 
         boolean postponed =
                 dose != null && dose.getPostponedAt() != null && !DoseTransitionTable.isTerminal(dose.getStatus());
-        boolean claimActive = dose != null && dose.isClaimActive(now);
         List<DoseExtras.MeasurementValue> measured = List.of();
         if (result != null && result.getPreDoseMeasurements() != null) {
             try {
@@ -65,8 +64,8 @@ public class DoseExtrasService {
         return new DoseExtras(
                 postponed,
                 postponed ? dose.getPostponedReason() : null,
-                claimActive ? dose.getClaimedById() : null,
-                claimActive ? dose.getClaimExpiresAt() : null,
+                null,
+                null,
                 prescription == null || prescription.getTimeCriticality() == null
                         ? "NORMAL"
                         : prescription.getTimeCriticality().name(),

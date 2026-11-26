@@ -36,6 +36,7 @@ public final class DoseTransitionTable {
                         DoseStatus.REFUSED, // Refused by resident
                         DoseStatus.NOT_ADMINISTERED, // Skipped / not administered
                         DoseStatus.LATE, // Window end elapsed
+                        DoseStatus.SUSPENDED, // Held 1 dose due to abnormal measurement (M07-11)
                         DoseStatus.CANCELLED // Prescription discontinued/replaced
                         ));
 
@@ -47,6 +48,7 @@ public final class DoseTransitionTable {
                         DoseStatus.REFUSED, // Refused late
                         DoseStatus.NOT_ADMINISTERED, // Skipped
                         DoseStatus.MISSED, // Grace period CFG-M07-02 elapsed
+                        DoseStatus.SUSPENDED, // Held 1 dose due to abnormal measurement (M07-11)
                         DoseStatus.CANCELLED // Prescription cancelled
                         ));
 

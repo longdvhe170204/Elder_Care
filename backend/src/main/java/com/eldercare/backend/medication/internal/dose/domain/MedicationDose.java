@@ -270,6 +270,20 @@ public class MedicationDose {
         this.updatedAt = now;
     }
 
+    /** Tạm giữ 1 liều do chỉ số đo bất thường (M07-11): chuyển SUSPENDED chỉ cho liều này. */
+    public void hold(Long byId, String reason, Instant now) {
+        DoseTransitionTable.validateTransition(this.status, DoseStatus.SUSPENDED);
+        this.status = DoseStatus.SUSPENDED;
+        this.closedAt = now;
+        this.closedById = byId;
+        this.closedByType = "STAFF";
+        this.postponedAt = now;
+        this.postponedById = byId;
+        this.postponedReason = reason;
+        this.closureRule = "M07_11_HOLD";
+        this.updatedAt = now;
+    }
+
     /** Nhận liều (BR-M07-26): người khác không xác nhận được tới khi hết hạn. */
     public void claim(Long nurseId, Instant expiresAt, Instant now) {
         this.claimedById = nurseId;
