@@ -359,4 +359,123 @@ class PrescriptionLifecycleTest {
         prescriptionService.discontinue(Target.UNSPECIFIED, 1008L, stopBody, 1L, true);
         assertThat(toStop.getStatus()).isEqualTo(PrescriptionStatus.DISCONTINUED);
     }
+
+    @Test
+    @DisplayName("FR-018, BF-07: PrescriptionResponse trả về timedSlots khi đơn dùng TIMED_SLOTS")
+    void FR_018_prescriptionResponseIncludesTimedSlots() throws Exception {
+        Prescription p = createSamplePrescription(1009L, PrescriptionStatus.ACTIVE, PrescriberType.INTERNAL);
+        Field ft = Prescription.class.getDeclaredField("frequencyType");
+        ft.setAccessible(true);
+        ft.set(p, FrequencyType.TIMED_SLOTS);
+        Field ts = Prescription.class.getDeclaredField("timedSlots");
+        ts.setAccessible(true);
+        ts.set(p, "[\"08:00\",\"15:55\"]");
+
+        PrescriptionResponse resp =
+                PrescriptionResponse.from(p, null, false, List.of(), List.of(), List.of(), List.of());
+
+        assertThat(resp.frequency()).isNotNull();
+        assertThat(resp.frequency().timedSlots()).containsExactly("08:00", "15:55");
+    }
+
+    @Test
+    @DisplayName("M07-04: Bắt buộc ngày kết thúc và ngày kết thúc không trước ngày bắt đầu")
+    void M07_04_endedAtRequiredAndNotBeforeStartedAt() {
+        var missingEnd = internalWithEnd(medId, null);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                        prescriptionService.create(PrescriptionService.target(residentId), residentId, missingEnd))
+                .isInstanceOf(com.eldercare.backend.common.error.ConditionNotMetException.class);
+    }
+
+    @Test
+    @DisplayName("M07-01: Tạo đơn nhiều dòng thuốc gán chung prescriptionGroupId")
+    void M07_01_createBatch_assignsSharedPrescriptionGroupId() {
+        when(prescriptionRepository.save(any(Prescription.class))).thenAnswer(inv -> {
+            Prescription saved = inv.getArgument(0);
+            setId(saved, System.nanoTime() % 100000);
+            return saved;
+        });
+        var item1 = internalWithEnd(medId, LocalDate.now().plusDays(7));
+        var item2 = internalWithEnd(medId, LocalDate.now().plusDays(5));
+
+        List<PrescriptionResponse> responses = prescriptionService.createBatch(
+                PrescriptionService.target(residentId), residentId, List.of(item1, item2), 1L);
+
+        assertThat(responses).hasSize(2);
+        assertThat(responses.get(0).prescriptionGroupId()).isNotBlank();
+        assertThat(responses.get(0).prescriptionGroupId())
+                .isEqualTo(responses.get(1).prescriptionGroupId());
+    }
+
+    @Test
+    @DisplayName(
+            "M07-02: Phạm vi kê đơn nội bộ chặn thuốc kiểm soát đặc biệt, ngoài phạm vi, thiếu chỉ định và quá 30/90 ngày")
+    void M07_02_internalScope_enforcesRules() {
+        var missingIndication = cmdWith(medId, LocalDate.now().plusDays(5), null, false);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> prescriptionService.create(
+                        PrescriptionService.target(residentId), residentId, missingIndication))
+                .isInstanceOf(com.eldercare.backend.common.error.ConditionNotMetException.class);
+
+        var over30Days = cmdWith(medId, LocalDate.now().plusDays(40), "Tăng huyết áp", false);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                        prescriptionService.create(PrescriptionService.target(residentId), residentId, over30Days))
+                .isInstanceOf(com.eldercare.backend.common.error.ConditionNotMetException.class);
+
+        Medication blockedMed = new Medication("Morphine", "10mg", "Ống", "Tiêm", "ống", 30, 30, true, Set.of(102L));
+        blockedMed.setAllowInternalPrescribe(false);
+        setId(blockedMed, 502L);
+        when(medicationRepository.findById(502L)).thenReturn(Optional.of(blockedMed));
+        var outsideScope = cmdWith(502L, LocalDate.now().plusDays(5), "Tăng huyết áp", false);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                        prescriptionService.create(PrescriptionService.target(residentId), residentId, outsideScope))
+                .isInstanceOf(com.eldercare.backend.common.error.ConditionNotMetException.class);
+
+        when(prescriptionRepository.save(any(Prescription.class))).thenAnswer(inv -> {
+            Prescription saved = inv.getArgument(0);
+            setId(saved, 555L);
+            return saved;
+        });
+        var chronicOk = cmdWith(medId, LocalDate.now().plusDays(60), "Tăng huyết áp", true);
+        PrescriptionResponse saved =
+                prescriptionService.create(PrescriptionService.target(residentId), residentId, chronicOk);
+        assertThat(saved.chronicDisease()).isTrue();
+    }
+
+    private PrescriptionService.CreatePrescriptionCommand internalWithEnd(Long mId, LocalDate endedAt) {
+        return cmdWith(mId, endedAt, "Tăng huyết áp", false);
+    }
+
+    private PrescriptionService.CreatePrescriptionCommand cmdWith(
+            Long mId, LocalDate endedAt, String indication, boolean chronicDisease) {
+        return new PrescriptionService.CreatePrescriptionCommand(
+                mId,
+                BigDecimal.ONE,
+                "viên",
+                "Uống",
+                PrescriptionType.PERIODIC,
+                FrequencyType.TIMED_SLOTS,
+                "[\"08:00\"]",
+                null,
+                null,
+                null,
+                null,
+                null,
+                Instant.now(),
+                endedAt,
+                MedicationSource.FACILITY,
+                PrescriberType.INTERNAL,
+                null,
+                null,
+                1L,
+                LocalDate.now(),
+                null,
+                null,
+                false,
+                java.util.Map.of(),
+                null,
+                List.of(),
+                indication,
+                null,
+                chronicDisease);
+    }
 }

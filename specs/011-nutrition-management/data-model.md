@@ -6,7 +6,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
-> **Sửa theo Q-445 (2026-11-24): xem mục 13.** Mục 13 thắng các mục 0 → 12 ở chỗ khác nhau; các mục cũ giữ để truy vết.
+> **Sửa theo Q-454 (2026-11-24): xem mục 13.** Mục 13 thắng các mục 0 → 12 ở chỗ khác nhau; các mục cũ giữ để truy vết.
 
 ## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
 
@@ -310,7 +310,7 @@ Lưu giữ `THEO_HO_SO`. Không có chuyển `KHONG_SU_DUNG → DUOC_SU_DUNG`.
 - `su_kien_m08_da_xu_ly`: `khoa_su_kien` `UNIQUE`, `xu_ly_luc` (listener idempotent). *(R-15: `su_kien_m08_da_xu_ly` → `moc_da_nhac`)*
 - `lan_chay_m08`: `ten_viec`, `moc`, `bat_dau`, `ket_thuc`, `ket_qua` (chạy bù). *(R-15: `lan_chay_m08` → `moc_da_nhac`)*
 
-## 13. Sửa theo Q-445 (2026-11-24): thực đơn chung, Quản lý viện duyệt
+## 13. Sửa theo Q-454 (2026-11-24): thực đơn chung, Quản lý viện duyệt
 
 Lược đồ vật lý giữ bảng gộp R-15 (`danh_muc_chung`, `ho_so_chung`, `su_kien_chung`); thay đổi nằm ở thuộc tính `JSON` và mã loại. Một migration `V011_xx__q445_shared_menu.sql` chuyển dữ liệu cũ (mục 13.6).
 

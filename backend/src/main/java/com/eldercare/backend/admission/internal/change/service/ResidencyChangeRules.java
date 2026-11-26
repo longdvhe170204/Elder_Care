@@ -104,25 +104,25 @@ class ResidencyChangeRules {
             Long applyingRequestId) {
         List<UnmetCondition> unmet = new ArrayList<>();
         if (contract.status() != ContractStatus.ACTIVE) {
-            unmet.add(new UnmetCondition("CONTRACT_NOT_ACTIVE", "Hợp đồng gốc không còn Hiệu lực (FR-045)"));
+            unmet.add(new UnmetCondition("CONTRACT_NOT_ACTIVE", "Hợp đồng gốc không còn ở trạng thái Hiệu lực."));
             return unmet;
         }
         if (residents.isFinalStatus(contract.residentId())) {
             unmet.add(new UnmetCondition(
                     "RESIDENT_IN_FINAL_STATUS",
-                    "Người cao tuổi đã ở trạng thái cuối, không điều chỉnh hợp đồng (FR-045)"));
+                    "Người cao tuổi đã hoàn tất hoặc kết thúc lưu trú, không thể điều chỉnh hợp đồng."));
         }
         if (effective.isBefore(contract.content().startDate())) {
             unmet.add(new UnmetCondition(
                     "EFFECTIVE_DATE_BEFORE_CONTRACT_START",
-                    "Ngày hiệu lực sớm hơn ngày bắt đầu hợp đồng gốc (FR-040, DBR-07)"));
+                    "Ngày hiệu lực không được sớm hơn ngày bắt đầu của hợp đồng gốc."));
         }
         if (requestId != null) {
             for (ChangeType type : addenda.pendingConflicts(contract.residentId(), change.changeTypes(), requestId)) {
                 unmet.add(new UnmetCondition(
                         "DUPLICATE_PENDING_ATTRIBUTE",
-                        "Đã có yêu cầu Đã duyệt chờ hiệu lực thay đổi " + type
-                                + "; hủy yêu cầu đó hoặc gộp nội dung (FR-046)"));
+                        "Đã có yêu cầu khác được duyệt và đang chờ tới ngày hiệu lực với cùng loại thay đổi (" + type
+                                + "); vui lòng kiểm tra lại hoặc hủy yêu cầu đó trước."));
             }
         }
         ResidenceType baseType = ResidenceType.valueOf(base.get("residenceType").asString());
@@ -142,7 +142,9 @@ class ResidencyChangeRules {
         }
         if (change.has(ChangeType.BED)) {
             if (resultType == ResidenceType.DAY_CARE) {
-                unmet.add(new UnmetCondition("NOT_INPATIENT", "Người bán trú không có giường để đổi (FR-041)"));
+                unmet.add(new UnmetCondition(
+                        "NOT_INPATIENT",
+                        "Người cao tuổi đang ở diện bán trú, không có giường nội trú để thay đổi giường."));
             }
             // Sau chuyển gấp (003 FR-030): người đã ở giường mới, không đặt trước nên không kiểm như chuyển theo lịch.
             // Bán trú sang nội trú kèm giường: đã kiểm ở nhánh đổi loại lưu trú (phân bổ đầu tiên).
@@ -176,18 +178,20 @@ class ResidencyChangeRules {
             return;
         }
         if (target == ResidenceType.SHORT_TERM_RESIDENTIAL && change.endDate() == null) {
-            unmet.add(new UnmetCondition("END_DATE_REQUIRED", "Nội trú ngắn ngày cần ngày kết thúc (FR-019)"));
+            unmet.add(new UnmetCondition(
+                    "END_DATE_REQUIRED", "Hợp đồng nội trú ngắn ngày bắt buộc phải có ngày kết thúc."));
         }
         if (target == ResidenceType.DAY_CARE) {
             if (change.arrivalSchedule().isEmpty()) {
                 unmet.add(new UnmetCondition(
-                        "ARRIVAL_SCHEDULE_REQUIRED", "Đổi sang bán trú cần kèm lịch đến (FR-041, BR-M02-16)"));
+                        "ARRIVAL_SCHEDULE_REQUIRED",
+                        "Chuyển sang hình thức bán trú bắt buộc phải thiết lập lịch đến trong tuần."));
             }
             unmet.addAll(capacityConditions(change, effective));
         } else if (baseType == ResidenceType.DAY_CARE) {
             if (change.newBedId() == null) {
-                unmet.add(
-                        new UnmetCondition("BED_REQUIRED", "Đổi từ bán trú sang nội trú cần kèm giường mới (FR-041)"));
+                unmet.add(new UnmetCondition(
+                        "BED_REQUIRED", "Chuyển từ bán trú sang nội trú bắt buộc phải chọn giường mới."));
                 return;
             }
             // 003 mục 1.4a: người bán trú chưa có giường; lúc áp dụng kiểm qua phân bổ đã đặt trước lúc duyệt
@@ -214,7 +218,7 @@ class ResidencyChangeRules {
         if (care.isEmpty()) {
             unmet.add(new UnmetCondition(
                     "CARE_SERVICE_MISSING",
-                    "Chưa có dịch vụ chăm sóc Hiệu lực cho mức " + change.careLevel() + " (Q-297)"));
+                    "Hệ thống chưa có dịch vụ chăm sóc có hiệu lực tương ứng với mức " + change.careLevel() + "."));
         } else if (prices.unitPriceAt(care.get().id(), effective, false).isEmpty()) {
             unmet.add(new UnmetCondition(
                     "SERVICE_PRICE_MISSING",
@@ -233,7 +237,8 @@ class ResidencyChangeRules {
                             "SERVICE_NOT_IN_CONTRACT", "Dịch vụ " + line.serviceId() + " không có trong hợp đồng"));
                 } else if (kind.map(k -> "CARE".equals(k.type())).orElse(false)) {
                     unmet.add(new UnmetCondition(
-                            "CARE_SERVICE_NOT_ALLOWED", "Dịch vụ chăm sóc chỉ đổi qua loại đổi mức chăm sóc (Q-297)"));
+                            "CARE_SERVICE_NOT_ALLOWED",
+                            "Dịch vụ chăm sóc chỉ được thay đổi thông qua chức năng đổi mức chăm sóc."));
                 }
                 continue;
             }
@@ -241,7 +246,7 @@ class ResidencyChangeRules {
                 unmet.add(new UnmetCondition("SERVICE_NOT_FOUND", "Dịch vụ " + line.serviceId() + " không tồn tại"));
             } else if (!kind.get().active()) {
                 unmet.add(new UnmetCondition(
-                        "SERVICE_NOT_EFFECTIVE", "Dịch vụ " + line.serviceId() + " không Hiệu lực (FR-041)"));
+                        "SERVICE_NOT_EFFECTIVE", "Dịch vụ " + line.serviceId() + " hiện không có hiệu lực."));
             }
             // Loại dịch vụ không thêm được (gồm dịch vụ chăm sóc, Q-297) kiểm ở
             // ResidencyChangeHandler.serviceTypeConditions
@@ -254,7 +259,7 @@ class ResidencyChangeRules {
                     && priceAt(line.serviceId(), effective).isEmpty()) {
                 unmet.add(new UnmetCondition(
                         "SERVICE_PRICE_MISSING",
-                        "Dịch vụ " + line.serviceId() + " không có đơn giá hiệu lực tại " + effective + " (FR-041)"));
+                        "Dịch vụ " + line.serviceId() + " chưa có đơn giá có hiệu lực tại ngày " + effective + "."));
             }
         }
     }
@@ -262,14 +267,14 @@ class ResidencyChangeRules {
     private void duration(List<UnmetCondition> unmet, Contract contract, LocalDate endDate, LocalDate effective) {
         if (endDate.isBefore(effective) || endDate.isBefore(contract.content().startDate())) {
             unmet.add(new UnmetCondition(
-                    "END_DATE_BEFORE_EFFECTIVE", "Ngày kết thúc mới phải không sớm hơn ngày hiệu lực (FR-041)"));
+                    "END_DATE_BEFORE_EFFECTIVE", "Ngày kết thúc mới không được sớm hơn ngày hiệu lực."));
             return;
         }
         if (contracts.overlapsActive(
                 contract.residentId(), contract.id(), contract.content().startDate(), endDate)) {
             unmet.add(new UnmetCondition(
                     "CONTRACT_OVERLAP",
-                    "Ngày kết thúc mới làm hợp đồng chồng khoảng với hợp đồng Hiệu lực khác (FR-022, DBR-06)"));
+                    "Ngày kết thúc mới làm hợp đồng bị trùng khoảng thời gian với một hợp đồng đang hiệu lực khác."));
         }
     }
 
@@ -289,7 +294,7 @@ class ResidencyChangeRules {
         if (newBedId == null) {
             return List.of(new UnmetCondition(
                     "BED_ALLOCATION_CHECK_UNAVAILABLE",
-                    "Chưa có giường mới để kiểm điều kiện phân bổ; chưa duyệt được (FR-041)"));
+                    "Chưa có thông tin giường mới để kiểm tra điều kiện phân bổ; chưa thể duyệt yêu cầu."));
         }
         return beds.getObject().checkScheduledReservation(residentId, newBedId, effective);
     }

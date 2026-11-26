@@ -1,10 +1,12 @@
 package com.eldercare.backend.incident.internal.alert.service;
 
+import com.eldercare.backend.care.api.SourceTaskReadApi;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.AlertHandoverApi;
 import com.eldercare.backend.incident.api.dto.AlertHandoverView;
 import com.eldercare.backend.incident.internal.alert.domain.HandoverItem;
 import com.eldercare.backend.incident.internal.alert.persistence.HandoverItemStore;
+import com.eldercare.backend.incident.internal.incident.service.IncidentFollowUpQueries;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import java.util.Collection;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -25,20 +28,25 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class DefaultAlertHandoverApi implements AlertHandoverApi {
+    private static final Set<String> OPEN = Set.of("NEW", "IN_PROGRESS", "MONITORING");
+
     private final HandoverItemStore items;
     private final AlertAssigneeTransfer transfer;
     private final BusinessTime time;
     private final Optional<ResidentLocationApi> locations;
+    private final Optional<SourceTaskReadApi> tasks;
 
     public DefaultAlertHandoverApi(
             HandoverItemStore items,
             AlertAssigneeTransfer transfer,
             BusinessTime time,
-            @Autowired(required = false) ResidentLocationApi locations) {
+            @Autowired(required = false) ResidentLocationApi locations,
+            @Autowired(required = false) SourceTaskReadApi tasks) {
         this.items = items;
         this.transfer = transfer;
         this.time = time;
         this.locations = Optional.ofNullable(locations);
+        this.tasks = Optional.ofNullable(tasks);
     }
 
     /** Mọi cảnh báo, sự cố đang mở của tầng; {@code shiftId} không thu hẹp vì mục còn mở đều phải bàn giao (FR-037). */
@@ -47,7 +55,8 @@ public class DefaultAlertHandoverApi implements AlertHandoverApi {
     public List<AlertHandoverView> open(long floorAreaId, long shiftId) {
         var open = items.openByFloor(floorAreaId);
         var rooms = rooms(open);
-        return open.stream().map(item -> view(item, rooms)).toList();
+        var planned = withNextStep(open);
+        return open.stream().map(item -> view(item, rooms, planned)).toList();
     }
 
     @Override
@@ -57,8 +66,9 @@ public class DefaultAlertHandoverApi implements AlertHandoverApi {
         var incidentIds = ids(sources, HandoverItem.INCIDENT);
         var found = items.byIds(alertIds, incidentIds);
         var rooms = rooms(found);
+        var planned = withNextStep(found);
         var result = new HashMap<SourceRef, AlertHandoverView>();
-        found.forEach(item -> result.put(new SourceRef(item.group(), item.id()), view(item, rooms)));
+        found.forEach(item -> result.put(new SourceRef(item.group(), item.id()), view(item, rooms, planned)));
         return result;
     }
 
@@ -87,7 +97,17 @@ public class DefaultAlertHandoverApi implements AlertHandoverApi {
         return locations.map(api -> api.current(residents)).orElse(Map.of());
     }
 
-    private static AlertHandoverView view(HandoverItem item, Map<Long, LocationView> rooms) {
+    /** Sự cố còn việc tiếp theo chưa đóng (FR-045b); rỗng khi chưa có nguồn công việc. */
+    private Optional<Set<Long>> withNextStep(List<HandoverItem> found) {
+        var ids = found.stream()
+                .filter(item -> HandoverItem.INCIDENT.equals(item.group()))
+                .map(HandoverItem::id)
+                .toList();
+        return tasks.map(api -> api.withOpenTask(IncidentFollowUpQueries.TYPES, ids));
+    }
+
+    private static AlertHandoverView view(
+            HandoverItem item, Map<Long, LocationView> rooms, Optional<Set<Long>> planned) {
         var location = item.residentId() == null ? null : rooms.get(item.residentId());
         return new AlertHandoverView(
                 item.id(),
@@ -97,6 +117,9 @@ public class DefaultAlertHandoverApi implements AlertHandoverApi {
                 item.description(),
                 item.status(),
                 item.level(),
-                item.createdAt());
+                item.createdAt(),
+                HandoverItem.INCIDENT.equals(item.group()) && OPEN.contains(item.status())
+                        ? planned.map(ids -> !ids.contains(item.id())).orElse(null)
+                        : null);
     }
 }

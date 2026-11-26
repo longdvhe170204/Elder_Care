@@ -183,22 +183,25 @@ class BF07_DoseRulesTest {
     private final String doseKey = MedicationScheduleCalculator.doseKey(10L, SCHEDULED);
 
     @Test
-    void BR_M07_26_claimedByOtherNurse_blocksAdministerButNotOfflineRecord() {
-        MedicationDose dose = lateDose(NOW.minusSeconds(300));
-        dose.claim(99L, NOW.plusSeconds(600), NOW.minusSeconds(60));
-        DoseAdministrationService service = administration(dose, prescription(TimeCriticality.NORMAL, null));
+    void BR_M07_26_doseAssigneeResolver_disablesFloorSharedAndChecksAssignedNurse() {
+        var shiftNursePort = mock(com.eldercare.backend.medication.api.spi.ShiftNursePort.class);
+        when(shiftNursePort.assignedNurse(100L, NOW)).thenReturn(Optional.of(55L));
+        when(shiftNursePort.assignedNurse(200L, NOW)).thenReturn(Optional.empty());
+        var resolver = new DoseAssigneeResolver(shiftNursePort);
+
+        var assigned = resolver.resolve(100L, 1L, SCHEDULED, NOW);
+        var unassigned = resolver.resolve(200L, 1L, SCHEDULED, NOW);
+
+        assertThat(assigned.assignedNurseId()).isEqualTo(55L);
+        assertThat(assigned.floorShared()).isFalse();
+        assertThat(unassigned.assignedNurseId()).isNull();
+        assertThat(unassigned.floorShared()).isFalse();
 
         BusinessException error = catchThrowableOfType(
-                BusinessException.class, () -> service.administerDose(doseKey, request(null, false), 88L, null, NOW));
-
+                BusinessException.class, () -> resolver.requireAuthorizedNurse(100L, 1L, 88L, NOW));
         assertThat(error).isNotNull();
-        assertThat(error.status()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(error.errorCode()).isEqualTo("DOSE_CLAIMED");
-        verify(resultRepository, never()).save(any());
-
-        // Bản ghi ngoại tuyến không biết lượt nhận nên không bị chặn (BR-M07-20)
-        service.administerDose(doseKey, request(null, true), 88L, null, NOW);
-        verify(resultRepository).save(any(DoseResult.class));
+        assertThat(error.status()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(error.errorCode()).isEqualTo("NURSE_NOT_ASSIGNED");
     }
 
     @Test
@@ -224,5 +227,14 @@ class BF07_DoseRulesTest {
         assertThat(saved.getValue().getPreDoseMeasurements())
                 .contains("HEART_RATE")
                 .contains("72");
+    }
+
+    @Test
+    void M07_11_holdSingleDose_transitionsToSuspendedWithoutStoppingPrescription() {
+        MedicationDose dose = lateDose(NOW.minusSeconds(300));
+        dose.hold(88L, "Huyết áp tăng cao 170/100", NOW);
+        assertThat(dose.getStatus()).isEqualTo(DoseStatus.SUSPENDED);
+        assertThat(dose.getPostponedReason()).isEqualTo("Huyết áp tăng cao 170/100");
+        assertThat(dose.getClosedAt()).isEqualTo(NOW);
     }
 }

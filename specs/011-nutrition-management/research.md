@@ -240,11 +240,11 @@ Trưởng tầng không xem bản gán, thực đơn qua chức năng 011 (Phụ
 **Phương án đã cân nhắc**: Chỉ trả thực đơn chung (người dùng chế độ ăn riêng sẽ thấy món không phải của mình). Trả cả tên chế độ ăn (là thông tin sức khỏe theo cổng người thân).
 
 
-## M-17. Sửa theo Q-445 *(2026-11-24)*
+## M-17. Sửa theo Q-454 *(2026-11-24)*
 
 - **Quyết định**: giữ vòng đời thực đơn và bảng gộp R-15; đổi nội dung `JSON` (data-model mục 13) thay vì bảng mới, để migration chỉ chuyển dữ liệu, không đổi lược đồ.
 - **Món**: không giữ phiên bản vì không còn bước xác nhận; lịch sử sửa nằm ở nhật ký (FR-064). Phương án giữ phiên bản bị loại vì không còn người đọc.
 - **Duyệt thực đơn**: dùng lại quyền `DISH_MENU` `APPROVE` và chuyển sang Quản lý viện (Phụ lục 27 dòng "Món ăn, thực đơn": QL D), không thêm quyền mới.
-- **Suất nhân viên**: tính từ phân công ca của 008 tại giờ bữa; một phiếu nhân viên, không theo tầng. Phương án đăng ký ăn của nhân viên bị loại vì Q-445 không có bước đăng ký.
+- **Suất nhân viên**: tính từ phân công ca của 008 tại giờ bữa; một phiếu nhân viên, không theo tầng. Phương án đăng ký ăn của nhân viên bị loại vì Q-454 không có bước đăng ký.
 - **Số người theo dị ứng**: đọc dị ứng Hiệu lực của 001 cho người cao tuổi tính suất dự kiến, gộp theo dị nguyên; chỉ trả số đếm, không trả id người ra khỏi M08 (19.3).
 - **Ảnh món**: tệp đính kèm của 000 (S3; profile demo dùng chỗ lưu trong bộ nhớ khi trống bucket); url đọc có hạn.

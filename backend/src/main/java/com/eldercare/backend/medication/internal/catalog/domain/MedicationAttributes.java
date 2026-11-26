@@ -14,7 +14,33 @@ public record MedicationAttributes(
         Integer afterWindowMinutes,
         boolean specialControl,
         List<Long> activeIngredientIds,
-        LegacyMedication legacy) {
+        LegacyMedication legacy,
+        Boolean allowInternalPrescribe) {
+
+    public MedicationAttributes(
+            String name,
+            String concentration,
+            String dosageForm,
+            String defaultRoute,
+            String usageUnit,
+            Integer beforeWindowMinutes,
+            Integer afterWindowMinutes,
+            boolean specialControl,
+            List<Long> activeIngredientIds,
+            LegacyMedication legacy) {
+        this(
+                name,
+                concentration,
+                dosageForm,
+                defaultRoute,
+                usageUnit,
+                beforeWindowMinutes,
+                afterWindowMinutes,
+                specialControl,
+                activeIngredientIds,
+                legacy,
+                true);
+    }
 
     public static final SharedKind<MedicationAttributes> KIND =
             SharedKind.of("M07.MEDICATION", MedicationAttributes.class).notDeletable();

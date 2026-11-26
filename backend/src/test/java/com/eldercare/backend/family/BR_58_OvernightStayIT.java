@@ -56,6 +56,12 @@ class BR_58_OvernightStayIT extends StayTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
 
+        // Test BF-12 (2026-11-24): Trưởng tầng xác nhận thấy họ tên người thân ở lại
+        assertThat(stay.get("familyMemberName").asString()).isEqualTo("Phạm R");
+        // Test BF-12 (2026-11-24, FR-021, FR-022): Trưởng tầng làm quy trình đón đọc được danh sách được phép đón
+        assertThat(getJsonAs(staff(floorManager), "/api/v1/residents/" + a + "/pickup-list"))
+                .isEmpty();
+
         command(staff(floorManager), id, "confirm", "{}").andExpect(status().isOk());
         assertThat(stayStatus(id)).isEqualTo("CONFIRMED");
         assertThat(notices(id, FamilyStayNotice.Kind.CONFIRMED)).singleElement().satisfies(n -> {
@@ -66,6 +72,46 @@ class BR_58_OvernightStayIT extends StayTestBase {
                             new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
                             new RecipientGroup.FamilyMember(rMember, "FAMILY_STAY_GUEST"));
         });
+    }
+
+    /**
+     * FR-040: phòng từ hai giường đang dùng thì xác nhận cần ý kiến người cùng phòng. Góp ý test BF-12 (2026-11-25, chủ dự
+     * án duyệt đổi hợp đồng): ý kiến đã ghi trả lại cho nhân viên, người thân không thấy (tên người cùng phòng).
+     */
+    @Test
+    void FR_040_sharedRoom_opinionRequired_shownToStaffOnly() throws Exception {
+        occupiedBeds(2);
+        long id = registered(rMember, at(day, 18, 0), at(day.plusDays(1), 7, 0));
+
+        command(staff(floorManager), id, "confirm", "{}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("ROOMMATE_OPINION_REQUIRED"));
+        command(
+                        staff(floorManager),
+                        id,
+                        "confirm",
+                        "{\"roommateOpinion\": {\"askedPerson\": \"Trần B\", \"result\": \"AGREED\", \"note\":"
+                                + " \"Không phiền\"}}")
+                .andExpect(status().isOk());
+
+        JsonNode opinion = find(getJsonAs(staff(floorManager), "/api/v1/family-stays?residentId=" + a), id)
+                .get("roommateOpinion");
+        assertThat(opinion.get("askedPerson").asString()).isEqualTo("Trần B");
+        assertThat(opinion.get("result").asString()).isEqualTo("AGREED");
+        assertThat(opinion.get("note").asString()).isEqualTo("Không phiền");
+        JsonNode own = find(getJsonAs(family(rMember), "/api/v1/family-stays"), id);
+        assertThat(own.get("roommateOpinion") == null
+                        || own.get("roommateOpinion").isNull())
+                .isTrue();
+    }
+
+    private static JsonNode find(JsonNode stays, long id) {
+        for (JsonNode s : stays) {
+            if (s.get("id").asLong() == id) {
+                return s;
+            }
+        }
+        throw new AssertionError("Không thấy lượt " + id);
     }
 
     private List<FamilyStayNotice> notices(long id, FamilyStayNotice.Kind kind) {

@@ -77,6 +77,22 @@ public class PortalService {
             Map<FamilyRight, Boolean> rights,
             boolean canViewBelongings) {}
 
+    /** Trạng thái một quyền như {@code Relationship.rights} của 012: đang bật và có tác dụng (FR-011). */
+    public record RightState(boolean enabled, boolean effective) {}
+
+    /**
+     * Người thân Hiệu lực để lập yêu cầu đổi quyền trên cổng (test BF-12 2026-11-24; FR-013, FR-014, FR-050); không có số
+     * điện thoại, giấy tờ.
+     */
+    public record PortalFamilyMember(
+            long relationshipId,
+            String fullName,
+            String relationship,
+            boolean representative,
+            boolean primaryContact,
+            boolean self,
+            Map<FamilyRight, RightState> rights) {}
+
     /** Thông tin chung (FR-046 (1)); {@code unavailable} là các mục chưa có nguồn. */
     public record General(
             long residentId,
@@ -173,6 +189,40 @@ public class PortalService {
                             r.primaryContact(),
                             effective,
                             rights.canViewBelongings(self, r.residentId(), now));
+                })
+                .toList();
+    }
+
+    /** Người đại diện thấy mọi quan hệ Hiệu lực; người thân khác chỉ thấy chính mình (FR-014), theo thứ tự liên hệ. */
+    @Transactional(readOnly = true)
+    public List<PortalFamilyMember> familyMembers(long residentId) {
+        long self = related(residentId);
+        Instant now = time.now();
+        boolean representative = relationships.representativeAt(self, residentId, now);
+        return relationships.activeOfResident(residentId).stream()
+                .filter(r -> representative || r.familyMemberId() == self)
+                .sorted(java.util.Comparator.comparingInt(FamilyRelationship::contactOrder))
+                .map(r -> {
+                    Map<FamilyRight, RightState> states = new EnumMap<>(FamilyRight.class);
+                    for (FamilyRight right : FamilyRight.values()) {
+                        boolean enabled = r.enabledRights().contains(right);
+                        states.put(
+                                right,
+                                new RightState(
+                                        enabled,
+                                        enabled && rights.rightEffective(r.familyMemberId(), residentId, right, now)));
+                    }
+                    return new PortalFamilyMember(
+                            r.id(),
+                            relationships
+                                    .familyMember(r.familyMemberId())
+                                    .map(m -> m.fullName())
+                                    .orElse(null),
+                            r.relationship().name(),
+                            r.representative(),
+                            r.primaryContact(),
+                            r.familyMemberId() == self,
+                            states);
                 })
                 .toList();
     }

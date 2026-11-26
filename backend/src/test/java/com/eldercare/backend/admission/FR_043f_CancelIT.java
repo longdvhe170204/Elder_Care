@@ -1,6 +1,7 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.Role;
@@ -34,6 +35,16 @@ class FR_043f_CancelIT extends ChangeTestBase {
 
         user.set(users.staff(Role.NURSING_STAFF).user());
         generic(id, "cancel", "{\"reason\":\"Không cần\"}").andExpect(status().isForbidden());
+
+        user.set(manager.user());
+        mvc.perform(get("/api/v1/residency-change-requests/" + id)).andExpect(status().isNotFound());
+        String listJson = mvc.perform(get("/api/v1/residency-change-requests"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThat(JSON.readTree(listJson))
+                .noneMatch(r -> r.get("approvalRequestId").asLong() == id);
 
         user.set(users.staff(Role.OFFICE_STAFF).user());
         generic(id, "cancel", "{\"reason\":\"Gia đình đổi ý\"}").andExpect(status().isOk());

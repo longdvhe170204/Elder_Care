@@ -309,7 +309,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ---
 
-## Phase 13: Sửa theo Q-445 (2026-11-24, thực đơn chung, Quản lý viện duyệt)
+## Phase 13: Sửa theo Q-454 (2026-11-24, thực đơn chung, Quản lý viện duyệt)
 
 **Mục tiêu**: cài spec mục "Cập nhật 2026-11-24", data-model mục 13, module-interfaces mục 1.9, api-011.yaml bản 2026-11-24. Viết test trước, test phải lỗi rồi xanh. Đợt 2 (T047 → T053), đợt 3 (T054 → T060), đợt 4 (T061, T062), kiểm cuối (T063).
 

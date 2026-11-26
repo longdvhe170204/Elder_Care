@@ -37,7 +37,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 - **Suất ăn dự kiến cho kênh người cao tuổi** (FR-063 dòng "Người cao tuổi"): hàm đọc mới `nutrition.api.SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` cho 012: món dự kiến theo ngày, bữa từ thực đơn đã Công bố hoặc Đã áp dụng và chế độ ăn hiện hành của người cao tuổi, kèm món thay thế; chỉ trả tên món (research M-16). Không thêm bảng.
 
-### Cập nhật 2026-11-24 (spec mục "Cập nhật 2026-11-24": Q-445)
+### Cập nhật 2026-11-24 (spec mục "Cập nhật 2026-11-24": Q-454)
 
 - **Món**: `DishService` bỏ phiên bản và xác nhận; thuộc tính `description`, `imageFileId` ở `DishAttributes`; lệnh `activate`, `cancel`, `deactivate`; ảnh qua tệp đính kèm của 000 (`PUT /nutrition/dishes/{id}/image`). Bỏ `SafeDishRule`, `DishConfirmationRequested`, `DishConfirmationResult`.
 - **Thực đơn**: `MenuContent` bỏ `dietId`, `substituteDishIds`; `MenuService.submit` chỉ kiểm món Hiệu lực; `publish`, `returnToKitchen` theo quyền `DISH_MENU` `APPROVE` gán cho Quản lý viện (gỡ của Bác sĩ trong seed quyền); bỏ `MenuChecker`, `AllergyWarningRule`, `ResidentMenuConflicts`, `POST /menus/{id}/check`. `pre-submit-info` trả `MealPlanningInfo` (tính khi đọc). `GET /menus/shared` và `GeneralMenuApi` cho app; bỏ `SuatAnDuKienApi`.

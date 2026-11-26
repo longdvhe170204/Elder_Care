@@ -71,7 +71,7 @@ paths:
       operationId: createCarePlan
       tags: [ke-hoach]
       summary: Lập phiên bản Nháp (Điều dưỡng)
-      description: 'Q-447: "Lập kế hoạch" / "Sửa kế hoạch". Nội dung khởi đầu luôn là bản sao phiên bản Chờ hiệu lực, không có thì phiên bản Hiệu lực, không có thì trống; copyCurrent giữ cho client cũ, bị bỏ qua. Đã có phiên bản Nháp/Chờ duyệt thì 409 OPEN_REVISION_EXISTS. Không có đường tạo tự động từ đánh giá (Q-280).'
+      description: 'Q-456: "Lập kế hoạch" / "Sửa kế hoạch". Nội dung khởi đầu luôn là bản sao phiên bản Chờ hiệu lực, không có thì phiên bản Hiệu lực, không có thì trống; copyCurrent giữ cho client cũ, bị bỏ qua. Đã có phiên bản Nháp/Chờ duyệt thì 409 OPEN_REVISION_EXISTS. Không có đường tạo tự động từ đánh giá (Q-280).'
       x-fr: [FR-001, FR-003, FR-004]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { copyCurrent: { type: boolean, default: true } } } } } }
@@ -119,7 +119,7 @@ paths:
       operationId: submitCarePlan
       tags: [ke-hoach]
       summary: Gửi Bác sĩ duyệt
-      description: 'Q-447: không nhập ngày hiệu lực. Có ít nhất một mục, mọi mục đủ trường FR-002; bắt buộc changeReason khi đã có phiên bản trước (422 REASON_REQUIRED).'
+      description: 'Q-456: không nhập ngày hiệu lực. Có ít nhất một mục, mọi mục đủ trường FR-002; bắt buộc changeReason khi đã có phiên bản trước (422 REASON_REQUIRED).'
       x-fr: [FR-003, FR-005]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { changeReason: { $ref: '#/components/schemas/Reason' } } } } } }
@@ -129,7 +129,7 @@ paths:
       x-implementation-phase: 3
       operationId: retractCarePlan
       tags: [ke-hoach]
-      summary: Rút lại bản Chờ duyệt về Nháp (chỉ người lập, Q-447)
+      summary: Rút lại bản Chờ duyệt về Nháp (chỉ người lập, Q-456)
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: Nháp }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
@@ -139,7 +139,7 @@ paths:
       operationId: approveCarePlan
       tags: [ke-hoach]
       summary: Duyệt (Bác sĩ; Điều dưỡng được gán quyền)
-      description: 'Q-447: người cao tuổi chưa có phiên bản Hiệu lực thì chuyển Hiệu lực từ ngày duyệt; đã có thì chuyển Chờ hiệu lực từ ngày hôm sau ngày duyệt (Q-34); phiên bản Chờ hiệu lực trước (nếu có) chuyển Đã hủy. Người lập tự duyệt: bắt buộc reason, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
+      description: 'Q-456: người cao tuổi chưa có phiên bản Hiệu lực thì chuyển Hiệu lực từ ngày duyệt; đã có thì chuyển Chờ hiệu lực từ ngày hôm sau ngày duyệt (Q-34); phiên bản Chờ hiệu lực trước (nếu có) chuyển Đã hủy. Người lập tự duyệt: bắt buộc reason, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
       x-fr: [FR-003, FR-004, FR-005]
       x-br: [BR-M04-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -161,7 +161,7 @@ paths:
       operationId: cancelCarePlan
       tags: [ke-hoach]
       summary: Hủy phiên bản Nháp hoặc Chờ duyệt (người lập, người có quyền duyệt)
-      description: 'Q-449: bắt buộc reason, trừ khi người lập tự bỏ bản Nháp của mình (allowedCommands có discardDraft thay cho cancel).'
+      description: 'Q-458: bắt buộc reason, trừ khi người lập tự bỏ bản Nháp của mình (allowedCommands có discardDraft thay cho cancel).'
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
@@ -171,7 +171,7 @@ paths:
       x-implementation-phase: 3
       operationId: listCarePlanReviewQueue
       tags: [ke-hoach]
-      summary: Hàng chờ cần lập hoặc sửa kế hoạch theo phạm vi xem, chờ lâu nhất trước (Q-448)
+      summary: Hàng chờ cần lập hoặc sửa kế hoạch theo phạm vi xem, chờ lâu nhất trước (Q-457)
       x-fr: [FR-009, FR-059]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanQueueRow' } } } } } }
   /care-plan-reviews/approved:
@@ -187,7 +187,7 @@ paths:
       x-implementation-phase: 3
       operationId: listOpenCarePlanReviews
       tags: [ke-hoach]
-      summary: Yêu cầu xem xét kế hoạch Đang mở của một người cao tuổi (Q-448)
+      summary: Yêu cầu xem xét kế hoạch Đang mở của một người cao tuổi (Q-457)
       x-fr: [FR-058, FR-059]
       parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanReview' } } } } }, '403': { $ref: '#/components/responses/CarePlanProblem' } }
@@ -196,7 +196,7 @@ paths:
       x-implementation-phase: 3
       operationId: dismissCarePlanReviews
       tags: [ke-hoach]
-      summary: Không cần thay đổi kế hoạch, đóng mọi yêu cầu xem xét Đang mở (người có quyền Lập hoặc Duyệt; Q-448)
+      summary: Không cần thay đổi kế hoạch, đóng mọi yêu cầu xem xét Đang mở (người có quyền Lập hoặc Duyệt; Q-457)
       x-fr: [FR-058]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
@@ -206,7 +206,7 @@ paths:
       x-implementation-phase: 3
       operationId: compareCarePlans
       tags: [ke-hoach]
-      summary: Thay đổi của bản sửa so với kế hoạch Hiệu lực (mục thêm, bớt, đổi; Q-447)
+      summary: Thay đổi của bản sửa so với kế hoạch Hiệu lực (mục thêm, bớt, đổi; Q-456)
       x-fr: [FR-008]
       parameters:
         - { name: from, in: query, required: true, schema: { type: integer, format: int64 } }
@@ -781,7 +781,7 @@ paths:
     post:
       tags:
         - cong-viec
-      summary: Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng)
+      summary: Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng); căn cứ AD_HOC hoặc INCIDENT_FOLLOW_UP
       x-fr:
         - FR-025
         - FR-023
@@ -1087,7 +1087,7 @@ components:
         reasons: { type: array, items: { $ref: '#/components/schemas/CarePlanReview' } }
         draftId: { type: [integer, 'null'], format: int64 }
         draftReturned: { type: boolean }
-        pendingApproval: { type: boolean, description: 'Bản đã gửi Bác sĩ duyệt (Q-448 sửa 2026-11-26); waitingSince khi đó là lúc gửi' }
+        pendingApproval: { type: boolean, description: 'Bản đã gửi Bác sĩ duyệt (Q-457 sửa 2026-11-26); waitingSince khi đó là lúc gửi' }
         createdBy: { type: [string, 'null'], description: 'Người lập bản đang xử lý' }
         waitingSince: { type: string, format: date-time }
     CarePlanApprovedRow:
@@ -1448,6 +1448,11 @@ components:
           type: string
         shared:
           type: boolean
+        shiftId:
+          type: integer
+          format: int64
+          readOnly: true
+          description: Ca của công việc, để mở đúng việc từ cảnh báo quá hạn, sự cố (007 FR-045b). Đổi api 2026-11-23, chờ chủ dự án duyệt.
         carryover:
           type: string
           enum:
@@ -1618,6 +1623,8 @@ components:
         - AD_HOC
         - AD_HOC_RECORDING
         - REWORK
+        # Đổi api 2026-11-23, chờ chủ dự án duyệt: việc tiếp theo của sự cố đang mở (007 FR-045b)
+        - INCIDENT_FOLLOW_UP
     CareMonthRequest:
       type: object
       required: [floorAreaId, month]

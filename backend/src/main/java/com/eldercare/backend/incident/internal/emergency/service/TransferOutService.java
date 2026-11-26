@@ -32,6 +32,7 @@ import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.file.FileService;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.health.api.VitalSignApi;
+import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.emergency.domain.TransferOutCommand;
 import com.eldercare.backend.incident.internal.emergency.domain.TransferOutInfo;
@@ -46,12 +47,15 @@ import com.eldercare.backend.resident.api.EndOfLifeWishApi;
 import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.TreatmentWishView;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +76,7 @@ public class TransferOutService {
     private static final Set<Role> VIEWERS =
             Set.of(Role.DOCTOR, Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.NURSING_HOME_MANAGER);
     private static final String REFUSED = "TRANSFER_REFUSED";
+    private static final String TRANSFERRED = "TRANSFERRED_OUT";
 
     private final IncidentStore incidents;
     private final IncidentProgressionStore progressions;
@@ -88,6 +93,7 @@ public class TransferOutService {
     private final AuditLogApi audit;
     private final BusinessTime time;
     private final Optional<VitalSignApi> vitalSigns;
+    private final Optional<AlertStaffPort> staff;
 
     public TransferOutService(
             IncidentStore incidents,
@@ -104,7 +110,8 @@ public class TransferOutService {
             AccountApi accounts,
             AuditLogApi audit,
             BusinessTime time,
-            @Autowired(required = false) VitalSignApi vitalSigns) {
+            @Autowired(required = false) VitalSignApi vitalSigns,
+            @Autowired(required = false) AlertStaffPort staff) {
         this.incidents = incidents;
         this.progressions = progressions;
         this.progressionTypes = progressionTypes;
@@ -120,6 +127,7 @@ public class TransferOutService {
         this.audit = audit;
         this.time = time;
         this.vitalSigns = Optional.ofNullable(vitalSigns);
+        this.staff = Optional.ofNullable(staff);
     }
 
     /** {@code GET /incidents/{id}/transfer-out/info} (FR-049): chỉ hiển thị, không gợi ý cơ sở (Q-306). */
@@ -134,7 +142,8 @@ public class TransferOutService {
                 EmergencyCardService.wish(wishes.current(residentId)),
                 card.primaryContact(),
                 treatment.map(TreatmentWishView::askFamilyFirst).orElse(false),
-                incident.level() == IncidentLevel.CRITICAL);
+                incident.level() == IncidentLevel.CRITICAL,
+                store.latestSummaryId(incidentId).orElse(null));
     }
 
     /** Lệnh Chuyển viện; trả mã bản tóm tắt. */
@@ -157,8 +166,24 @@ public class TransferOutService {
                     List.of(new UnmetCondition("FR-049", "Chỉ chuyển viện từ sự cố Mới hoặc Đang xử lý")));
         }
         if (blank(command.transferUnit())) throw new InvalidValueException("Thiếu cơ sở tiếp nhận");
-        if (command.transferAt() == null) throw new InvalidValueException("Thiếu thời điểm chuyển");
         if (blank(command.companion())) throw new InvalidValueException("Thiếu người đi kèm");
+        if (command.transferUnit().length() > 200) {
+            throw new InvalidValueException("Tên cơ sở tiếp nhận tối đa 200 ký tự");
+        }
+        if (command.companion().length() > 200) throw new InvalidValueException("Người đi kèm tối đa 200 ký tự");
+        final Long handoverId = command.handoverStaffId();
+        if (handoverId != null
+                && staff.map(port -> !port.staffExists(handoverId)).orElse(false)) {
+            throw new InvalidValueException("Nhân viên bàn giao không tồn tại");
+        }
+        // Đề xuất 2026-11-23 lượt 3: không gửi thời điểm thì là lúc thực hiện lệnh; gửi thì không trước lúc xảy ra sự
+        // cố
+        // và không sau hiện tại (diễn biến "Đã chuyển viện" không được đứng trước sự cố, không ghi trước một việc chưa
+        // xảy ra)
+        command = command.withTransferAt(transferTime(command.transferAt(), incident, time.now()));
+        if (command.expectedReturnAt() != null && command.expectedReturnAt().isBefore(command.transferAt())) {
+            throw new InvalidValueException("Dự kiến về không được trước thời điểm chuyển");
+        }
         var treatment = wishes.currentTreatmentWish(residentId);
         boolean mustAskFirst = treatment.map(TreatmentWishView::askFamilyFirst).orElse(false);
         String notAskedReason = null;
@@ -179,6 +204,17 @@ public class TransferOutService {
 
         var now = time.now();
         var result = execute(residentId, incidentId, command, user);
+        // Ghi vào sự cố để người xử lý thấy đã chuyển viện sang đâu, ai đi kèm (sự cố vẫn Đang xử lý cho tới khi đóng)
+        progressions.add(
+                incidentId,
+                progressionTypes.typeIdByCode(TRANSFERRED),
+                TRANSFERRED,
+                "Đã chuyển viện sang " + command.transferUnit() + ", người đi kèm: " + command.companion(),
+                command.transferAt(),
+                user.accountId(),
+                false,
+                incident.floorAreaId(),
+                now);
         var card = cards.build(residentId, now);
         String preparedBy = accounts.fullName(user.accountId()).orElse(Long.toString(user.accountId()));
         var draft = new TransferSummaryContent(
@@ -202,7 +238,14 @@ public class TransferOutService {
                 user.accountId(),
                 preparedBy,
                 now,
-                result.historyId());
+                result.historyId(),
+                Boolean.TRUE.equals(command.includeWishes()),
+                handoverCondition(incident),
+                card.chronicConditions(),
+                incidentId,
+                incident.occurredAt() != null ? incident.occurredAt() : incident.discoveredAt(),
+                card.identification() == null ? null : card.identification().dateOfBirth(),
+                card.identification() == null ? null : card.identification().roomBed());
         byte[] pdf = TransferSummaryDocument.render(draft, facility());
         long fileId = files.upload(
                 "phieu-tom-tat-chuyen-vien-" + incidentId + ".pdf", "application/pdf", pdf, user.accountId());
@@ -217,6 +260,21 @@ public class TransferOutService {
         // FR-050h: lần tải đầu trong lệnh cũng là một lần in.
         printed(summaryId, residentId, false);
         return summaryId;
+    }
+
+    private static Instant transferTime(Instant requested, IncidentView incident, Instant now) {
+        if (requested == null) return now;
+        if (requested.isAfter(now)) {
+            throw new InvalidValueException("Thời điểm chuyển không được sau thời điểm hiện tại");
+        }
+        Instant start = Stream.of(incident.occurredAt(), incident.discoveredAt())
+                .filter(Objects::nonNull)
+                .min(Instant::compareTo)
+                .orElse(null);
+        if (start != null && requested.isBefore(start)) {
+            throw new InvalidValueException("Thời điểm chuyển không được trước lúc xảy ra sự cố");
+        }
+        return requested;
     }
 
     /** Ghi lần thử bị 001 từ chối thành diễn biến {@code TRANSFER_REFUSED} (FR-049), sau khi lệnh đã rollback. */
@@ -366,7 +424,22 @@ public class TransferOutService {
                 s.preparedById(),
                 s.preparedBy(),
                 s.preparedAt(),
-                s.statusHistoryId());
+                s.statusHistoryId(),
+                s.includeWishes(),
+                s.handoverCondition(),
+                s.chronicConditions(),
+                s.incidentId(),
+                s.occurredAt(),
+                s.dateOfBirth(),
+                s.roomBed());
+    }
+
+    /** Lý do chuyển và tình trạng lúc bàn giao: lấy từ mô tả và xử trí ban đầu đã ghi ở sự cố, không bắt nhập lại. */
+    private static String handoverCondition(IncidentView incident) {
+        var parts = java.util.stream.Stream.of(incident.description(), incident.initialResponse())
+                .filter(p -> p != null && !p.isBlank())
+                .toList();
+        return parts.isEmpty() ? null : String.join(". ", parts);
     }
 
     private FacilityInfo facility() {

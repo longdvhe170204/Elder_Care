@@ -314,7 +314,7 @@ paths:
       tags: [contracts]
       summary: Ghi nhận đã ký (hợp đồng Hiệu lực)
       description: |
-        Bắt buộc ngày ký, người đại diện hợp lệ (012, DBR-02), bản scan. Nội trú: phải có phân bổ giường bắt đầu không muộn hơn ngày bắt đầu (FR-021).
+        Bắt buộc ngày ký, người đại diện hợp lệ (012, DBR-02), bản scan. Ngày ký không sau hôm nay, không trước ngày lập hợp đồng: 422 SIGNED_DATE_INVALID. Nội trú: phải có phân bổ giường bắt đầu không muộn hơn ngày bắt đầu (FR-021).
         Chồng thời gian với hợp đồng Hiệu lực khác: 409 (FR-022, DBR-06). Bán trú: kiểm sức chứa khu nghỉ (003 FR-039).
         Thành công: ghi phiên bản nội dung 0 với đơn giá của mọi khoản (FR-036).
       x-fr: [FR-021, FR-022, FR-036]
@@ -455,7 +455,8 @@ paths:
         Gửi duyệt, duyệt, từ chối, hủy qua api-000; khi duyệt, kiểm FR-041, FR-046 và tạo phụ lục (FR-042).
         minorChange do hệ thống tính (FR-043): Quản lý viện duyệt mọi yêu cầu, Hành chính chỉ duyệt yêu cầu là thay đổi nhỏ; kiểm lại lúc duyệt.
         Loại thay đổi Dịch vụ chỉ thêm được REHABILITATION, ACTIVITY, MEDICAL_ESCORT, INJECTION (FR-043k, Q-426): thêm loại khác 422 SERVICE_TYPE_NOT_REGISTRABLE, mô tả chỉ đúng luồng cần dùng; bớt được mọi dòng đang có; gửi duyệt, duyệt kiểm lại (409 cùng mã).
-      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043, FR-043k]
+        Loại thay đổi BED hiển thị là "Loại phòng" (FR-043l, Q-445): giường mới cùng loại phòng với hợp đồng hiện hành thì 422 BED_CHANGE_SAME_ROOM_TYPE (dùng Chuyển giường trực tiếp, api-003); không xét khi kèm bán trú sang nội trú hoặc sau chuyển giường gấp; gửi duyệt, duyệt kiểm lại (409 cùng mã).
+      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043, FR-043k, FR-043l]
       x-br: [BR-M01-03, BR-M02-16]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeRequestInput' } } } }
@@ -638,6 +639,59 @@ paths:
       responses: { '200': { description: OK } }
 
   # ---------------- Kết thúc ----------------
+  # Bổ sung 2026-11-26 (góp ý demo BF-10, E; chờ B, chủ dự án duyệt): người đại diện gửi yêu cầu kết thúc lưu trú trên
+  # app; Hành chính lập hồ sơ từ yêu cầu (POST /residency-endings kèm endingRequestId) hoặc từ chối kèm lý do
+  /family-portal/residents/{residentId}/residency-ending-requests:
+    get:
+      tags: [residency-ending]
+      summary: Yêu cầu kết thúc lưu trú của một người cao tuổi (cổng người thân, chỉ người đại diện)
+      description: 'Mới nhất trước. 403 không phải người đại diện hiện tại.'
+      x-fr: [FR-062]
+      parameters:
+        - { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidencyEndingRequest' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+    post:
+      tags: [residency-ending]
+      summary: Người đại diện gửi yêu cầu kết thúc lưu trú
+      description: 'Trường hợp hết hạn hoặc chấm dứt hợp đồng; Hành chính được báo. 403 không phải người đại diện hiện tại; 409 RESIDENT_NOT_IN_RESIDENCE, RESIDENCY_ENDING_ALREADY_OPEN, ENDING_REQUEST_ALREADY_PENDING; 422 thiếu trường, ngày trước hôm nay.'
+      x-fr: [FR-062]
+      parameters:
+        - { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyEndingRequestInput' } } } }
+      responses: { '201': { description: Đã gửi, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyEndingRequest' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /family-portal/residency-ending-requests/{id}/cancel:
+    post:
+      tags: [residency-ending]
+      summary: Người đại diện hủy yêu cầu kết thúc lưu trú còn Chờ xử lý
+      description: 'Hành chính được báo. 403 không phải người đại diện hiện tại; 409 ENDING_REQUEST_NOT_PENDING.'
+      x-fr: [FR-062]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: Đã hủy, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyEndingRequest' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' } }
+  /residency-ending-requests:
+    get:
+      tags: [residency-ending]
+      summary: Yêu cầu kết thúc lưu trú người thân gửi (Hành chính)
+      x-fr: [FR-062]
+      parameters:
+        - { name: status, in: query, schema: { type: array, items: { type: string, enum: [PENDING, HANDLED, REJECTED, CANCELLED] } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidencyEndingRequest' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /residency-ending-requests/{id}:
+    get:
+      tags: [residency-ending]
+      summary: Xem một yêu cầu kết thúc lưu trú (Hành chính, để lập hồ sơ điền sẵn)
+      x-fr: [FR-062]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyEndingRequest' } } } }, '403': { $ref: '#/components/responses/Problem' }, '404': { $ref: '#/components/responses/Problem' } }
+  /residency-ending-requests/{id}/reject:
+    post:
+      tags: [residency-ending]
+      summary: Hành chính từ chối yêu cầu kết thúc lưu trú, kèm lý do
+      description: 'Người đại diện được báo kèm lý do. 409 ENDING_REQUEST_NOT_PENDING; 422 thiếu lý do.'
+      x-fr: [FR-062]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
+      responses: { '200': { description: Đã từ chối, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyEndingRequest' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
   /residency-endings:
     get:
       tags: [residency-ending]
@@ -671,6 +725,7 @@ paths:
                 destination: { type: string }
                 requestedBy: { type: string }
                 reason: { $ref: '#/components/schemas/Reason' }
+                endingRequestId: { type: integer, format: int64, description: 'Bổ sung 2026-11-26: lập từ yêu cầu của người thân thì yêu cầu chuyển Đã xử lý, người đại diện được báo; yêu cầu phải còn Chờ xử lý và cùng người cao tuổi (409 ENDING_REQUEST_NOT_PENDING).' }
       responses: { '201': { description: Đã lập, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyEnding' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Conflict' }, '422': { $ref: '#/components/responses/Problem' } }
   /residency-endings/{id}:
     get:
@@ -726,13 +781,13 @@ paths:
           application/json:
             schema:
               type: object
-              required: [recipientType, handoverAt, handoverStaffId]
+              required: [recipientType, handoverAt]
               properties:
                 recipientType: { type: string, enum: [FAMILY_MEMBER, RECEIVING_FACILITY] }
                 familyMemberId: { type: integer, format: int64 }
                 facilityName: { type: string }
                 handoverAt: { type: string, format: date-time }
-                handoverStaffId: { type: integer, format: int64 }
+                handoverStaffId: { type: integer, format: int64, description: 'Bỏ trống thì nhân viên bàn giao là chính người ghi (BF-10 bước 6; Hành chính không xem được hồ sơ nhân viên, Phụ lục 27; sửa 2026-11-24, phương án A)' }
                 pickupRecordId: { type: integer, format: int64, description: 'Bản ghi đón của 012 (chỉ khi recipientType = FAMILY_MEMBER); hợp lệ thì được dùng một lần, không hợp lệ thì 422 (A duyệt 2026-11-05, 004-2)' }
       responses: { '201': { description: Đã ghi }, '422': { $ref: '#/components/responses/Problem' } }
   /residency-endings/{id}/request-exception:
@@ -1182,6 +1237,28 @@ components:
         overdueSince: { type: string, format: date }
         handover: { type: object, properties: { recipientType: { type: string }, recipient: { type: string }, at: { type: string, format: date-time }, staff: { type: string } } }
         status: { type: string, enum: [PREPARING, COMPLETED, CANCELLED] }
+    ResidencyEndingRequestInput:
+      type: object
+      required: [endCase, expectedEndDate, reason]
+      properties:
+        endCase: { type: string, enum: [CONTRACT_EXPIRED, CONTRACT_TERMINATION] }
+        expectedEndDate: { type: string, format: date }
+        reason: { $ref: '#/components/schemas/Reason' }
+    ResidencyEndingRequest:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        residentName: { type: string }
+        familyMemberId: { type: integer, format: int64 }
+        familyMemberName: { type: string }
+        endCase: { type: string, enum: [CONTRACT_EXPIRED, CONTRACT_TERMINATION] }
+        expectedEndDate: { type: string, format: date }
+        reason: { type: string }
+        status: { type: string, enum: [PENDING, HANDLED, REJECTED, CANCELLED] }
+        createdAt: { type: string, format: date-time }
+        decisionReason: { type: string }
+        residencyEndingId: { type: integer, format: int64 }
     DeathRecord:
       type: object
       properties:

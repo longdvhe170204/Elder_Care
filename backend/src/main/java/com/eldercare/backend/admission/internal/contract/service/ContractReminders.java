@@ -2,14 +2,18 @@ package com.eldercare.backend.admission.internal.contract.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.admission.api.events.M02Reminder;
 import com.eldercare.backend.admission.internal.contract.domain.ExpiringContract;
 import com.eldercare.backend.admission.internal.contract.persistence.ContractStore;
 import com.eldercare.backend.admission.internal.transition.service.ReminderLog;
 import com.eldercare.backend.admission.internal.transition.service.ReminderRule;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,6 +22,11 @@ import org.springframework.stereotype.Component;
  * ngày được nhắc đúng vào ngày kết thúc để tạo Kết thúc lưu trú hoặc Thay đổi lưu trú ({@code SHORT_TERM_CONTRACT}); hợp
  * đồng quá hạn được nhắc mỗi ngày ({@code CONTRACT_OVERDUE}). Phần "chưa có hồ sơ kết thúc hay yêu cầu đổi thời gian đang
  * mở" của hợp đồng ngắn ngày bổ sung khi có bảng của hai chức năng đó.
+ *
+ * <p>Demo 2026-11-25 (góp ý nhóm, E làm, chờ B, A duyệt): nội dung nêu người cao tuổi, ngày hết hạn và việc cần làm;
+ * người đại diện được báo một lần ở lần nhắc đầu tiên của khoảng nhắc (hợp đồng dài hạn, bán trú), ngày kết thúc (ngắn
+ * ngày) và lần nhắc đầu tiên của lần quá hạn, không lặp mỗi ngày. Gắn vào lần nhắc đầu chứ không vào một ngày cố định vì
+ * job chạy bù chỉ nhắc ngày mới nhất: lỡ ngày đó thì người đại diện vẫn được báo.
  */
 @Component
 class ContractReminders implements ReminderRule {
@@ -30,12 +39,17 @@ class ContractReminders implements ReminderRule {
     private final ParameterApi parameters;
     private final ReminderLog log;
     private final BusinessTime time;
+    private final ResidentApi residents;
 
-    ContractReminders(ContractStore store, ParameterApi parameters, ReminderLog log, BusinessTime time) {
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    ContractReminders(
+            ContractStore store, ParameterApi parameters, ReminderLog log, BusinessTime time, ResidentApi residents) {
         this.store = store;
         this.parameters = parameters;
         this.log = log;
         this.time = time;
+        this.residents = residents;
     }
 
     @Override
@@ -54,10 +68,43 @@ class ContractReminders implements ReminderRule {
                 type = EXPIRING;
             }
             if (type != null) {
-                log.send(type, contract.id(), day, now);
+                log.send(reminder(type, contract, day, windowDays, now));
                 sent++;
             }
         }
         return sent;
+    }
+
+    private M02Reminder reminder(String type, ExpiringContract contract, LocalDate day, long windowDays, Instant now) {
+        String name = residents.identity(contract.residentId()).fullName();
+        LocalDate end = contract.currentEndDate();
+        String endText = end.format(DATE);
+        String detail;
+        String family = null;
+        switch (type) {
+            case OVERDUE -> {
+                long days = ChronoUnit.DAYS.between(end, day);
+                detail = "Hợp đồng của " + name + " đã quá hạn " + days + " ngày (hết hạn ngày " + endText
+                        + "). Lập hồ sơ kết thúc lưu trú hoặc điều chỉnh hợp đồng.";
+                if (log.notRemindedSince(type, contract.id(), contract.overdueSince()))
+                    family = "Hợp đồng lưu trú của " + name + " đã hết hạn ngày " + endText
+                            + ". Vui lòng liên hệ viện để gia hạn hoặc làm thủ tục kết thúc lưu trú.";
+            }
+            case SHORT_TERM -> {
+                detail = "Hợp đồng ngắn ngày của " + name + " hết hạn hôm nay (" + endText
+                        + "). Lập hồ sơ kết thúc lưu trú hoặc điều chỉnh hợp đồng.";
+                family = "Hợp đồng lưu trú ngắn ngày của " + name + " hết hạn hôm nay (" + endText
+                        + "). Vui lòng liên hệ viện để gia hạn hoặc làm thủ tục kết thúc lưu trú.";
+            }
+            default -> {
+                long left = ChronoUnit.DAYS.between(day, end);
+                detail = "Hợp đồng của " + name + " hết hạn ngày " + endText + " (còn " + left
+                        + " ngày). Lập hồ sơ kết thúc lưu trú hoặc điều chỉnh hợp đồng.";
+                if (log.notRemindedSince(type, contract.id(), end.minusDays(windowDays)))
+                    family = "Hợp đồng lưu trú của " + name + " sẽ hết hạn ngày " + endText + " (còn " + left
+                            + " ngày). Vui lòng liên hệ viện để gia hạn hoặc làm thủ tục kết thúc lưu trú.";
+            }
+        }
+        return new M02Reminder(type, contract.id(), day, now, contract.residentId(), detail, family);
     }
 }

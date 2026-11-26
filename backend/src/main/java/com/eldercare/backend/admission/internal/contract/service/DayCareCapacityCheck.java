@@ -45,7 +45,7 @@ public class DayCareCapacityCheck {
         if (api == null) {
             return List.of(new UnmetCondition(
                     "DAY_CARE_CAPACITY_CHECK_UNAVAILABLE",
-                    "Chưa kiểm được sức chứa khu nghỉ bán trú (feature 003); chưa ghi nhận được (FR-041)"));
+                    "Chưa kiểm tra được sức chứa khu nghỉ bán trú; chưa thể ghi nhận thay đổi này."));
         }
         DayCareConfiguration configuration = api.lock();
         Map<SessionDate, Integer> before = counter.countFrom(from, configuration.sessions());

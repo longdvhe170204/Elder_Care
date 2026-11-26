@@ -16,7 +16,7 @@ public final class RegistrableServiceTypes {
 
     private static final Map<String, String> HINTS = Map.of(
             "CARE", "Đổi dịch vụ chăm sóc bằng loại thay đổi Mức chăm sóc",
-            "RESIDENCY_FEE", "Đổi phí lưu trú bằng loại thay đổi Giường",
+            "RESIDENCY_FEE", "Đổi phí lưu trú bằng loại thay đổi Loại phòng",
             "DAY_CARE_SESSION", "Buổi bán trú đổi bằng loại thay đổi Loại lưu trú hoặc Lịch đến",
             "MEAL", "Suất ăn đi theo luồng dinh dưỡng (chế độ ăn, suất ăn), không đăng ký trong hợp đồng",
             "FAMILY_STAY", "Người thân ở lại đăng ký ở chức năng Người thân ở lại, không đăng ký trong hợp đồng",

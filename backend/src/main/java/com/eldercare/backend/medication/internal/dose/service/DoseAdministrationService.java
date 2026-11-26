@@ -113,7 +113,14 @@ public class DoseAdministrationService {
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
         rejectIfClosed(dose, administeredContent(request));
-        rejectIfClaimedByOther(dose, recorderId, now, request.offlineFlag());
+        if (!request.offlineFlag()
+                && (request.reportedByType() == null || request.reportedByType().isBlank())) {
+            assigneeResolver.requireAuthorizedNurse(
+                    dose.getResidentId(),
+                    dose.getFloorAreaId() != null ? dose.getFloorAreaId() : floorAreaId,
+                    recorderId,
+                    now);
+        }
         String measurementsJson = requireMeasurements(dose.getPrescriptionId(), request.measurements());
 
         // Check offline restrictions for special control drugs (BR-M07-20)
@@ -141,24 +148,15 @@ public class DoseAdministrationService {
         }
 
         // Determine authority basis
-        DoseAuthorityBasis basis;
-        if (request.reportedByType() != null && !request.reportedByType().isBlank()) {
-            basis = DoseAuthorityBasis.REPORTED_BY_OTHERS;
-        } else {
-            DoseAssigneeResolver.DoseAssignee assignee =
-                    assigneeResolver.resolve(dose.getResidentId(), floorAreaId, dose.getScheduledTime(), now);
-            if (assignee.assignedNurseId() != null && assignee.assignedNurseId().equals(recorderId)) {
-                basis = DoseAuthorityBasis.ASSIGNED;
-            } else {
-                basis = DoseAuthorityBasis.FLOOR_SHARED;
-            }
-        }
+        DoseAuthorityBasis basis =
+                request.reportedByType() != null && !request.reportedByType().isBlank()
+                        ? DoseAuthorityBasis.REPORTED_BY_OTHERS
+                        : DoseAuthorityBasis.ASSIGNED;
 
         boolean lateFlag = administeredAt.isAfter(dose.getWindowTo());
 
         // Close dose record
         dose.closeAdministered(recorderId, "EMPLOYEE", floorAreaId, now);
-        dose.clearClaim(now);
         doseRepository.save(dose);
 
         // Create append-only result
@@ -242,10 +240,15 @@ public class DoseAdministrationService {
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
         rejectIfClosed(dose, reasonContent(request.reason(), request.note(), request.offlineFlag()));
-        rejectIfClaimedByOther(dose, recorderId, now, request.offlineFlag());
+        if (!request.offlineFlag()) {
+            assigneeResolver.requireAuthorizedNurse(
+                    dose.getResidentId(),
+                    dose.getFloorAreaId() != null ? dose.getFloorAreaId() : floorAreaId,
+                    recorderId,
+                    now);
+        }
 
         dose.closeRefused(recorderId, "EMPLOYEE", floorAreaId, now);
-        dose.clearClaim(now);
         doseRepository.save(dose);
 
         DoseResult result = new DoseResult(
@@ -294,10 +297,15 @@ public class DoseAdministrationService {
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
         rejectIfClosed(dose, reasonContent(request.reason(), request.note(), request.offlineFlag()));
-        rejectIfClaimedByOther(dose, recorderId, now, request.offlineFlag());
+        if (!request.offlineFlag()) {
+            assigneeResolver.requireAuthorizedNurse(
+                    dose.getResidentId(),
+                    dose.getFloorAreaId() != null ? dose.getFloorAreaId() : floorAreaId,
+                    recorderId,
+                    now);
+        }
 
         dose.closeNotAdministered(recorderId, "EMPLOYEE", floorAreaId, now);
-        dose.clearClaim(now);
         doseRepository.save(dose);
 
         DoseResult result = new DoseResult(
@@ -349,21 +357,6 @@ public class DoseAdministrationService {
                 "DOSE_ALREADY_CLOSED",
                 "Liều đã được xác nhận; nội dung được giữ để chuyển thành đính chính (DBR-13)",
                 properties);
-    }
-
-    /**
-     * Nhận liều (BR-M07-26): liều đang có người khác nhận còn hạn thì chặn 409 {@code DOSE_CLAIMED}. Bản ghi ngoại tuyến
-     * không biết lượt nhận nên không bị chặn, trùng liều xử lý theo BR-M07-20.
-     */
-    private static void rejectIfClaimedByOther(MedicationDose dose, Long recorderId, Instant now, boolean offline) {
-        if (offline || !dose.isClaimActive(now) || dose.getClaimedById().equals(recorderId)) {
-            return;
-        }
-        Map<String, Object> properties = new LinkedHashMap<>();
-        properties.put("claimedBy", dose.getClaimedById().toString());
-        properties.put("claimExpiresAt", dose.getClaimExpiresAt());
-        throw new BusinessException(
-                HttpStatus.CONFLICT, "DOSE_CLAIMED", "Liều đã có Điều dưỡng nhận (BR-M07-26)", properties);
     }
 
     /**

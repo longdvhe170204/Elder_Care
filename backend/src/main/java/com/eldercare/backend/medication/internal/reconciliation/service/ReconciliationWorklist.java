@@ -34,7 +34,7 @@ public class ReconciliationWorklist {
 
     private static final PermissionKey VIEW = new PermissionKey(Function.MEDICATION_RECONCILIATION, Operation.VIEW);
     private static final List<ReconciliationStatus> WORKING =
-            List.of(ReconciliationStatus.OPEN, ReconciliationStatus.PENDING_CONFIRMATION);
+            List.of(ReconciliationStatus.OPEN, ReconciliationStatus.DRAFT, ReconciliationStatus.PENDING_CONFIRMATION);
 
     /** Một dòng của danh sách; phiếu để trống khi người đó chưa có phiếu đang làm. */
     public record Entry(

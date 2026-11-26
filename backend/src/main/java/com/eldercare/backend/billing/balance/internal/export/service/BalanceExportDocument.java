@@ -3,13 +3,13 @@ package com.eldercare.backend.billing.balance.internal.export.service;
 import static com.eldercare.backend.billing.balance.internal.document.domain.DocumentFormat.date;
 import static com.eldercare.backend.billing.balance.internal.document.domain.DocumentFormat.dateTime;
 import static com.eldercare.backend.billing.balance.internal.document.domain.DocumentFormat.money;
+import static com.eldercare.backend.billing.balance.internal.document.domain.DocumentFormat.transactionType;
 
 import com.eldercare.backend.billing.balance.internal.export.domain.BalanceStatement;
 import com.eldercare.backend.billing.balance.internal.export.domain.IncomeExpenseReport;
 import com.eldercare.backend.billing.balance.internal.export.domain.IncomeExpenseReport.Debtor;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.PaymentMethod;
-import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionType;
 import com.eldercare.backend.common.document.ExcelDocument;
 import com.eldercare.backend.common.document.ExcelDocument.Column;
 import com.eldercare.backend.common.document.ExcelDocument.Format;
@@ -34,16 +34,8 @@ public final class BalanceExportDocument {
     private static final String REPORT_TITLE = "BÁO CÁO THU CHI";
 
     // Nhãn tiếng Việt của sổ, loại giao dịch, phương thức (glossary 23; cùng chữ với màn số dư của web)
+    // Loại giao dịch: DocumentFormat.transactionType (dùng chung với bảng quyết toán)
     private static final Map<Ledger, String> LEDGERS = Map.of(Ledger.BALANCE, "Số dư", Ledger.DEPOSIT, "Tiền cọc");
-    private static final Map<TransactionType, String> TYPES = Map.of(
-            TransactionType.CASH_PAYMENT, "Nộp tiền mặt",
-            TransactionType.BANK_TRANSFER_PAYMENT, "Nộp chuyển khoản",
-            TransactionType.STATEMENT_PAYMENT, "Thanh toán bảng chi phí",
-            TransactionType.REFUND, "Hoàn tiền",
-            TransactionType.DEPOSIT_OFFSET, "Cấn trừ tiền cọc",
-            TransactionType.ADJUSTMENT, "Điều chỉnh",
-            TransactionType.DEPOSIT_RECEIPT, "Thu tiền cọc",
-            TransactionType.DEPOSIT_REFUND, "Hoàn tiền cọc");
     private static final Map<PaymentMethod, String> METHODS = Map.of(
             PaymentMethod.CASH, "Tiền mặt",
             PaymentMethod.BANK_TRANSFER, "Chuyển khoản",
@@ -74,7 +66,7 @@ public final class BalanceExportDocument {
                             .map(line -> List.of(
                                     dateTime(line.at()),
                                     label(LEDGERS, line.ledger()),
-                                    label(TYPES, line.type()),
+                                    transactionType(line.type()),
                                     money(line.amount()),
                                     label(METHODS, line.method()),
                                     line.reference() == null ? "" : line.reference()))
@@ -98,7 +90,7 @@ public final class BalanceExportDocument {
                 rows.add(Arrays.asList(
                         LocalDateTime.ofInstant(line.at(), BusinessTime.ZONE),
                         label(LEDGERS, line.ledger()),
-                        label(TYPES, line.type()),
+                        transactionType(line.type()),
                         line.amount(),
                         label(METHODS, line.method()),
                         line.reference()));

@@ -1,6 +1,7 @@
 package com.eldercare.backend.family.web;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.family.api.dto.FamilyMemberView;
@@ -57,9 +58,11 @@ class RightChangeRequestController {
     List<RightChangeRequestResponse> list(
             @RequestParam(name = "residentId", required = false) Long residentId,
             @RequestParam(name = "status", required = false) RightChangeRequest.Status status) {
-        return requests.list(residentId, status).stream()
-                .map(RightChangeRequestResponse::of)
-                .toList();
+        return requests.list(residentId, status).stream().map(this::response).toList();
+    }
+
+    private RightChangeRequestResponse response(SimpleRecord<RightChangeRequest> record) {
+        return RightChangeRequestResponse.of(record, requests.familyMemberName(record.content()));
     }
 
     @PostMapping("/right-change-requests")
@@ -78,8 +81,7 @@ class RightChangeRequestController {
     ResponseEntity<RightChangeRequestResponse> create(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody CreateRightChangeRequestBody body) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(RightChangeRequestResponse.of(requests.create(body.command(), body.reason())));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response(requests.create(body.command(), body.reason())));
     }
 
     @PostMapping("/right-change-requests/{id}/{command}")
@@ -109,7 +111,7 @@ class RightChangeRequestController {
             case "cancel" -> requests.cancel(target, id, b.reason());
             default -> throw new NotFoundException();
         };
-        return ResponseEntity.ok(RightChangeRequestResponse.of(result));
+        return ResponseEntity.ok(response(result));
     }
 
     @GetMapping("/residents/{residentId}/pickup-list")

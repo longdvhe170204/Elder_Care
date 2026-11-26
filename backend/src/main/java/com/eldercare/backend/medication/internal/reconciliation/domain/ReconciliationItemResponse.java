@@ -15,6 +15,9 @@ public class ReconciliationItemResponse {
     private Long admissionMedicationItemId;
     private String medicationDescription;
     private String decision;
+    private String nurseFinding;
+    private String comparisonSummary;
+    private java.time.Instant lastHospitalDoseAt;
     private String reason;
     private CreatePrescriptionBody newPrescription;
     private Boolean discontinuedOutsideTicket;
@@ -107,5 +110,29 @@ public class ReconciliationItemResponse {
 
     public void setCreatedPrescriptionId(Long createdPrescriptionId) {
         this.createdPrescriptionId = createdPrescriptionId;
+    }
+
+    public String getNurseFinding() {
+        return nurseFinding;
+    }
+
+    public void setNurseFinding(String nurseFinding) {
+        this.nurseFinding = nurseFinding;
+    }
+
+    public String getComparisonSummary() {
+        return comparisonSummary;
+    }
+
+    public void setComparisonSummary(String comparisonSummary) {
+        this.comparisonSummary = comparisonSummary;
+    }
+
+    public java.time.Instant getLastHospitalDoseAt() {
+        return lastHospitalDoseAt;
+    }
+
+    public void setLastHospitalDoseAt(java.time.Instant lastHospitalDoseAt) {
+        this.lastHospitalDoseAt = lastHospitalDoseAt;
     }
 }

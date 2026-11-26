@@ -191,4 +191,25 @@ class FamilyMedicationTest {
                 .thenReturn(List.of(expired));
         assertThat(familyMedicationService.hasUsableBatch(100L, 101L)).isFalse();
     }
+
+    @Test
+    @DisplayName("M07-10: Thuốc gia đình gửi khác hàm lượng với đơn bị chặn chuyển Được sử dụng")
+    void M07_10_confirmUse_concentrationMismatch_blockedWithHoldOnlyGuidance() {
+        FamilyMedicationBatch batch = createBatch(10L, FamilyMedicationBatchStatus.PENDING_RECONCILIATION);
+        setField(batch, "medicationId", 50L);
+        setField(batch, "customConcentration", "250mg");
+        when(batchRepo.findById(10L)).thenReturn(Optional.of(batch));
+        var med = new com.eldercare.backend.medication.internal.catalog.domain.Medication(
+                "Paracetamol", "500mg", "Viên", "Uống", "viên", 30, 30, false, java.util.Set.of(1L));
+        setField(med, "id", 50L);
+        when(medicationRepo.findById(50L)).thenReturn(Optional.of(med));
+
+        ConfirmBatchUseBody body = new ConfirmBatchUseBody();
+        body.setPackagingRecognizable(true);
+        body.setPrescriptionIds(List.of(101L));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> familyMedicationService.confirmUse(10L, body, 7L))
+                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class)
+                .hasMessageContaining("khác hàm lượng");
+    }
 }

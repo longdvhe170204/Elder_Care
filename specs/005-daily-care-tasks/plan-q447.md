@@ -1,4 +1,4 @@
-# Q-447: Tinh gọn lập và duyệt kế hoạch chăm sóc — kế hoạch triển khai
+# Q-456: Tinh gọn lập và duyệt kế hoạch chăm sóc — kế hoạch triển khai
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -13,7 +13,7 @@ Web dựng lại màn theo dạng "kế hoạch hiện hành + bản sửa". Mob
 
 **Tech Stack:** Spring Boot 4.1 / Java 25 / MySQL 8.0 (Flyway); React 19 + Vitest; Flutter.
 
-**Spec:** `specs/005-daily-care-tasks/spec.md` (mục Cập nhật 2026-11-25, US1, FR-003, FR-004, FR-007, FR-008); thiết kế `specs/005-daily-care-tasks/design-care-plan-streamline.md`; quyết định Q-447 ở `docs/business/nghiep-vu.md`.
+**Spec:** `specs/005-daily-care-tasks/spec.md` (mục Cập nhật 2026-11-25, US1, FR-003, FR-004, FR-007, FR-008); thiết kế `specs/005-daily-care-tasks/design-care-plan-streamline.md`; quyết định Q-456 ở `docs/business/nghiep-vu.md`.
 
 ## Global Constraints
 
@@ -25,7 +25,7 @@ Web dựng lại màn theo dạng "kế hoạch hiện hành + bản sửa". Mob
   - Nút: `Lập kế hoạch`, `Sửa kế hoạch`, `Lưu nháp`, `Gửi Bác sĩ duyệt`, `Rút lại`, `Bỏ bản sửa`, `Duyệt`, `Trả lại`.
   - Ô nhập: `Lý do sửa`.
 - Commit theo đợt, mỗi kho một commit riêng. Message không ghi attribution. Không đổi nhánh: Elder_Care, Elder_Care_Frontend ở `fix/daily-care-and-meal-menu`, Elder_Care_Mobile ở `fix/daily-care-v2`.
-- Kho mobile đang có 2 file staged sẵn không thuộc việc này (`care_result_form.dart`, `care_checklist_screen_test.dart`). Không đưa vào commit Q-447.
+- Kho mobile đang có 2 file staged sẵn không thuộc việc này (`care_result_form.dart`, `care_checklist_screen_test.dart`). Không đưa vào commit Q-456.
 
 ## Review Focus
 
@@ -41,7 +41,7 @@ Web dựng lại màn theo dạng "kế hoạch hiện hành + bản sửa". Mob
 
 **Files:**
 - Modify: `backend/src/main/java/com/eldercare/backend/care/internal/careplan/domain/CarePlanTransitions.java`
-- Create: `backend/src/main/resources/db/migration/V005_103__q447_care_plan_same_day.sql`
+- Create: `backend/src/main/resources/db/migration/V005_106__q447_care_plan_same_day.sql`
 - Test: `backend/src/test/java/com/eldercare/backend/care/FR_003_CarePlanTransitionsTest.java`
 
 **Interfaces:**
@@ -66,8 +66,8 @@ Web dựng lại màn theo dạng "kế hoạch hiện hành + bản sửa". Mob
 - [ ] **Step 2: Chạy test, phải đỏ**
   `.\mvnw.cmd test "-Dtest=FR_003_CarePlanTransitionsTest"`. Kỳ vọng biên dịch lỗi hoặc FAIL vì chưa có `approvedStatus`.
 - [ ] **Step 3: Cài đặt** `next`, `approvedStatus`, `effectiveFromOnApproval` theo đúng chữ ký ở Interfaces. Bỏ hẳn kiểm `INVALID_EFFECTIVE_DATE`.
-- [ ] **Step 4: Viết migration `V005_103`**
-  - Mở đầu bằng chú thích Q-447, ngày 2026-11-25.
+- [ ] **Step 4: Viết migration `V005_106`**
+  - Mở đầu bằng chú thích Q-456, ngày 2026-11-25.
   - `ALTER TABLE care_plan DROP CHECK chk_care_plan_approval;`
   - `ALTER TABLE care_plan ADD CONSTRAINT chk_care_plan_approval CHECK(approved_at IS NULL OR (effective_from IS NOT NULL AND effective_from>=DATE(approved_at)));`
   - `ALTER TABLE care_plan MODIFY end_reason ENUM('NEW_REVISION','FINAL_STATUS','RETURNED','CANCELLED','WITHDRAWN','SUPERSEDED') NULL;`
@@ -138,7 +138,7 @@ Hành vi:
 - [ ] **Step 6: Chạy lại, phải xanh**
   Cùng lệnh Step 3, cộng thêm `FR_003_CarePlanTransitionsTest`, `BR_17_CarePlanReviewIT`, `BR_18_ShiftTaskPlanningIT`, `ApiContractIT`, `ModuleBoundaryTest`. Kỳ vọng tất cả PASS.
 - [ ] **Step 7: Định dạng mã rồi commit (kho Elder_Care)**
-  `.\mvnw.cmd spotless:apply`, rồi commit với message `feat(005): Q-447 gửi Bác sĩ duyệt không nhập ngày, hiệu lực ngay hoặc từ ngày mai, Rút lại`.
+  `.\mvnw.cmd spotless:apply`, rồi commit với message `feat(005): Q-456 gửi Bác sĩ duyệt không nhập ngày, hiệu lực ngay hoặc từ ngày mai, Rút lại`.
 
 ### Task 3: Màn Kế hoạch chăm sóc trên web
 
@@ -197,7 +197,7 @@ Bước nào lỗi thì dừng lại và hiện `ProblemAlert`.
   `npx vitest run src/features/care-tasks/`, `npm run lint`, `npm run build`. Kỳ vọng tất cả xanh.
 - [ ] **Step 5: Mở màn trên trình duyệt để xem**
   `npm run dev`, mở với backend đang chạy, hoặc bản mẫu nếu không có backend. Chụp màn: chưa có kế hoạch, đang soạn, chờ duyệt (vai Bác sĩ).
-- [ ] **Step 6: Commit (kho Elder_Care_Frontend)** với message `feat(care-plan): Q-447 một kế hoạch, gửi Bác sĩ duyệt, bỏ phiên bản trên màn`.
+- [ ] **Step 6: Commit (kho Elder_Care_Frontend)** với message `feat(care-plan): Q-456 một kế hoạch, gửi Bác sĩ duyệt, bỏ phiên bản trên màn`.
 
 ### Task 4: Nhãn trên mobile
 
@@ -209,16 +209,16 @@ Bước nào lỗi thì dừng lại và hiện `ProblemAlert`.
 - [ ] **Step 2:** Đổi dòng 120–121 thành `'Hiệu lực từ ${formatDate(...)}'`. Khi `effectiveFrom` null thì ghi `'Đang hiệu lực'`.
 - [ ] **Step 3:** Chạy `flutter test test/staff/care_tasks/care_plans_screen_test.dart` và `flutter analyze`. Kỳ vọng PASS.
 - [ ] **Step 4: Commit (kho Elder_Care_Mobile)**
-  Chỉ `git add` hai file của task này, không đưa 2 file đang staged sẵn. Message `feat(care-plan): Q-447 bỏ số phiên bản trên màn kế hoạch`.
+  Chỉ `git add` hai file của task này, không đưa 2 file đang staged sẵn. Message `feat(care-plan): Q-456 bỏ số phiên bản trên màn kế hoạch`.
 
 ### Task 5: Ghi tiến độ và kiểm tra cuối
 
 **Files:**
-- Modify: `Elder_Care/specs/005-daily-care-tasks/tasks.md` (thêm phase "Q-447" với T-mã mới, đánh `[x]` theo kết quả)
+- Modify: `Elder_Care/specs/005-daily-care-tasks/tasks.md` (thêm phase "Q-456" với T-mã mới, đánh `[x]` theo kết quả)
 - Modify: `Elder_Care/docs/progress.md` (thêm một dòng cuối)
 
 - [ ] **Step 1: Chạy nhóm IT của module care**
   `.\mvnw.cmd verify "-Dit.test=FR_003_CarePlanLifecycleIT,BR_17_CarePlanReviewIT,BR_18_ShiftTaskPlanningIT,FR_039_CareResultRulesIT,ApiContractIT" "-Dtest=FR_003_*,ModuleBoundaryTest,*ArchTest" "-Dsurefire.failIfNoSpecifiedTests=false"`. Kỳ vọng BUILD SUCCESS.
 - [ ] **Step 2: Ghi `tasks.md` và `progress.md`**
-  Ghi feature 005, Q-447, nhánh, các test đã chạy và kết quả. Ghi rõ "Chưa chạy clean verify".
-- [ ] **Step 3: Commit (kho Elder_Care)** với message `docs(005): Q-447 tasks và tiến độ`.
+  Ghi feature 005, Q-456, nhánh, các test đã chạy và kết quả. Ghi rõ "Chưa chạy clean verify".
+- [ ] **Step 3: Commit (kho Elder_Care)** với message `docs(005): Q-456 tasks và tiến độ`.

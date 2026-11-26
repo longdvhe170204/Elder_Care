@@ -65,6 +65,7 @@ public class EndingTransition {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
+    private final EndingFamilyNotice familyNotice;
 
     EndingTransition(
             ResidencyEndingStore store,
@@ -78,7 +79,8 @@ public class EndingTransition {
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
             BusinessTime time,
-            ObjectProvider<CurrentUser> currentUser) {
+            ObjectProvider<CurrentUser> currentUser,
+            EndingFamilyNotice familyNotice) {
         this.store = store;
         this.handovers = handovers;
         this.contractTransition = contractTransition;
@@ -91,6 +93,7 @@ public class EndingTransition {
         this.events = events;
         this.time = time;
         this.currentUser = currentUser;
+        this.familyNotice = familyNotice;
     }
 
     /**
@@ -189,7 +192,8 @@ public class EndingTransition {
                 .after(Map.of("status", "COMPLETED", "actualEndedAt", effectiveAt.toString()))
                 .details(Map.of("historyId", result.historyId()))
                 .build());
-        events.publishEvent(new ResidencyEndingCompleted(endingId, residentId, endDate));
+        events.publishEvent(new ResidencyEndingCompleted(
+                endingId, residentId, endDate, time.now(), familyNotice.text(ending, endDate)));
     }
 
     static LocalDate localDate(Instant instant) {

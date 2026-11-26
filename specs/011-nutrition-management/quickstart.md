@@ -126,7 +126,7 @@ Test: `FR_063_SuatAnDuKienNguoiCaoTuoiIT`.
 
 
 
-## 7. Kịch bản Q-445 (2026-11-24)
+## 7. Kịch bản Q-454 (2026-11-24)
 
 | # | Thao tác | Kết quả mong đợi | Spec |
 | --- | --- | --- | --- |

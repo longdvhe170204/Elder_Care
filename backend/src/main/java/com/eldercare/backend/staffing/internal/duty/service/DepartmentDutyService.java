@@ -26,6 +26,12 @@ public class DepartmentDutyService {
     private final ObjectProvider<CurrentUser> users;
     private final BusinessTime time;
     private final AuditLogApi audit;
+    private final ObjectProvider<PermissionApi> permissions;
+
+    /** Quyền đọc được danh mục bộ phận: xem hồ sơ nhân sự, hoặc một quyền bất kỳ của mua sắm, tài sản (019). */
+    private static final Set<com.eldercare.backend.administration.account.api.dto.Function> LIST_FUNCTIONS = Set.of(
+            com.eldercare.backend.administration.account.api.dto.Function.PURCHASE_REQUEST,
+            com.eldercare.backend.administration.account.api.dto.Function.ASSET_VEHICLE);
 
     public DepartmentDutyService(
             DepartmentDutyStore store,
@@ -33,19 +39,31 @@ public class DepartmentDutyService {
             AccountApi accounts,
             ObjectProvider<CurrentUser> users,
             BusinessTime time,
-            AuditLogApi audit) {
+            AuditLogApi audit,
+            ObjectProvider<PermissionApi> permissions) {
         this.store = store;
         this.staff = staff;
         this.accounts = accounts;
         this.users = users;
         this.time = time;
         this.audit = audit;
+        this.permissions = permissions;
     }
 
-    @RequiresPermission(
-            function = com.eldercare.backend.administration.account.api.dto.Function.STAFF_PROFILE,
-            operation = com.eldercare.backend.administration.account.api.dto.Operation.VIEW)
+    /**
+     * Danh mục bộ phận (api-008 GET /departments): người xem hồ sơ nhân sự, hoặc người có quyền mua sắm, tài sản để chọn bộ
+     * phận khi lập yêu cầu mua sắm, ghi tăng tài sản (Phụ trách bộ phận không có quyền nhân sự, ví dụ Nhân viên bếp; kiểm
+     * demo 2026-11-25). Tự kiểm vì danh mục không gắn đối tượng, như danh mục loại tài sản.
+     */
+    @Transactional(readOnly = true)
     public List<com.eldercare.backend.staffing.internal.duty.domain.Department> list() {
+        var granted = permissions.getObject().permissions(users.getObject());
+        boolean allowed = granted.stream()
+                .anyMatch(k -> (k.function()
+                                        == com.eldercare.backend.administration.account.api.dto.Function.STAFF_PROFILE
+                                && k.operation() == com.eldercare.backend.administration.account.api.dto.Operation.VIEW)
+                        || LIST_FUNCTIONS.contains(k.function()));
+        if (!allowed) throw new PermissionDeniedException("Không có quyền xem danh mục bộ phận");
         return store.all();
     }
 

@@ -14,6 +14,7 @@ public final class IncidentActions {
     public static final AuditAction JOINED = new AuditAction("INCIDENT_HANDLING_JOINED", false);
     public static final AuditAction ASSIGNED = new AuditAction("INCIDENT_HANDLER_ASSIGNED", false);
     public static final AuditAction RECEIVED = new AuditAction("INCIDENT_RECEIVED", false);
+    public static final AuditAction FAMILY_NOTICE_RECORDED = new AuditAction("INCIDENT_FAMILY_NOTICE_RECORDED", false);
 
     private IncidentActions() {}
 }

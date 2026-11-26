@@ -11,6 +11,7 @@ import java.util.List;
 public record PrescriptionResponse(
         Long id,
         Long residentId,
+        String prescriptionGroupId,
         Long medicationId,
         BigDecimal dosage,
         String unit,
@@ -38,9 +39,14 @@ public record PrescriptionResponse(
         int version,
         String timeCriticality,
         List<String> requiredMeasurements,
+        List<MeasurementCondition> measurementConditions,
+        boolean chronicDisease,
         String indication,
         Instant tempResumedAt,
         String tempResumeBasis) {
+
+    public record MeasurementCondition(
+            String metric, BigDecimal minValue, BigDecimal maxValue, String holdInstruction) {}
 
     public record FrequencyResponse(
             String type, List<String> timedSlots, Integer everyNHours, Instant firstSlot, List<Integer> daysOfWeek) {
@@ -103,6 +109,19 @@ public record PrescriptionResponse(
         }
     }
 
+    public static List<MeasurementCondition> parseMeasurementConditions(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readValue(
+                            json, new com.fasterxml.jackson.core.type.TypeReference<List<MeasurementCondition>>() {});
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
     public static PrescriptionResponse from(
             Prescription p,
             Long replacedById,
@@ -116,7 +135,9 @@ public record PrescriptionResponse(
         if (p.getFrequencyType() != null) {
             freq = new FrequencyResponse(
                     p.getFrequencyType().name(),
-                    null, // parsed from timed_slots if needed
+                    p.getTimedSlots() != null && !p.getTimedSlots().isBlank()
+                            ? parseMeasurements(p.getTimedSlots())
+                            : null,
                     p.getEveryNHours(),
                     p.getFirstSlot(),
                     null);
@@ -146,6 +167,7 @@ public record PrescriptionResponse(
         return new PrescriptionResponse(
                 p.getId(),
                 p.getResidentId(),
+                p.getPrescriptionGroupId(),
                 p.getMedicationId(),
                 p.getDosage(),
                 p.getDosageUnit(),
@@ -173,6 +195,8 @@ public record PrescriptionResponse(
                 p.getVersion(),
                 p.getTimeCriticality() != null ? p.getTimeCriticality().name() : "NORMAL",
                 parseMeasurements(p.getPreDoseMeasurements()),
+                parseMeasurementConditions(p.getMeasurementConditions()),
+                p.isChronicDisease(),
                 p.getIndication(),
                 p.getTempResumedAt(),
                 p.getTempResumeBasis());

@@ -21,7 +21,7 @@ public record ResidentHandoverBody(
         @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         Instant handoverAt,
 
-        @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        // Bỏ trống: chính người ghi (BF-10 bước 6, phương án A 2026-11-24; Hành chính không xem được hồ sơ nhân viên)
         Long handoverStaffId,
 
         Long pickupRecordId) {}

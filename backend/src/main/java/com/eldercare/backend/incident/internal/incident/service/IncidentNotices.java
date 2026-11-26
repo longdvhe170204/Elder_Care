@@ -50,6 +50,48 @@ public final class IncidentNotices {
     }
 
     /**
+     * BF-06 "Ghi nhận sau": sự cố đã xảy ra và đã xử lý xong chỉ cần lưu hồ sơ, nên chỉ có thông báo thông tin (mức Nhẹ,
+     * không leo thang) cho Điều dưỡng phụ trách và Trưởng tầng. Chưa báo người nhà thì gửi thêm thông báo thông tin cho
+     * người liên hệ chính (nội dung tối thiểu như FR-047 a) và người ghi được nhắc gọi điện ở hồ sơ sự cố.
+     */
+    static List<NotificationRequest> recordedLater(
+            long incidentId, Long residentId, Long floorAreaId, boolean familyNotYet, long actorId, Instant at) {
+        var groups = new LinkedHashSet<RecipientGroup>();
+        if (residentId != null) groups.add(new RecipientGroup.AssignedNurse(residentId, new Substitution.Default()));
+        floorManager(groups, floorAreaId);
+        var requests = new ArrayList<NotificationRequest>();
+        if (!groups.isEmpty()) {
+            requests.add(request(
+                    incidentId,
+                    SOURCE_TYPE + ":" + incidentId + ":RECORDED_LATER",
+                    IncidentLevel.LOW,
+                    residentId,
+                    floorAreaId,
+                    List.copyOf(groups),
+                    "Sự cố đã xảy ra và được ghi nhận sau khi xử lý xong. Mở hồ sơ sự cố để xem.",
+                    actorId,
+                    at,
+                    Optional.empty(),
+                    Optional.empty()));
+        }
+        if (familyNotYet && residentId != null) {
+            requests.add(request(
+                    incidentId,
+                    SOURCE_TYPE + ":" + incidentId + ":RECORDED_LATER:PRIMARY_CONTACT",
+                    IncidentLevel.LOW,
+                    residentId,
+                    floorAreaId,
+                    List.of(new RecipientGroup.PrimaryContact(residentId)),
+                    "Viện xin thông tin đến ông/bà về người thân tại viện. Đề nghị liên hệ viện để được trao đổi.",
+                    actorId,
+                    at,
+                    Optional.of(InformationSubject.ABOUT_RESIDENT),
+                    Optional.of(Q354Case.PRIMARY_CONTACT_EMERGENCY)));
+        }
+        return requests;
+    }
+
+    /**
      * FR-047 (a), FR-047b: sự cố được nâng lên Khẩn cấp chạy quy trình khẩn cấp với cùng nhóm người nhận như lúc ghi nhận
      * ở mức Khẩn cấp (T041).
      */
@@ -233,6 +275,23 @@ public final class IncidentNotices {
                 floorAreaId,
                 List.of(new RecipientGroup.Staff(staffId, "INCIDENT_SOURCE_RESOLVED")),
                 "Nguồn của cảnh báo đã chuyển thành sự cố này đã được xử lý. Mở hồ sơ sự cố để xem diễn biến.",
+                0L,
+                at,
+                Optional.empty(),
+                Optional.empty()));
+    }
+
+    /** Người cao tuổi đã được Ghi nhận trở về sau lần chuyển viện của sự cố (đề xuất 2026-11-23 lượt 3). */
+    public static List<NotificationRequest> residentReturned(
+            long incidentId, Long residentId, Long floorAreaId, long staffId, Instant at) {
+        return List.of(request(
+                incidentId,
+                SOURCE_TYPE + ":" + incidentId + ":RESIDENT_RETURNED:" + at.toEpochMilli(),
+                IncidentLevel.LOW,
+                residentId,
+                floorAreaId,
+                List.of(new RecipientGroup.Staff(staffId, "INCIDENT_RESIDENT_RETURNED")),
+                "Người cao tuổi đã về viện sau chuyển viện. Mở hồ sơ sự cố để ghi diễn biến, chuyển theo dõi hoặc đóng.",
                 0L,
                 at,
                 Optional.empty(),

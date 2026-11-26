@@ -92,8 +92,12 @@ class US5_BalanceStatusIT extends BalanceTestBase {
 
             cash(a, 10_000_000);
             assertThat(ledger(a, "status")).isEqualTo("NORMAL");
+            // Demo 2026-11-26: nộp tiền báo người đại diện bằng thông báo biến động số dư (không còn
+            // PAYMENT_SUFFICIENT)
             assertThat(notices(a).stream().filter(n -> n.eventType().equals("M11_BALANCE_PAYMENT_SUFFICIENT")))
-                    .singleElement()
+                    .isEmpty();
+            assertThat(allNotices(a).stream().filter(n -> n.eventType().equals("M11_BALANCE_TRANSACTION")))
+                    .last()
                     .satisfies(
                             n -> assertThat(n.recipientGroups()).containsExactly(new RecipientGroup.Representative(a)));
 
@@ -104,7 +108,7 @@ class US5_BalanceStatusIT extends BalanceTestBase {
             cash(a, 200_000);
             assertThat(ledger(a, "status")).isEqualTo("RUNNING_LOW");
             assertThat(notices(a).stream().filter(n -> n.eventType().equals("M11_BALANCE_PAYMENT_RECORDED")))
-                    .hasSize(1);
+                    .isEmpty();
             getAs(accountant, "/api/v1/balance-statuses?status=RUNNING_LOW")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[?(@.residentId == " + a + ")].daysCovered")
@@ -165,7 +169,14 @@ class US5_BalanceStatusIT extends BalanceTestBase {
                 "SELECT " + column + " FROM resident_balance WHERE resident_id = ?", String.class, resident);
     }
 
+    // Thông báo tình trạng số dư; thông báo biến động (M11_BALANCE_TRANSACTION, demo 2026-11-26) xem allNotices
     private List<NotificationRequest> notices(long resident) {
+        return allNotices(resident).stream()
+                .filter(n -> !n.eventType().equals("M11_BALANCE_TRANSACTION"))
+                .toList();
+    }
+
+    private List<NotificationRequest> allNotices(long resident) {
         return events.stream(BalanceNotice.class)
                 .flatMap(e -> e.notificationRequests().stream())
                 .filter(n -> n.residentId().equals(java.util.Optional.of(resident)))

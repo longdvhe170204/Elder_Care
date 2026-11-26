@@ -7,6 +7,7 @@ import com.eldercare.backend.administration.shared.api.dto.SharedKind;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Lịch sử cảnh báo (nhóm 3, bảng chung {@code record_event} kind {@code M05.ALERT_HISTORY}; research S-08, R-15): mỗi
@@ -14,6 +15,21 @@ import java.util.Map;
  * thì bỏ qua (test đơn vị).
  */
 final class AlertHistory {
+    /** Lần báo sau của nhân viên gộp vào cảnh báo thủ công đang mở: giữ người báo và mô tả (FR-030). */
+    static final String MERGED = "MERGED";
+
+    /** Người nhận bấm "Tôi đến giúp" ở cảnh báo từ nút SOS, nút hỗ trợ (đề xuất 2026-11-23): một dòng mỗi người. */
+    static final String HELPER_JOINED = "HELPER_JOINED";
+
+    /** Người bấm nút hỗ trợ nhắn thêm tình hình (đề xuất 2026-11-23): người nhắn, nội dung, thời điểm. */
+    static final String SENDER_MESSAGE = "SENDER_MESSAGE";
+
+    /** Đổi tầng của cảnh báo nút hỗ trợ (đề xuất 2026-11-23): người đổi, tầng cũ, tầng mới (rỗng là khu vực chung). */
+    static final String FLOOR_CHANGED = "FLOOR_CHANGED";
+
+    /** Người bấm rút yêu cầu khi chưa ai tiếp nhận (đề xuất 2026-11-23). */
+    static final String WITHDRAWN = "WITHDRAWN";
+
     static final SharedKind<Map> KIND = SharedKind.of("M05.ALERT_HISTORY", Map.class);
 
     private final RecordEventApi records;
@@ -24,6 +40,11 @@ final class AlertHistory {
 
     /** Khóa duy nhất theo cảnh báo, hành động và thời điểm, nên lần chạy lại cùng mốc không ghi trùng. */
     void add(long alertId, String action, Map<String, Object> detail, Instant at) {
+        add(alertId, action, detail, at, Long.toString(at.toEpochMilli()));
+    }
+
+    /** Như {@link #add(long, String, Map, Instant)} với phần cuối khóa riêng, ví dụ theo người cho "Tôi đến giúp". */
+    void add(long alertId, String action, Map<String, Object> detail, Instant at, String keySuffix) {
         if (records == null) return;
         records.add(
                 KIND,
@@ -37,7 +58,19 @@ final class AlertHistory {
                         at,
                         at,
                         null,
-                        "ALERT_HISTORY:" + alertId + ":" + action + ":" + at.toEpochMilli()));
+                        "ALERT_HISTORY:" + alertId + ":" + action + ":" + keySuffix));
+    }
+
+    /** Tài khoản đã bấm "Tôi đến giúp", theo thứ tự bấm. */
+    @SuppressWarnings("unchecked")
+    List<Long> helpers(long alertId) {
+        return list(alertId).stream()
+                .filter(row -> HELPER_JOINED.equals(row.get("action")))
+                .map(row -> ((Map<String, Object>) row.get("detail")).get("by"))
+                .filter(Objects::nonNull)
+                .map(by -> ((Number) by).longValue())
+                .distinct()
+                .toList();
     }
 
     @SuppressWarnings("unchecked")

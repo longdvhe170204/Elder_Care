@@ -12,6 +12,7 @@ import com.eldercare.backend.common.notification.SourceGroup;
 import com.eldercare.backend.common.notification.SourceRecord;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -30,7 +31,10 @@ public final class BalanceNotices {
     private static final String SOURCE = "M11.BALANCE";
     private static final String TITLE = "Số dư";
 
-    /** Số liệu cho nội dung; {@code paymentInstructions} rỗng khi viện chưa đặt CFG-M11-10. */
+    /**
+     * Số liệu cho nội dung; {@code paymentInstructions} rỗng khi viện chưa đặt CFG-M11-10; {@code reminder} khi tình trạng
+     * không đổi (lần nhắc theo chu kỳ CFG-M11-05).
+     */
     public record Facts(
             long residentId,
             String fullName,
@@ -40,7 +44,8 @@ public final class BalanceNotices {
             String paymentInstructions,
             LocalDate inDebtSince,
             String key,
-            Instant at) {}
+            Instant at,
+            boolean reminder) {}
 
     private BalanceNotices() {}
 
@@ -60,29 +65,22 @@ public final class BalanceNotices {
                             f,
                             type,
                             Role.ACCOUNTANT,
-                            f.fullName() + " chuyển " + label(f.status()) + ": số dư " + money(f.balance())
-                                    + ", chi phí chưa chốt " + money(f.unfinalizedTotal()) + "."));
+                            label(f.status()),
+                            (f.reminder() ? "Nhắc lại: " + f.fullName() + " vẫn " : f.fullName() + " chuyển ")
+                                    + label(f.status()) + ": số dư " + money(f.balance()) + ", chi phí chưa chốt "
+                                    + money(f.unfinalizedTotal()) + "."));
                 }
                 case MANAGER ->
                     requests.add(staff(
                             f,
                             "M11_BALANCE_IN_DEBT_MANAGER",
                             Role.NURSING_HOME_MANAGER,
-                            f.fullName() + " còn nợ liên tục từ " + f.inDebtSince() + ": số dư " + money(f.balance())
-                                    + "."));
-                case PAYMENT_SUFFICIENT ->
-                    requests.add(family(
-                            f,
-                            "M11_BALANCE_PAYMENT_SUFFICIENT",
-                            NotificationLevel.LOW,
-                            "Đã ghi nhận khoản nộp cho " + f.fullName() + ", số dư đã đủ."));
-                case PAYMENT_RECORDED ->
-                    requests.add(family(
-                            f,
-                            "M11_BALANCE_PAYMENT_RECORDED",
-                            NotificationLevel.LOW,
-                            "Đã ghi nhận khoản nộp cho " + f.fullName() + ", tình trạng sau khi nộp: "
-                                    + label(f.status()) + "."));
+                            "Còn nợ kéo dài",
+                            f.fullName() + " còn nợ liên tục từ " + date(f.inDebtSince()) + ": số dư "
+                                    + money(f.balance()) + "."));
+                // Demo 2026-11-26 (E): khoản nộp đã báo người đại diện bằng thông báo biến động số dư
+                // (TransactionNotices, kèm số tiền và số dư sau nộp) nên không báo thêm ở đây, tránh trùng
+                case PAYMENT_SUFFICIENT, PAYMENT_RECORDED -> {}
             }
         }
         return new BalanceNotice(requests);
@@ -109,10 +107,13 @@ public final class BalanceNotices {
                 // Khoản phải trả là việc của chính người thân: không theo mục "nhận thông báo" của bản đồng ý
                 // (nghiep-vu 14.x, Q-353, Q-362; sửa sau test BF-16 2026-11-22)
                 Optional.of(InformationSubject.ABOUT_FAMILY_MATTER),
-                "");
+                "",
+                // Tiêu đề trung tính: người không có quyền xem chi phí chỉ nhận phần chung
+                TITLE);
     }
 
-    private static NotificationRequest staff(Facts f, String type, Role role, String text) {
+    /** Tiêu đề nêu tình trạng (góp ý test BF-16 bước 8, 2026-11-25; trước luôn "Số dư"). */
+    private static NotificationRequest staff(Facts f, String type, Role role, String title, String text) {
         return request(
                 f,
                 type,
@@ -122,7 +123,8 @@ public final class BalanceNotices {
                 text,
                 Optional.empty(),
                 // 009 bỏ yêu cầu trùng nguồn và khóa sự kiện (FR-005): khóa của nhân viên khác khóa của người đại diện
-                ":" + role.name());
+                ":" + role.name(),
+                title);
     }
 
     private static NotificationRequest request(
@@ -133,7 +135,8 @@ public final class BalanceNotices {
             List<ContentPart> content,
             String shortContent,
             Optional<InformationSubject> subject,
-            String audience) {
+            String audience,
+            String title) {
         return new NotificationRequest(
                 MODULE,
                 type,
@@ -146,7 +149,7 @@ public final class BalanceNotices {
                 List.of(group),
                 content,
                 Optional.of(shortContent),
-                Optional.of(TITLE),
+                Optional.of(title),
                 Optional.empty(),
                 false,
                 f.at(),
@@ -162,6 +165,10 @@ public final class BalanceNotices {
             case RUNNING_LOW -> "Sắp hết tiền";
             case IN_DEBT -> "Còn nợ";
         };
+    }
+
+    private static String date(LocalDate day) {
+        return day == null ? "" : day.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
     public static String money(long amount) {

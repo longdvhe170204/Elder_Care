@@ -129,6 +129,24 @@ class FR_017_CareTaskValidatorTest {
     }
 
     @Test
+    void FR_025_incidentFollowUpMayBeSharedWhileOtherBasesKeepAssignedPerformerRule() {
+        when(source.managedTypes()).thenReturn(Set.of(SourceType.MEAL, SourceType.INCIDENT_FOLLOW_UP));
+        assertThat(validator
+                        .validate(
+                                row(SourceType.INCIDENT_FOLLOW_UP, at, Importance.MANDATORY, null, true),
+                                shift,
+                                now,
+                                1,
+                                null)
+                        .codes())
+                .isEmpty();
+        assertThat(validator
+                        .validate(row(SourceType.MEAL, at, Importance.NORMAL, null, true), shift, now, 1, null)
+                        .codes())
+                .contains("INVALID_PERFORMER");
+    }
+
+    @Test
     void FR_023_prescribedMeasurementMustBeMandatory() {
         when(source.validate(any(), anyLong(), anyLong(), any()))
                 .thenReturn(new SourceValidation(true, true, true, true));

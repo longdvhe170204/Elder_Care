@@ -124,4 +124,22 @@ class DepartmentCommandsIT extends MySqlIntegrationTestBase {
         assertThat(duties.lead(first)).contains(replacement);
         assertThat(duties.departmentOf(person, time.now())).contains(second);
     }
+
+    /**
+     * Phụ trách bộ phận không có quyền xem hồ sơ nhân sự (Nhân viên bếp, AC-07) vẫn đọc được danh mục bộ phận để chọn
+     * bộ phận khi lập yêu cầu mua sắm, ghi tăng tài sản (019; trước đây 403, web phải nhập tay mã bộ phận).
+     */
+    @Test
+    void departmentLeadWithoutStaffProfileCanListDepartments() {
+        var kitchen = new TestUsers(jdbc, time).staff(Role.KITCHEN_STAFF);
+        jdbc.update(
+                "INSERT INTO staff_profile(id,full_name,position,account_id) VALUES (?,'[Nhân viên bộ phận]',?,?)",
+                kitchen.staffId(),
+                Role.KITCHEN_STAFF.name(),
+                kitchen.accountId());
+        change(kitchen.staffId(), first, null);
+        lead(first, kitchen.staffId());
+        current.set(kitchen.user());
+        assertThat(duties.list()).extracting(d -> d.id()).contains(first);
+    }
 }

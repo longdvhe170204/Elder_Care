@@ -1,4 +1,4 @@
-# Thiết kế: tinh gọn lập và duyệt kế hoạch chăm sóc (Q-447)
+# Thiết kế: tinh gọn lập và duyệt kế hoạch chăm sóc (Q-456)
 
 Ngày: 2026-11-25. Chủ dự án chốt hướng A và cách hiệu lực "kết hợp" trong buổi trao đổi cùng ngày.
 
@@ -124,7 +124,7 @@ Màn `care_plans_screen.dart` chỉ để xem. Đổi "Kế hoạch lần N, hi�
 
 - Dữ liệu cũ có thể đang có bản PENDING_EFFECT với `effective_from` xa hơn ngày mai. Bản đó vẫn áp dụng đúng ngày đã đặt, không cần migration.
 - Quyền FR-049 không đổi. Lệnh Rút lại dùng quyền của người lập (UPDATE trên bản do chính mình lập).
-- Sửa spec 005: FR-003 (bảng chuyển trạng thái), FR-004 (bản mở), User Story 1, BF-01 bước 16 và BF-08 bước 6. Ghi thành **Q-447** trong `docs/business/nghiep-vu.md`.
+- Sửa spec 005: FR-003 (bảng chuyển trạng thái), FR-004 (bản mở), User Story 1, BF-01 bước 16 và BF-08 bước 6. Ghi thành **Q-456** trong `docs/business/nghiep-vu.md`.
 
 ## 6. Phần để người làm tự quyết
 

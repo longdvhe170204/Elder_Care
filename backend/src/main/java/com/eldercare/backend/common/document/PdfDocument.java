@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
+import org.openpdf.text.Chunk;
 import org.openpdf.text.Document;
 import org.openpdf.text.DocumentException;
 import org.openpdf.text.Element;
@@ -28,21 +29,72 @@ import org.openpdf.text.pdf.PdfWriter;
  * Chứng từ PDF dùng chung (tên logic {@code PdfBieuMau}; 007 research S-25): khổ A4, đầu trang thông tin viện
  * (CFG-M11-11), đoạn chữ, bảng tự ngắt trang, ô ký, chân trang "Trang x/y". Font Be Vietnam Pro nhúng nên đủ dấu tiếng
  * Việt. Mỗi đối tượng dựng một file, không dùng lại sau {@link #toBytes()}.
+ *
+ * <p>Có hai kiểu trình bày: mặc định ({@link #a4}) và gọn ({@link #a4Compact}, lề hẹp, chữ nhỏ hơn, có hàng nhiều cột
+ * {@link #fields}) cho chứng từ phải vừa một trang như phiếu tóm tắt chuyển viện (BF-06). Kiểu mặc định giữ nguyên.
  */
 public final class PdfDocument {
 
     private static final float MARGIN = 50f;
     private static final BaseFont REGULAR = font("BeVietnamPro-Regular.ttf");
     private static final BaseFont BOLD = font("BeVietnamPro-Bold.ttf");
-    private static final Font TEXT = new Font(REGULAR, 10);
-    private static final Font TEXT_BOLD = new Font(BOLD, 10);
-    private static final Font SMALL = new Font(REGULAR, 8);
-    private static final Font TITLE = new Font(BOLD, 14);
+
+    /** Cỡ chữ, lề và khoảng cách của một kiểu trình bày. */
+    private record Style(
+            float margin,
+            Font text,
+            Font bold,
+            Font small,
+            Font title,
+            Font heading,
+            float titleSpacing,
+            float headingBefore,
+            float headingAfter,
+            float fieldAfter,
+            float cellPadding,
+            float tableAfter,
+            float signatureBefore,
+            float signatureHeight) {}
+
+    private static final Style DEFAULT = new Style(
+            MARGIN,
+            new Font(REGULAR, 10),
+            new Font(BOLD, 10),
+            new Font(REGULAR, 8),
+            new Font(BOLD, 14),
+            new Font(BOLD, 11),
+            12,
+            8,
+            6,
+            6,
+            4,
+            10,
+            16,
+            90);
+
+    private static final Style COMPACT = new Style(
+            34f,
+            new Font(REGULAR, 9),
+            new Font(BOLD, 9),
+            new Font(REGULAR, 7.5f),
+            new Font(BOLD, 13),
+            new Font(BOLD, 9.5f),
+            5,
+            6,
+            3,
+            3,
+            3,
+            4,
+            6,
+            44);
 
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    private final Document document = new Document(PageSize.A4, MARGIN, MARGIN, MARGIN, MARGIN);
+    private final Style style;
+    private final Document document;
 
-    private PdfDocument() {
+    private PdfDocument(Style style) {
+        this.style = style;
+        this.document = new Document(PageSize.A4, style.margin(), style.margin(), style.margin(), style.margin());
         PdfWriter.getInstance(document, out);
         document.open();
     }
@@ -52,35 +104,175 @@ public final class PdfDocument {
      * trang; {@code logo} là nội dung ảnh PNG, JPEG của tệp {@code logoFileId}, {@code null} thì không in logo.
      */
     public static PdfDocument a4(FacilityInfo facility, byte[] logo, String title) {
-        PdfDocument pdf = new PdfDocument();
+        return create(DEFAULT, facility, logo, title);
+    }
+
+    /** Như {@link #a4} nhưng trình bày gọn (lề 34pt, chữ 9pt) để chứng từ ngắn vừa một trang. */
+    public static PdfDocument a4Compact(FacilityInfo facility, byte[] logo, String title) {
+        return create(COMPACT, facility, logo, title);
+    }
+
+    private static PdfDocument create(Style style, FacilityInfo facility, byte[] logo, String title) {
+        PdfDocument pdf = new PdfDocument(style);
         if (facility != null) {
             pdf.header(facility, logo);
         }
-        Paragraph heading = new Paragraph(title, TITLE);
+        Paragraph heading = new Paragraph(title, style.title());
         heading.setAlignment(Element.ALIGN_CENTER);
-        heading.setSpacingBefore(12);
-        heading.setSpacingAfter(12);
+        heading.setSpacingBefore(style.titleSpacing());
+        heading.setSpacingAfter(style.titleSpacing());
         pdf.add(heading);
         return pdf;
     }
 
     public PdfDocument paragraph(String text) {
-        Paragraph paragraph = new Paragraph(text, TEXT);
-        paragraph.setSpacingAfter(6);
+        Paragraph paragraph = new Paragraph(text, style.text());
+        paragraph.setSpacingAfter(style.fieldAfter());
+        add(paragraph);
+        return this;
+    }
+
+    /** Tiêu đề mục: chữ đậm cỡ vừa, cách đoạn trước. */
+    public PdfDocument heading(String text) {
+        Paragraph paragraph = new Paragraph(text, style.heading());
+        paragraph.setSpacingBefore(style.headingBefore());
+        paragraph.setSpacingAfter(style.headingAfter());
+        paragraph.setKeepTogether(true);
+        add(paragraph);
+        return this;
+    }
+
+    /** Một dòng "Nhãn: giá trị", nhãn in đậm. */
+    public PdfDocument field(String label, String value) {
+        Paragraph paragraph = new Paragraph();
+        paragraph.add(new Chunk(label + ": ", style.bold()));
+        paragraph.add(new Chunk(value == null ? "" : value, style.text()));
+        paragraph.setSpacingAfter(style.fieldAfter());
+        add(paragraph);
+        return this;
+    }
+
+    /**
+     * Nhiều "Nhãn: giá trị" xếp thành lưới {@code columns} cột đều nhau, điền lần lượt từng hàng; {@code labelValuePairs}
+     * là nhãn rồi giá trị xen kẽ. Mỗi cặp nằm trọn trong một ô nên chữ không bị xé giữa nhãn và giá trị.
+     */
+    public PdfDocument fields(int columns, String... labelValuePairs) {
+        if (labelValuePairs.length % 2 != 0) {
+            throw new IllegalArgumentException("Cần cặp nhãn, giá trị");
+        }
+        PdfPTable table = new PdfPTable(columns);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(style.fieldAfter());
+        for (int i = 0; i < labelValuePairs.length; i += 2) {
+            Paragraph paragraph = new Paragraph();
+            paragraph.add(new Chunk(labelValuePairs[i] + ": ", style.bold()));
+            paragraph.add(new Chunk(labelValuePairs[i + 1] == null ? "" : labelValuePairs[i + 1], style.text()));
+            PdfPCell cell = new PdfPCell(paragraph);
+            cell.setBorder(Rectangle.NO_BORDER);
+            cell.setPaddingLeft(0);
+            cell.setPaddingTop(0);
+            cell.setPaddingRight(10);
+            cell.setPaddingBottom(style.fieldAfter());
+            table.addCell(cell);
+        }
+        table.completeRow();
+        add(table);
+        return this;
+    }
+
+    /** Tiêu đề mục có nền xám nhạt, chạy hết bề ngang (phiếu nhiều mục, BF-06). */
+    public PdfDocument band(String text) {
+        PdfPTable table = new PdfPTable(1);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(style.headingBefore());
+        table.setSpacingAfter(style.headingAfter());
+        table.setKeepTogether(true);
+        PdfPCell cell = new PdfPCell(new Phrase(text, style.heading()));
+        cell.setBackgroundColor(new Color(0xEE, 0xEE, 0xEE));
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setPadding(style.cellPadding());
+        table.addCell(cell);
+        add(table);
+        return this;
+    }
+
+    /**
+     * Lưới ô có viền mảnh, mỗi ô nhãn nhỏ màu xám ở trên, giá trị ở dưới ({@code \n} xuống dòng). {@code columns} cột
+     * đều nhau; ô thừa ở hàng cuối để trống.
+     */
+    public PdfDocument cells(int columns, String... labelValuePairs) {
+        add(cellGrid(columns, false, labelValuePairs));
+        return this;
+    }
+
+    /** Khung viền đậm có tiêu đề, bên trong là lưới ô như {@link #cells} nhưng không viền ô (mục "cần biết ngay"). */
+    public PdfDocument box(String title, int columns, String... labelValuePairs) {
+        PdfPTable outer = new PdfPTable(1);
+        outer.setWidthPercentage(100);
+        outer.setSpacingAfter(style.fieldAfter());
+        outer.setKeepTogether(true);
+        PdfPCell frame = new PdfPCell();
+        frame.setBorderWidth(1.5f);
+        frame.setPadding(style.cellPadding() + 2);
+        frame.addElement(new Paragraph(title, style.bold()));
+        frame.addElement(cellGrid(columns, true, labelValuePairs));
+        outer.addCell(frame);
+        add(outer);
+        return this;
+    }
+
+    private PdfPTable cellGrid(int columns, boolean borderless, String... labelValuePairs) {
+        if (labelValuePairs.length % 2 != 0) {
+            throw new IllegalArgumentException("Cần cặp nhãn, giá trị");
+        }
+        Font label = new Font(
+                style.small().getBaseFont(), style.small().getSize(), Font.NORMAL, new Color(0x55, 0x55, 0x55));
+        PdfPTable table = new PdfPTable(columns);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(borderless ? 3 : 0);
+        table.setSpacingAfter(style.fieldAfter());
+        for (int i = 0; i < labelValuePairs.length; i += 2) {
+            Paragraph paragraph = new Paragraph();
+            paragraph.setLeading(0, 1.45f);
+            paragraph.add(new Chunk(labelValuePairs[i], label));
+            paragraph.add(
+                    new Chunk("\n" + (labelValuePairs[i + 1] == null ? "" : labelValuePairs[i + 1]), style.text()));
+            PdfPCell cell = new PdfPCell(paragraph);
+            cell.setPadding(style.cellPadding() + 1.5f);
+            if (borderless) cell.setBorder(Rectangle.NO_BORDER);
+            table.addCell(cell);
+        }
+        table.completeRow();
+        return table;
+    }
+
+    /** Dòng chữ nhỏ canh giữa (phụ đề, nguồn thông tin). */
+    public PdfDocument note(String text, boolean centered) {
+        Paragraph paragraph = new Paragraph(text, style.small());
+        paragraph.setSpacingAfter(4);
+        if (centered) paragraph.setAlignment(Element.ALIGN_CENTER);
         add(paragraph);
         return this;
     }
 
     /** Bảng có dòng tiêu đề lặp lại ở mỗi trang; mỗi dòng có đủ số ô như {@code headers}. */
     public PdfDocument table(List<String> headers, List<List<String>> rows) {
-        PdfPTable table = new PdfPTable(headers.size());
+        return table(headers, rows, null);
+    }
+
+    /**
+     * Như {@link #table(List, List)} nhưng chia độ rộng cột theo tỉ lệ {@code relativeWidths} (ví dụ {1, 5}: cột đầu hẹp,
+     * cột sau rộng); {@code null} thì các cột đều nhau.
+     */
+    public PdfDocument table(List<String> headers, List<List<String>> rows, float[] relativeWidths) {
+        PdfPTable table = relativeWidths == null ? new PdfPTable(headers.size()) : new PdfPTable(relativeWidths);
         table.setWidthPercentage(100);
         table.setHeaderRows(1);
-        table.setSpacingAfter(10);
+        table.setSpacingAfter(style.tableAfter());
         for (String header : headers) {
-            PdfPCell cell = new PdfPCell(new Phrase(header, TEXT_BOLD));
+            PdfPCell cell = new PdfPCell(new Phrase(header, style.bold()));
             cell.setBackgroundColor(new Color(0xEE, 0xEE, 0xEE));
-            cell.setPadding(4);
+            cell.setPadding(style.cellPadding());
             table.addCell(cell);
         }
         for (List<String> row : rows) {
@@ -88,8 +280,8 @@ public final class PdfDocument {
                 throw new IllegalArgumentException("Dòng có " + row.size() + " ô, bảng có " + headers.size() + " cột");
             }
             for (String value : row) {
-                PdfPCell cell = new PdfPCell(new Phrase(value == null ? "" : value, TEXT));
-                cell.setPadding(4);
+                PdfPCell cell = new PdfPCell(new Phrase(value == null ? "" : value, style.text()));
+                cell.setPadding(style.cellPadding());
                 table.addCell(cell);
             }
         }
@@ -113,16 +305,16 @@ public final class PdfDocument {
     public PdfDocument signatures(String... titles) {
         PdfPTable table = new PdfPTable(titles.length);
         table.setWidthPercentage(100);
-        table.setSpacingBefore(16);
+        table.setSpacingBefore(style.signatureBefore());
         table.setKeepTogether(true);
         for (String title : titles) {
-            Paragraph content = new Paragraph(title, TEXT_BOLD);
-            content.add(new Phrase("\n(Ký, ghi rõ họ tên)", SMALL));
+            Paragraph content = new Paragraph(title, style.bold());
+            content.add(new Phrase("\n(Ký, ghi rõ họ tên)", style.small()));
             content.setAlignment(Element.ALIGN_CENTER);
             PdfPCell cell = new PdfPCell();
             cell.addElement(content);
             cell.setBorder(Rectangle.NO_BORDER);
-            cell.setMinimumHeight(90);
+            cell.setMinimumHeight(style.signatureHeight());
             table.addCell(cell);
         }
         add(table);
@@ -141,9 +333,9 @@ public final class PdfDocument {
                 ColumnText.showTextAligned(
                         stamper.getOverContent(i),
                         Element.ALIGN_CENTER,
-                        new Phrase("Trang " + i + "/" + pages, SMALL),
+                        new Phrase("Trang " + i + "/" + pages, style.small()),
                         reader.getPageSize(i).getWidth() / 2,
-                        MARGIN / 2,
+                        style.margin() / 2,
                         0);
             }
             stamper.close();
@@ -193,10 +385,10 @@ public final class PdfDocument {
             table.addCell(cell);
         }
         Paragraph lines = new Paragraph();
-        line(lines, facility.name(), TEXT_BOLD, "");
-        line(lines, facility.address(), TEXT, "Địa chỉ: ");
-        line(lines, facility.taxCode(), TEXT, "Mã số thuế: ");
-        line(lines, facility.phone(), TEXT, "Điện thoại: ");
+        line(lines, facility.name(), style.bold(), "");
+        line(lines, facility.address(), style.text(), "Địa chỉ: ");
+        line(lines, facility.taxCode(), style.text(), "Mã số thuế: ");
+        line(lines, facility.phone(), style.text(), "Điện thoại: ");
         PdfPCell cell = new PdfPCell();
         cell.addElement(lines);
         cell.setBorder(Rectangle.BOTTOM);

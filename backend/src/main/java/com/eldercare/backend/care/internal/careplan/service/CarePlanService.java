@@ -196,6 +196,8 @@ public class CarePlanService {
                 || !Set.of("TIMES_PER_DAY", "EVERY_N_HOURS", "DAYS_OF_WEEK", "ONCE_PER_SHIFT")
                         .contains(item.frequencyType()))
             throw new InvalidValueException("Mục thiếu trường bắt buộc hoặc tần suất không hợp lệ");
+        if (!CarePlanPerformers.allowed(item.performerRole()))
+            throw new InvalidValueException("Vai trò thực hiện chỉ là Nhân viên chăm sóc hoặc Điều dưỡng (Q-449)");
         if ("EVERY_N_HOURS".equals(item.frequencyType())
                 && (item.intervalHours() == null
                         || item.intervalHours() < 1

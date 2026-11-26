@@ -37,6 +37,7 @@ import com.eldercare.backend.incident.internal.incident.persistence.IncidentProg
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
 import com.eldercare.backend.incident.internal.infection.service.ContactListService;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +58,8 @@ public class IncidentHandlingService {
     private static final Set<String> OPEN = Set.of("NEW", "IN_PROGRESS", "MONITORING");
     private static final Set<String> INFECTION_OUTCOMES = Set.of("CONFIRMED_INFECTION", "RULED_OUT", "UNDETERMINED");
     private static final Set<Role> HANDLER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
-    /** BR-M05-09: sự cố Trung bình, Khẩn cấp chỉ Điều dưỡng hoặc Bác sĩ đóng. */
-    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.DOCTOR);
+    /** BR-M05-09 sửa theo chốt BF-06 (2026-11-25): sự cố Trung bình, Khẩn cấp do Điều dưỡng, Trưởng tầng hoặc Bác sĩ đóng. */
+    private static final Set<Role> SERIOUS_CLOSER_ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
 
     private final IncidentStore incidents;
     private final IncidentProgressionStore progressions;
@@ -131,6 +132,9 @@ public class IncidentHandlingService {
         var closers = incident.level() == IncidentLevel.LOW ? HANDLER_ROLES : SERIOUS_CLOSER_ROLES;
         requireHandler(incident, user, closers);
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
+        if (resolution.length() > IncidentRecordService.MAX_TEXT) {
+            throw new InvalidValueException("Kết quả xử lý tối đa " + IncidentRecordService.MAX_TEXT + " ký tự");
+        }
         requireStatus(incident, "IN_PROGRESS", "MONITORING");
         boolean infection = SUSPECTED_INFECTION.equals(incidents.currentTypeCode(incidentId));
         String outcome = null;
@@ -189,6 +193,51 @@ public class IncidentHandlingService {
         if (permission.allowed()) return;
         if (permission.failedLayer().orElse(null) == FailedLayer.SCOPE) throw new NotFoundException();
         throw new PermissionDeniedException("Không có quyền xử lý sự cố");
+    }
+
+    /**
+     * Gắn một cảnh báo cùng vụ vào sự cố đang mở của cùng người cao tuổi (FR-029, FR-041): không tạo sự cố, không đổi trạng
+     * thái, mức của sự cố; người gắn được ghi vào danh sách người xử lý như "Tham gia xử lý". Cảnh báo Khẩn cấp chỉ gắn
+     * được vào sự cố Khẩn cấp, vì sự cố mức thấp hơn chưa chạy quy trình khẩn cấp (FR-047).
+     */
+    @Transactional
+    public void linkAlert(long incidentId, Long alertResidentId, IncidentLevel alertLevel, CurrentUser user) {
+        var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
+        var permission = permissions.hasPermission(
+                user, new PermissionKey(Function.INCIDENT_EMERGENCY, Operation.CREATE), target(incident));
+        if (!permission.allowed()) throw new PermissionDeniedException("Không có quyền với sự cố này");
+        if (!OPEN.contains(incident.status())) throw blocked("Chỉ gắn cảnh báo vào sự cố đang mở");
+        if (incident.residentId() == null
+                || (alertResidentId != null && !alertResidentId.equals(incident.residentId()))) {
+            throw blocked("Cảnh báo và sự cố không cùng người cao tuổi");
+        }
+        if (alertLevel == IncidentLevel.CRITICAL && incident.level() != IncidentLevel.CRITICAL) {
+            throw blocked("Cảnh báo Khẩn cấp chỉ gắn vào sự cố Khẩn cấp; nâng mức sự cố hoặc tạo sự cố riêng");
+        }
+        if (!incidents.assignee(incidentId).filter(id -> id == user.accountId()).isPresent()) {
+            progressions.join(incidentId, user.accountId(), time.now(), incident.floorAreaId());
+        }
+    }
+
+    /**
+     * Người đã bấm "Tôi đến giúp" ở cảnh báo thành người tham gia xử lý của sự cố mà cảnh báo chuyển thành hoặc gắn vào
+     * (đề xuất 2026-11-23): kèm lệnh Chuyển sự cố của người xử lý, không bỏ người phụ trách, gọi lại không ghi thêm.
+     */
+    @Transactional
+    public void addHelpers(long incidentId, Collection<Long> accountIds) {
+        if (accountIds.isEmpty()) return;
+        var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
+        Long assignee = incidents.assignee(incidentId).orElse(null);
+        var now = time.now();
+        accountIds.stream()
+                .filter(id -> !id.equals(assignee))
+                .forEach(id -> progressions.join(incidentId, id, now, incident.floorAreaId()));
+    }
+
+    /** Người cao tuổi của sự cố (null với sự cố cơ sở vật chất). */
+    @Transactional(readOnly = true)
+    public Long residentOf(long incidentId) {
+        return incidents.view(incidentId).orElseThrow(NotFoundException::new).residentId();
     }
 
     private static Target target(IncidentState incident) {

@@ -1,6 +1,7 @@
 package com.eldercare.backend.incident.internal.alert.service;
 
 import com.eldercare.backend.administration.account.api.AccountApi;
+import com.eldercare.backend.administration.shared.api.RecordEventApi;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.health.api.FacilityContactApi;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
@@ -8,6 +9,7 @@ import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
 import com.eldercare.backend.incident.internal.alert.domain.SosStatusView;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,14 +24,17 @@ class PressStatusViews {
     private final FacilityContactApi facilityContact;
     private final Optional<AccountApi> accounts;
     private final AlertLocationService locations;
+    private final AlertHistory history;
 
     PressStatusViews(
             FacilityContactApi facilityContact,
             @Autowired(required = false) AccountApi accounts,
-            AlertLocationService locations) {
+            AlertLocationService locations,
+            @Autowired(required = false) RecordEventApi records) {
         this.facilityContact = facilityContact;
         this.accounts = Optional.ofNullable(accounts);
         this.locations = locations;
+        this.history = new AlertHistory(records);
     }
 
     SosStatusView of(long pressId, AlertRecord alert) {
@@ -54,7 +59,12 @@ class PressStatusViews {
                 alert.arrivedAt(),
                 facilityContact.current().phoneNumber(),
                 locations.sendLocation(alert),
-                locations.intervalSeconds());
+                locations.intervalSeconds(),
+                alert.firstAt(),
+                history.helpers(alert.id()).stream()
+                        .map(id -> accounts.flatMap(api -> api.fullName(id)).orElse(null))
+                        .filter(Objects::nonNull)
+                        .toList());
     }
 
     BusinessException refused(HttpStatus status, String code, String detail) {

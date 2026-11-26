@@ -1,4 +1,4 @@
-# Q-448: Hàng chờ lập và sửa kế hoạch chăm sóc — kế hoạch triển khai
+# Q-457: Hàng chờ lập và sửa kế hoạch chăm sóc — kế hoạch triển khai
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -17,20 +17,20 @@
 
 **Tech Stack:** Spring Boot 4.1 / Java 25 / MySQL 8.0 (Flyway); React 19 + Vitest; Flutter.
 
-**Spec:** `specs/005-daily-care-tasks/spec.md` (mục Cập nhật 2026-11-26, US8, FR-009, FR-011, FR-058, FR-059); quyết định Q-448 ở `docs/business/nghiep-vu.md` 24.2.
+**Spec:** `specs/005-daily-care-tasks/spec.md` (mục Cập nhật 2026-11-26, US8, FR-009, FR-011, FR-058, FR-059); quyết định Q-457 ở `docs/business/nghiep-vu.md` 24.2.
 
 ## Global Constraints
 
 - Không migration, không bảng mới. Đọc `reminder_marker` chỉ qua `CarePlanReviewStore` (lọc theo `kind`, `entity_type`, `entity_id` để dùng khóa `uq_reminder_marker`).
 - Đổi hợp đồng thì sửa `contracts/api-005.yaml` trước. Kho web chạy `npm run gen:api`, không sửa tay `src/api/`.
-- Không đổi luồng Q-447 (lập, gửi, rút lại, duyệt, trả lại, bỏ). Không đổi phần lập công việc ca.
+- Không đổi luồng Q-456 (lập, gửi, rút lại, duyệt, trả lại, bỏ). Không đổi phần lập công việc ca.
 - Giữ nguyên thông báo hiện có của BR-M04-20 và dấu chống báo lặp (`ReminderMarkers`, `M04.CARE_PLAN_REVIEW`). Yêu cầu chỉ được ghi khi dấu được đặt lần đầu, để báo một lần thì cũng chỉ một dòng.
 - Chữ trên giao diện:
   - Trạng thái kế hoạch: `Cần xem xét kế hoạch`, `Cần lập kế hoạch`, `Có kế hoạch`, `Chờ đánh giá`, `Theo lịch chung`.
   - Nguồn: `Đánh giá đầu vào`, `Bác sĩ đánh giá lại`, `Sự cố ngã`, `Phụ lục đổi mức`, `Chăm sóc giảm nhẹ`, `Bác sĩ trả lại`, `Bản sửa đang soạn`.
   - Tiêu đề: `Cần lập hoặc sửa kế hoạch`, `Đang chờ Bác sĩ duyệt`. Nút: `Lập kế hoạch`, `Sửa kế hoạch`, `Sửa tiếp`, `Mở`, `Không cần thay đổi`. Ô nhập: `Lý do không cần thay đổi`.
 - Commit theo đợt, mỗi kho một commit riêng, message không ghi attribution. Không đổi nhánh: Elder_Care, Elder_Care_Frontend ở `fix/daily-care-and-meal-menu`, Elder_Care_Mobile ở `fix/daily-care-v2`.
-- Kho Elder_Care đang có `T022_WellbeingReadIT.java` sửa dở không thuộc việc này; kho mobile có 2 file staged sẵn. Không đưa vào commit Q-448.
+- Kho Elder_Care đang có `T022_WellbeingReadIT.java` sửa dở không thuộc việc này; kho mobile có 2 file staged sẵn. Không đưa vào commit Q-457.
 - Hạn chế tạo bảng mới (chủ dự án 2026-11-26): cần lưu gì thêm thì dùng bảng có sẵn hoặc tính lúc đọc; thật cần bảng thì hỏi trước.
 
 ## Review Focus

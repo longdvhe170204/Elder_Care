@@ -160,6 +160,56 @@ class AlertServiceTest {
     }
 
     @Test
+    void FR_030_mergedManualReportKeepsItsDescription() {
+        var open = new AlertRecord(
+                500L,
+                100L,
+                7L,
+                "FALL",
+                "THU_CONG:71",
+                IncidentLevel.MEDIUM,
+                null,
+                1,
+                NOW,
+                NOW,
+                AlertStatus.NEW,
+                0,
+                null,
+                null,
+                0,
+                null,
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
+                null,
+                null,
+                false,
+                false,
+                5L,
+                "Lần một",
+                null,
+                null,
+                null,
+                false,
+                1);
+        when(residentApi.isFinalStatus(100L)).thenReturn(false);
+        when(alertStore.findOpenAlert(100L, "THU_CONG:71")).thenReturn(Optional.of(open));
+
+        alertService.requestAlert(new CreateAlertCommand(
+                100L, 7L, "FALL", "THU_CONG:71", IncidentLevel.MEDIUM, NOW, null, null, "Lần hai", 6L));
+
+        var row = org.mockito.ArgumentCaptor.forClass(
+                com.eldercare.backend.administration.shared.api.dto.NewRecordEvent.class);
+        verify(recordEvents, org.mockito.Mockito.atLeastOnce()).add(any(), any(), row.capture());
+        assertThat(row.getAllValues().toString()).contains("MERGED").contains("Lần hai");
+    }
+
+    @Test
     void requestAlert_mergesOpenAlertAndRaisesLevel() {
         long residentId = 100L;
         when(residentApi.isFinalStatus(residentId)).thenReturn(false);

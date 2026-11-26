@@ -47,6 +47,12 @@ Chủ dự án chốt Q-377 → Q-379, Q-381 rồi thu gọn phần tài chính 
 - **Q-387** (sau plan): người qua đời mà gia đình còn nợ thì mục quyết toán được ngoại lệ như hồ sơ kết thúc lưu trú (feature 004 FR-071a); Kế toán vẫn xác nhận quyết toán (FR-023, FR-034).
 - **Giữ**: sổ số dư, sổ tiền cọc, mã nộp tiền, VietQR, trừ số dư khi chốt bảng, báo sắp hết tiền, hoàn tiền và điều chỉnh có duyệt, phiếu báo phí (PDF, Excel; Q-378), sao kê và báo cáo thu chi (Excel, PDF; Q-381), chứng từ ghi "không thay thế hóa đơn" (Q-377).
 
+### Cập nhật 2026-11-26 (góp ý demo BF-10 của nhóm; E làm, **chờ chủ dự án duyệt khi review PR**)
+
+- **Lệch FR-018, FR-020 (thông báo người thân)**: mọi biến động số dư, tiền cọc báo người đại diện (mức Nhẹ, `M11_BALANCE_TRANSACTION`, phần chung trung tính, chi tiết ở phần chi phí, ABOUT_FAMILY_MATTER): giao dịch Đã xác nhận (nộp tiền mặt, chuyển khoản, thu cọc, cấn trừ cọc; hoàn số dư, hoàn cọc, điều chỉnh khi được duyệt) nêu loại, số tiền, số dư và tiền cọc sau giao dịch, còn nợ thì ghi rõ; giao dịch bị từ chối, hủy báo số dư không đổi. Trước đây chỉ báo khi chuyển Sắp hết tiền, Còn nợ và khi nộp tiền lúc đang thiếu. Thanh toán bảng chi phí không báo riêng (thông báo chốt bảng của 010 đã nêu). Thông báo nộp tiền cũ (`M11_BALANCE_PAYMENT_RECORDED`, `M11_BALANCE_PAYMENT_SUFFICIENT`) bỏ để không báo trùng; quyết định chu kỳ nhắc (`NoticeDecision`) giữ nguyên. Không đổi API, data-model. Test: `TransactionNoticesTest`, `US6_BalanceTransactionIT`, sửa `BalanceNoticesTest`, `US5_BalanceStatusIT`.
+- **Thông báo yêu cầu duyệt giao dịch (cùng ngày)**: nội dung gửi Quản lý viện nêu loại, số tiền, người cao tuổi ("Hoàn số dư 500.000 đ cho …", `submittedNoticeSummary`); tiêu đề thông báo yêu cầu phê duyệt của mọi loại là tên chức năng thay "Yêu cầu YC-…" (sửa `Notices` của 000, chờ A duyệt; loại chưa có nhãn giữ cách cũ). Web màn Yêu cầu phê duyệt ghi tên chức năng, mã yêu cầu thành dòng phụ. Test: `NoticesTitleTest`, `US6_BalanceTransactionIT`.
+- Web (form hoàn tiền): mặc định "Hoàn số dư và tiền cọc", điền sẵn số còn hoàn được, vượt báo đỏ tại ô, "Hoàn tiền" đổi tên "Hoàn số dư", bỏ phương thức "Khác"; Quản lý viện vẫn duyệt (BR-M11-14 giữ). Hành chính không thấy Tình trạng số dư, Giao dịch chờ duyệt (đã chỉ Kế toán, Quản lý viện xem được).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15.9, 15.9a; 6.5; 6.8 phần quyết toán; UC-12, UC-85 → UC-88, UC-100, UC-101; BF-16):

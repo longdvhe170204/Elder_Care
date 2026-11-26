@@ -40,6 +40,8 @@ public class CostStatementService {
     private final ApplicationEventPublisher events;
     private final CostNotifications notifications;
     private final com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory;
+    private final org.springframework.beans.factory.ObjectProvider<com.eldercare.backend.resident.api.ResidentApi>
+            residents;
 
     public CostStatementService(
             CostStatementStore store,
@@ -52,7 +54,9 @@ public class CostStatementService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             CostNotifications notifications,
-            com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory) {
+            com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory,
+            org.springframework.beans.factory.ObjectProvider<com.eldercare.backend.resident.api.ResidentApi>
+                    residents) {
         this.store = store;
         this.items = items;
         this.locks = locks;
@@ -64,6 +68,7 @@ public class CostStatementService {
         this.events = events;
         this.notifications = notifications;
         this.itemHistory = itemHistory;
+        this.residents = residents;
     }
 
     public CostStatementRecord read(long id) {
@@ -87,6 +92,34 @@ public class CostStatementService {
                 .map(i -> i.id())
                 .toList();
         if (!drafts.isEmpty()) throw invalid("DRAFT_ITEMS_REMAIN", "Bảng còn khoản nháp", drafts);
+        // Demo 2026-11-25 (E, chờ chủ dự án duyệt khi review PR): bảng kỳ cuối do Hành chính chốt luôn khi gửi chốt,
+        // Quản
+        // lý viện chỉ được báo. Khoản nhập tay, mua hộ, điều chỉnh vẫn phải được Quản lý viện duyệt riêng trước
+        // (BR-M11-04); còn khoản như vậy chưa duyệt thì bảng đi đường cũ (Chờ chốt, Quản lý viện duyệt, chốt).
+        // Demo 2026-11-26: bảng bổ sung của kết thúc lưu trú (mọi khoản mang cờ AFFECTS_TERMINATION, thường do đổi ngày
+        // kết thúc sau khi đã chốt kỳ cuối) cũng chốt luôn như bảng kỳ cuối, để không chặn quyết toán.
+        var all = items.lockItems(id);
+        boolean terminationSupplement = s.statementType().equals("SUPPLEMENTARY")
+                && all.stream()
+                        .filter(i -> !i.status().equals("CANCELLED"))
+                        .allMatch(i -> i.flags().contains("AFFECTS_TERMINATION"));
+        if (s.finalPeriod() || terminationSupplement) {
+            if (!items.hasCheckedItemsAwaitingManager(id)) {
+                finalizeLocked(s, all);
+                notifications.staff(
+                        "COST_STATEMENT_FINALIZED_BY_OFFICE",
+                        id,
+                        s.residentId(),
+                        "M11:OFFICE_FINALIZED:" + id,
+                        s.finalPeriod()
+                                ? "Bảng chi phí kỳ cuối đã được Hành chính chốt"
+                                : "Bảng chi phí bổ sung khi kết thúc lưu trú đã được Hành chính chốt",
+                        Role.NURSING_HOME_MANAGER,
+                        time.now(),
+                        access.user().accountId());
+                return Optional.empty();
+            }
+        }
         var warning = warning(s);
         store.submit(id, access.user().accountId(), time.now(), warning.orElse(null));
         log("COST_STATEMENT_SUBMITTED", s, "AWAITING_FINALIZATION", null);
@@ -176,17 +209,26 @@ public class CostStatementService {
                 .map(i -> i.id())
                 .toList();
         if (!blocked.isEmpty()) throw invalid("UNAPPROVED_ITEMS_REMAIN", "Bảng còn khoản chưa duyệt", blocked);
+        finalizeLocked(s, all);
+    }
+
+    /**
+     * Chốt bảng đã khóa: khoản Đã duyệt (và, với bảng kỳ cuối Hành chính chốt, khoản theo sự kiện Đã kiểm tra) chuyển Đã
+     * chốt; lưu tổng; chốt kỳ nếu đủ; báo người thân có quyền xem chi phí; phát sự kiện cho 017, 004.
+     */
+    private void finalizeLocked(CostStatementRecord s, List<CostItemRecord> all) {
+        long id = s.id();
         var at = time.now();
         var totals = totals(all, false);
         for (var item : all)
-            if (item.status().equals("APPROVED")) {
+            if (Set.of("APPROVED", "CHECKED").contains(item.status())) {
                 items.transition(item, "FINALIZED", access.user().accountId(), at, null);
                 itemHistory.changed(item, "FINALIZED", "FINALIZE", null);
                 audit.write(AuditLogEntry.builder()
                         .action(new AuditAction("COST_ITEM_FINALIZED", false))
                         .entity("M11.COST_ITEM", item.id())
                         .resident(s.residentId())
-                        .before(Map.of("status", "APPROVED"))
+                        .before(Map.of("status", item.status()))
                         .after(Map.of("status", "FINALIZED"))
                         .build());
             }
@@ -199,13 +241,14 @@ public class CostStatementService {
                     .after(Map.of("status", "FINALIZED"))
                     .build());
         log("COST_STATEMENT_FINALIZED", s, "FINALIZED", null);
+        long total = totals.values().stream().reduce(0L, Math::addExact);
         var request = notifications.request(
                 "COST_STATEMENT_FINALIZED",
                 "M11.COST_STATEMENT",
                 id,
                 s.residentId(),
                 "M11:FINALIZED:" + id,
-                "Bảng chi phí đã được chốt",
+                finalizedMessage(s, total),
                 List.of(new RecipientGroup.FamilyWithRight(s.residentId(), FamilyRight.VIEW_COSTS)),
                 NotificationLevel.MEDIUM,
                 at,
@@ -215,10 +258,56 @@ public class CostStatementService {
                 CostStatementType.valueOf(s.statementType()),
                 s.periodId(),
                 s.residentId(),
-                totals.values().stream().reduce(0L, Math::addExact),
+                total,
                 at,
                 List.of(request)));
         events.publishEvent(new CostItemChanged(s.residentId(), s.periodId()));
+        // Demo 2026-11-26 (E): bảng kỳ cuối chốt thì Kế toán được báo việc tiếp theo; nguồn là số dư của người cao tuổi
+        // (M11.BALANCE) để nút Xử lý ở web mở thẳng số dư
+        if (s.finalPeriod())
+            notifications.staff(
+                    "COST_FINAL_STATEMENT_FOR_ACCOUNTANT",
+                    "M11.BALANCE",
+                    s.residentId(),
+                    s.residentId(),
+                    "M11:FINAL_FOR_ACCOUNTANT:" + id,
+                    "Bảng chi phí kỳ cuối của " + residentName(s.residentId()) + " đã chốt: tổng " + vnd(total)
+                            + ", đã trừ vào số dư. Kiểm tra số dư: lập hoàn số dư, hoàn tiền cọc hoặc ghi nhận"
+                            + " tiền nộp, rồi xác nhận quyết toán.",
+                    Role.ACCOUNTANT,
+                    at,
+                    access.user().accountId());
+    }
+
+    // Tên người cao tuổi cho thông báo; không đọc được thì nêu mã
+    private String residentName(long residentId) {
+        try {
+            var api = residents.getIfAvailable();
+            if (api != null) return api.identity(residentId).fullName();
+        } catch (RuntimeException e) {
+            // hồ sơ không đọc được: dùng mã
+        }
+        return "người cao tuổi mã " + residentId;
+    }
+
+    /**
+     * Demo 2026-11-25: người thân biết ngay kỳ, tổng tiền và việc số dư đã được trừ (017 US4 trừ số dư khi bảng chốt; bảng
+     * tổng âm thì cộng lại vào số dư).
+     */
+    static String finalizedMessage(CostStatementRecord s, long total) {
+        String kind = s.finalPeriod()
+                ? "kỳ cuối tháng"
+                : s.statementType().equals("SUPPLEMENTARY") ? "bổ sung tháng" : "tháng";
+        String month =
+                String.format("%02d/%d", s.month().getMonthValue(), s.month().getYear());
+        String effect = total < 0 ? "đã cộng lại vào số dư" : "đã trừ vào số dư";
+        return "Bảng chi phí " + kind + " " + month + " đã chốt: tổng " + vnd(total) + ", " + effect + ".";
+    }
+
+    private static String vnd(long amount) {
+        var digits = new StringBuilder(Long.toString(Math.abs(amount)));
+        for (int i = digits.length() - 3; i > 0; i -= 3) digits.insert(i, '.');
+        return (amount < 0 ? "-" : "") + digits + " đ";
     }
 
     private CostStatementRecord locked(long id, Role role, Operation operation) {

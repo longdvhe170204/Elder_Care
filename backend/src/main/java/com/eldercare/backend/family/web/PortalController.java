@@ -57,6 +57,19 @@ class PortalController {
         return portal.residents();
     }
 
+    /** Test BF-12 (2026-11-24): người thân để lập yêu cầu đổi quyền trên cổng (FR-014, FR-050). */
+    @GetMapping("/family-portal/residents/{residentId}/family-members")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "403",
+                description = "PERMISSION_DENIED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    List<PortalService.PortalFamilyMember> familyMembers(@PathVariable long residentId) {
+        return portal.familyMembers(residentId);
+    }
+
     @GetMapping("/family-portal/residents/{residentId}/general")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "OK", content = @Content),

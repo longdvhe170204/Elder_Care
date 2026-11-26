@@ -20,7 +20,7 @@ class BR_48_HandoverIT extends AlertHandoverTestBase {
 
     @BeforeEach
     void api() {
-        api = new DefaultAlertHandoverApi(items, transfer, time, null);
+        api = new DefaultAlertHandoverApi(items, transfer, time, null, null);
     }
 
     @Test

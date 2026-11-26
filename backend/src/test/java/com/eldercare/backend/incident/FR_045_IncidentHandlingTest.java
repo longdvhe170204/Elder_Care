@@ -93,6 +93,42 @@ class FR_045_IncidentHandlingTest {
     }
 
     @Test
+    void FR_029_linkAlertJoinsHandlerOfOpenIncidentOfSameResident() {
+        incident("MONITORING", IncidentLevel.CRITICAL);
+        when(incidents.assignee(41)).thenReturn(Optional.of(5L));
+
+        service.linkAlert(41, 101L, IncidentLevel.CRITICAL, user);
+
+        verify(progressions).join(41, 900L, NOW, 7L);
+        verify(incidents, never()).changeStatus(anyLong(), any(), any(), anyInt());
+    }
+
+    @Test
+    void FR_029_linkAlertDoesNotJoinCurrentAssignee() {
+        incident("IN_PROGRESS", IncidentLevel.CRITICAL);
+        when(incidents.assignee(41)).thenReturn(Optional.of(900L));
+
+        service.linkAlert(41, null, IncidentLevel.CRITICAL, user);
+
+        verify(progressions, never()).join(anyLong(), anyLong(), any(), any());
+    }
+
+    @Test
+    void FR_029_linkAlertRejectsClosedOtherResidentAndLowerLevelIncident() {
+        incident("CLOSED", IncidentLevel.CRITICAL);
+        assertThatThrownBy(() -> service.linkAlert(41, 101L, IncidentLevel.CRITICAL, user))
+                .isInstanceOf(BusinessException.class);
+        incident("IN_PROGRESS", IncidentLevel.CRITICAL);
+        assertThatThrownBy(() -> service.linkAlert(41, 202L, IncidentLevel.CRITICAL, user))
+                .isInstanceOf(BusinessException.class);
+        // Cảnh báo Khẩn cấp gắn vào sự cố chưa chạy quy trình khẩn cấp thì mất bước báo người
+        incident("IN_PROGRESS", IncidentLevel.MEDIUM);
+        assertThatThrownBy(() -> service.linkAlert(41, 101L, IncidentLevel.CRITICAL, user))
+                .isInstanceOf(BusinessException.class);
+        verify(progressions, never()).join(anyLong(), anyLong(), any(), any());
+    }
+
+    @Test
     void FR_045_reopenOnlyFromMonitoring() {
         incident("IN_PROGRESS", IncidentLevel.MEDIUM);
         assertThatThrownBy(() -> service.reopen(null, 41, new Reason("Diễn biến xấu"), user))

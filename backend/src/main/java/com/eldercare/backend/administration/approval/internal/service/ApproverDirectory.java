@@ -6,6 +6,7 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -65,10 +66,13 @@ class ApproverDirectory {
                 && withinRestriction(user.accountId(), handler.approverRoleRestriction(request));
     }
 
-    /** Xem được: người yêu cầu, hoặc người có quyền tạo hay duyệt loại này trong phạm vi. */
+    /** Xem được: người yêu cầu, hoặc người có quyền tạo hay duyệt loại này trong phạm vi (Nháp xét thêm {@code mayViewDraft}). */
     boolean canView(CurrentUser user, ApprovalRequestView request, RequestTypeHandler handler) {
         if (request.requesterId() == user.accountId()) {
             return true;
+        }
+        if (ApprovalStatus.DRAFT.equals(request.status()) && !handler.mayViewDraft(user, request)) {
+            return false;
         }
         PermissionApi permission = permissions.getObject();
         boolean typeAccess = permission

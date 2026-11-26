@@ -10,6 +10,7 @@ import com.eldercare.backend.medication.api.dto.SkipDoseRequest;
 import com.eldercare.backend.medication.internal.dose.domain.DoseDetailView;
 import com.eldercare.backend.medication.internal.dose.domain.DoseReviewStatus;
 import com.eldercare.backend.medication.internal.dose.service.DoseAdministrationService;
+import com.eldercare.backend.medication.internal.dose.service.DoseCommandPermission;
 import com.eldercare.backend.medication.internal.dose.service.DoseExtrasService;
 import com.eldercare.backend.medication.internal.dose.service.DoseReviewService;
 import com.eldercare.backend.medication.internal.dose.service.DoseViewService;
@@ -50,6 +51,7 @@ public class DoseController {
     private final DoseWorkflowService doseWorkflow;
     private final CurrentUser currentUser;
     private final BusinessTime businessTime;
+    private final DoseCommandPermission doseCommands;
 
     public DoseController(
             DoseAdministrationService doseAdministrationService,
@@ -58,7 +60,8 @@ public class DoseController {
             DoseExtrasService doseExtras,
             DoseWorkflowService doseWorkflow,
             CurrentUser currentUser,
-            BusinessTime businessTime) {
+            BusinessTime businessTime,
+            DoseCommandPermission doseCommands) {
         this.doseAdministrationService = doseAdministrationService;
         this.doseReviewService = doseReviewService;
         this.doseViews = doseViews;
@@ -66,6 +69,7 @@ public class DoseController {
         this.doseWorkflow = doseWorkflow;
         this.currentUser = currentUser;
         this.businessTime = businessTime;
+        this.doseCommands = doseCommands;
     }
 
     @PostMapping("/api/v1/medication-doses/{doseKey}/administer")
@@ -88,6 +92,7 @@ public class DoseController {
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
         var reporter = body.reportedBy();
         AdministerDoseRequest request = new AdministerDoseRequest(
                 body.administeredAt() != null ? body.administeredAt() : businessTime.now(),
@@ -128,6 +133,7 @@ public class DoseController {
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
         doseAdministrationService.refuseDose(
                 doseKey,
                 new RefuseDoseRequest(
@@ -155,6 +161,7 @@ public class DoseController {
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
         doseAdministrationService.skipDose(
                 doseKey,
                 new SkipDoseRequest(
@@ -184,33 +191,26 @@ public class DoseController {
             @PathVariable("doseKey") String doseKey,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
         return view(doseWorkflow.postpone(doseKey, body.reason(), currentUser.accountId(), businessTime.now()));
     }
 
-    @PostMapping("/api/v1/medication-doses/{doseKey}/claim")
+    @PostMapping("/api/v1/medication-doses/{doseKey}/hold")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Đã nhận liều"),
+        @ApiResponse(responseCode = "200", description = "Tạm giữ 1 liều"),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
-    })
-    public DoseBody claim(
-            @PathVariable("doseKey") String doseKey,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-        return view(doseWorkflow.claim(doseKey, currentUser.accountId(), businessTime.now()));
-    }
-
-    @PostMapping("/api/v1/medication-doses/{doseKey}/release")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Đã bỏ nhận liều"),
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
-                responseCode = "409",
+                responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
-    public DoseBody release(
+    public DoseBody hold(
             @PathVariable("doseKey") String doseKey,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-        return view(doseWorkflow.release(doseKey, currentUser.accountId(), businessTime.now()));
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody DoseResultRequest body) {
+        doseCommands.require(currentUser);
+        return view(doseWorkflow.hold(doseKey, body.reason(), currentUser.accountId(), businessTime.now()));
     }
 
     @GetMapping("/api/v1/dose-reviews")

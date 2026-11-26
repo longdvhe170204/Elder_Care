@@ -20,6 +20,8 @@ import com.eldercare.backend.medication.internal.prescription.service.Prescripti
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +80,8 @@ class DBR_14_ReplacementPrescriptionIT extends M07IntegrationTestBase {
         initialBody.setFrequency(freq);
 
         initialBody.setStartedAt(Instant.now().minusSeconds(3600));
+        initialBody.setEndedAt(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusDays(14));
+        initialBody.setIndication("Tăng huyết áp");
         initialBody.setMedicationSource("FACILITY");
 
         PrescriberBody prescriber = new PrescriberBody();

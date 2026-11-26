@@ -92,7 +92,7 @@ Không còn `TonKhoNguyenLieuPort`: hệ thống không quản lý kho nguyên l
 
 ---
 
-## 1.9. Sửa theo Q-445 (2026-11-24)
+## 1.9. Sửa theo Q-454 (2026-11-24)
 
 Mục này thắng các mục 1, 2 ở chỗ khác nhau.
 

@@ -1,4 +1,4 @@
--- Q-447 (2026-11-25): người chưa có kế hoạch Hiệu lực thì kế hoạch có hiệu lực ngay trong ngày duyệt, nên ngày hiệu lực
+-- Q-456 (2026-11-25): người chưa có kế hoạch Hiệu lực thì kế hoạch có hiệu lực ngay trong ngày duyệt, nên ngày hiệu lực
 -- được bằng ngày duyệt; bản Chờ hiệu lực bị bản sau thay thì kết thúc với lý do SUPERSEDED. WITHDRAWN giữ cho dữ liệu cũ.
 -- Cú pháp dùng được ở MySQL 8.0 và 8.4.
 ALTER TABLE care_plan DROP CHECK chk_care_plan_approval;

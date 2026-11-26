@@ -10,7 +10,7 @@ info:
     không tin số đã xem ở màn tính sẵn.
     Phản hồi cho Nhân viên bếp dùng DTO riêng (KitchenMealSlip, MealPlanningInfo) không có tên người, dị ứng của từng người,
     bệnh lý (FR-025a, FR-046, SC-008).
-    Sửa 2026-11-24 theo Q-445: món gồm tên, mô tả, ảnh; thực đơn chung không chia chế độ ăn; Quản lý viện duyệt;
+    Sửa 2026-11-24 theo Q-454: món gồm tên, mô tả, ảnh; thực đơn chung không chia chế độ ăn; Quản lý viện duyệt;
     bỏ suất đặc biệt, món thay thế, món an toàn, xác nhận phục vụ, kiểm tra thực đơn; thêm phiếu nhân viên.
     Tên định danh tiếng Anh theo glossary.md của 000, mục 17 (dịch 2026-11-06, chủ dự án duyệt; bản tên logic tiếng Việt ở lịch sử git).
     Truy vết: mỗi operation có x-fr (FR của spec 011) và x-br khi có.
@@ -108,7 +108,7 @@ paths:
       summary: Lệnh trên món theo bảng trạng thái (Nhân viên bếp)
       description: |
         activate (Nháp → Hiệu lực, "Đưa vào dùng"); cancel (Nháp chưa từng Hiệu lực → Đã hủy); deactivate (Hiệu lực → Ngừng hiệu lực, lý do).
-        Sửa 2026-11-24 (Q-445): bỏ submit, withdraw, confirm, return và các lệnh bản sửa.
+        Sửa 2026-11-24 (Q-454): bỏ submit, withdraw, confirm, return và các lệnh bản sửa.
       x-fr: [FR-004, FR-004a]
       parameters:
         - { $ref: '#/components/parameters/Id' }
@@ -236,7 +236,7 @@ paths:
       summary: Lệnh trên thực đơn theo bảng trạng thái
       description: |
         submit (gửi duyệt; Nhân viên bếp; chặn DISH_NOT_ACTIVE); withdraw, cancel (Nhân viên bếp; cancel cần lý do);
-        return (Quản lý viện, lý do); publish (Quản lý viện; chặn DISH_NOT_ACTIVE; tuần đã bắt đầu thì Đã áp dụng). Sửa 2026-11-24 (Q-445).
+        return (Quản lý viện, lý do); publish (Quản lý viện; chặn DISH_NOT_ACTIVE; tuần đã bắt đầu thì Đã áp dụng). Sửa 2026-11-24 (Q-454).
       x-fr: [FR-025, FR-028, FR-029]
       parameters:
         - { $ref: '#/components/parameters/Id' }
@@ -304,7 +304,7 @@ paths:
   /held-portions/{id}/serve:
     post:
       tags: [portion-closing]
-      summary: Phục vụ suất giữ cho người trở về trong ngưỡng (tạo phát sinh "+1" không cần giao); đổi đường dẫn 2026-11-24 (Q-445)
+      summary: Phục vụ suất giữ cho người trở về trong ngưỡng (tạo phát sinh "+1" không cần giao); đổi đường dẫn 2026-11-24 (Q-454)
       x-fr: [FR-040a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
@@ -530,7 +530,7 @@ components:
     DishSwap:
       type: object
       description: |
-        Sửa 2026-11-24 (Q-445): oldDishId và newDishId là thay món; chỉ newDishId là thêm món; chỉ oldDishId là bớt món. Cần ít nhất một trong hai.
+        Sửa 2026-11-24 (Q-454): oldDishId và newDishId là thay món; chỉ newDishId là thêm món; chỉ oldDishId là bớt món. Cần ít nhất một trong hai.
       required: [date, mealId, reason]
       properties: { date: { type: string, format: date }, mealId: { type: integer, format: int64 }, oldDishId: { type: integer, format: int64 }, newDishId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } }
     ClosingResult:
@@ -547,7 +547,7 @@ components:
       properties: { id: { type: integer, format: int64 }, group: { type: string, enum: [FLOOR, STAFF] }, floorAreaId: { type: integer, format: int64 }, portionCount: { type: integer }, changeType: { type: string }, needsDelivery: { type: boolean }, kitchenConfirmedAt: { type: string, format: date-time } }
     KitchenMealSlip:
       type: object
-      description: 'Chỉ trường FR-046; không có tên, dị ứng, chế độ ăn, bệnh lý (sửa 2026-11-24, Q-445)'
+      description: 'Chỉ trường FR-046; không có tên, dị ứng, chế độ ăn, bệnh lý (sửa 2026-11-24, Q-454)'
       properties:
         id: { type: integer, format: int64 }
         group: { type: string, enum: [FLOOR, STAFF] }

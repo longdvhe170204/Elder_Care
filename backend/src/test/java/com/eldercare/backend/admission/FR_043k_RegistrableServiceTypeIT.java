@@ -45,7 +45,7 @@ class FR_043k_RegistrableServiceTypeIT extends ChangeTestBase {
                 "CONSUMABLE", "lần dùng",
                 "FACILITY_SUPPLIED_MEDICATION", "đơn thuốc",
                 "MEAL", "dinh dưỡng",
-                "RESIDENCY_FEE", "Giường",
+                "RESIDENCY_FEE", "Loại phòng",
                 "CARE", "Mức chăm sóc");
         Map<String, String> names = Map.of(
                 "CONSUMABLE", "Tã người lớn",
