@@ -1035,3 +1035,17 @@ Hai test mới đỏ trước khi cài. Các ca đã kiểm: đúng ngày sau n�
 T071 chạy hồi quy lập việc, ghi kết quả, phạm vi quyền, nguồn thật, nhắc quá hạn, bàn giao, hợp đồng và sự kiện chi phí. Dùng MySQL 8.0.45 độc lập trên loopback, dữ liệu nằm trong `backend/target` và được tắt sau lượt test. Ca mới đặt công việc vào Quá hạn với giờ thực hiện còn trong khung và gửi hai yêu cầu có khóa idempotency khác nhau. Ca kiểm kết quả Hoàn thành, nhãn ghi nhận muộn, hai mốc thời gian và yêu cầu còn lại gặp xung đột.
 
 Kết quả: 101 ca đơn vị/kiến trúc xanh, gồm `ModuleBoundaryTest`. 25 ca tích hợp riêng biệt xanh qua các lượt, gồm so hợp đồng, ma trận quyền, nguồn đo/hoạt động thật, chuyển quá hạn, bàn giao và chuỗi 005 → 010. Lượt đầu có 3 lỗi thiếu class ở `HandoverIT` do trùng thời điểm Maven biên dịch. Chạy lại riêng sau khi lượt khác kết thúc, cả 3 ca bàn giao và 1 ca ma trận quyền xanh. `spotless:apply` lớp Java đã sửa và check Spotless trong verify qua. Chưa chạy `clean verify` toàn kho trước PR.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 6 (2026-11-26)
+
+T072 sửa `care_checklist_screen.dart` và `care_result_form.dart` trong kho mobile. Nút Đánh dấu hoàn thành mở bottom sheet của việc có snapshot `PERFORMED`, được phép `record`, và chưa có bản ghi chờ đồng bộ. Vừa hoàn thành bỏ `performedAt` để dùng giờ hệ thống ở đường ghi trực tiếp hoặc `deviceTime` ở đường đồng bộ hiện hành. Đã hoàn thành trước đó bắt buộc nhập giờ thực tế, chặn giờ tương lai và giờ trước đầu khung. Hàng đợi giữ độc lập `deviceTime` và `performedAt`. Công việc chuyên môn vẫn đi qua biểu mẫu cũ. Khi lưu hoặc xếp hàng, tải lại checklist; việc chờ đồng bộ có nhãn và nút nhanh biến mất.
+
+Test widget ở `care_checklist_screen_test.dart` thêm cả luồng làm mới trực tuyến và lưu hai mốc ngoại tuyến. Hai ca đỏ vì thiếu nút trước thay đổi, sau sửa cả 17 ca trong lớp xanh. Bản này chưa kiểm trên thiết bị thật.
+
+Lượt test toàn app đầu tiên phát hiện lối đi từ lịch tuần cần giữ nút Ghi nhận kết quả. Chỉ nút nhanh trên danh sách mở form nhanh; lối ghi chi tiết tiếp tục dùng form đầy đủ. Nhóm checklist và lịch tuần chạy lại 25 ca xanh. Toàn app 652 ca xanh, `flutter analyze` sạch.
+
+Kịch bản demo:
+
+1. Trên web với quyền Trưởng tầng, chọn ca đã công bố. Lập một việc cá nhân theo chế độ Công việc phát sinh và một việc theo mục kế hoạch hoặc sự kiện có sẵn. Mở tùy chọn nâng cao để xem khung, rồi gửi lô. Với ca qua đêm, nhập giờ sau nửa đêm để kiểm tra ngày hiển thị.
+2. Trên checklist nhân viên được giao, mở một việc có loại kết quả Thực hiện và còn quyền ghi nhận. Bấm Đánh dấu hoàn thành, thử Vừa hoàn thành trên một việc và Đã hoàn thành trước đó trên một việc khác. Chọn giờ thực hiện thật trong khung nếu cần kiểm nhãn ghi nhận muộn. Xác nhận và đối chiếu trạng thái sau khi danh sách tải lại. Với việc đo chỉ số, kiểm tra biểu mẫu vẫn yêu cầu giá trị đo.
+3. Trên app, tải checklist khi có mạng rồi tắt mạng. Ghi một công việc đủ điều kiện bằng nút nhanh, kiểm Chưa đồng bộ và bật mạng lại. Mở Đồng bộ để kiểm kết quả; tải lại checklist để kiểm trạng thái từ backend.

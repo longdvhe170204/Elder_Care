@@ -428,4 +428,5 @@ Chia nhỏ theo kho để người dùng tự commit từng mốc; không tự c
   - 2026-11-26: đã cài chọn giờ trong ca và khung nâng cao, web 1459 test, lint/build qua, backend validator 5 test xanh. Còn kiểm trực quan và xem trước khung khi phải lấy CFG-M04-02.
 - [x] T071 Backend: kiểm hồi quy thời điểm thực hiện/ghi nhận, quyền, căn cứ, đồng thời, bàn giao và sự kiện; sửa chỉ khi có lỗi được chứng minh. Quy tắc mới hoặc đổi hợp đồng phải chốt trước.
   - 2026-11-26: 101 ca đơn vị/kiến trúc, 25 ca tích hợp riêng biệt qua các lượt, gồm `ApiContractIT`, `PermissionMatrixIT`, bàn giao và chuỗi tính phí thật. Test mới kiểm hai yêu cầu ghi muộn cùng lúc. Không đổi mã nghiệp vụ.
-- [ ] T072 Mobile: áp dụng thao tác hoàn thành tương ứng tại `lib/staff/care_tasks`, giữ giờ thiết bị và luồng ngoại tuyến; flutter analyze/test.
+- [x] T072 Mobile: áp dụng thao tác hoàn thành tương ứng tại `lib/staff/care_tasks`, giữ giờ thiết bị và luồng ngoại tuyến; flutter analyze/test.
+  - 2026-11-26: hai ca mới chạy đỏ trước khi cài, toàn app 652 test xanh sau sửa, phân tích sạch. Chưa demo trên thiết bị thật.
