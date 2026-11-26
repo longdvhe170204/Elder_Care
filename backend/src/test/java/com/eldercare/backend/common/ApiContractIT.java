@@ -84,7 +84,14 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // (T043, T047)
             new Contract(
                     Path.of("..", "specs", "004-admission-residency", "contracts", "api-004.yaml"),
-                    Set.of(),
+                    // Yêu cầu kết thúc lưu trú của người thân (demo 2026-11-26, E): xóa từng dòng khi cài
+                    Set.of(
+                            "GET /api/v1/family-portal/residents/{residentId}/residency-ending-requests",
+                            "POST /api/v1/family-portal/residents/{residentId}/residency-ending-requests",
+                            "POST /api/v1/family-portal/residency-ending-requests/{id}/cancel",
+                            "GET /api/v1/residency-ending-requests",
+                            "GET /api/v1/residency-ending-requests/{id}",
+                            "POST /api/v1/residency-ending-requests/{id}/reject"),
                     Set.of(),
                     true),
             // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu. /testing/fakes giữ
