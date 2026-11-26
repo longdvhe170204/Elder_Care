@@ -154,6 +154,26 @@ public class FamilyMedicationService {
                     "Custom batch requires selecting catalog medication when confirming for use");
         }
 
+        // M07-10: Thuốc khác hàm lượng với đơn phải giữ hộ và báo bác sĩ xử lý, không tự ý thay thế
+        var catalogMed = medicationRepo.findById(medicationId).orElse(null);
+        if (catalogMed != null
+                && batch.getCustomConcentration() != null
+                && !batch.getCustomConcentration().isBlank()
+                && catalogMed.getConcentration() != null
+                && !catalogMed
+                        .getConcentration()
+                        .trim()
+                        .equalsIgnoreCase(batch.getCustomConcentration().trim())) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "CONCENTRATION_MISMATCH",
+                    "Thuốc gia đình gửi khác hàm lượng với đơn ("
+                            + batch.getCustomConcentration()
+                            + " != "
+                            + catalogMed.getConcentration()
+                            + "), chỉ giữ hộ và báo bác sĩ xử lý");
+        }
+
         // Verify bound prescriptions
         List<Prescription> prescriptions = prescriptionRepo.findAllById(body.getPrescriptionIds());
         if (prescriptions.isEmpty()
