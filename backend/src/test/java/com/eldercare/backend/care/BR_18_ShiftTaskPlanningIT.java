@@ -229,6 +229,77 @@ class BR_18_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
                         jsonPath("$.residents[0].planOccurrences[0].plannedAt").value(tomorrowAt.toString()));
     }
 
+    ResultActions monthCommand(String path, String body) throws Exception {
+        return mvc.perform(post("/api/v1/care-tasks/month-drafts" + path)
+                .header("Idempotency-Key", "month-" + TestUsers.nextId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
+    }
+
+    String month() {
+        return "{\"floorAreaId\":" + floor + ",\"month\":\""
+                + time.today().toString().substring(0, 7) + "\"}";
+    }
+
+    int countStatus(String status) {
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM care_task WHERE resident_id=? AND status=?", Integer.class, residentId, status);
+    }
+
+    @Test
+    void Q453_monthCopyCreatesDraftsOnceHiddenFromChecklistThenPublished() throws Exception {
+        monthCommand("", month())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.created").value(1));
+        assertThat(countStatus("DRAFT")).isEqualTo(1);
+        assertThat(jdbc.queryForObject(
+                        "SELECT performer_id FROM care_task WHERE resident_id=? AND status='DRAFT'",
+                        Long.class,
+                        residentId))
+                .isEqualTo(caregiver.staffId());
+        // Chép lại không tạo trùng
+        monthCommand("", month())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.created").value(0));
+        assertThat(countStatus("DRAFT")).isEqualTo(1);
+        mvc.perform(get("/api/v1/care-tasks/month-drafts")
+                        .param("floorAreaId", Long.toString(floor))
+                        .param("month", time.today().toString().substring(0, 7)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.residentId==" + residentId + ")]").isNotEmpty());
+        // Nhân viên không thấy việc Nháp trên checklist
+        user.set(caregiver.user());
+        mvc.perform(get("/api/v1/checklist").param("shiftId", Long.toString(shiftId)))
+                .andExpect(status().isOk())
+                .andExpect(
+                        jsonPath("$.tasks[?(@.residentId==" + residentId + ")]").isEmpty());
+        user.set(manager.user());
+
+        monthCommand("/publish", month())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.published").value(1));
+        assertThat(countStatus("DRAFT")).isZero();
+        assertThat(countStatus("NOT_YET_DUE")).isEqualTo(1);
+    }
+
+    @Test
+    void Q453_draftCanBeRemovedBeforePublish() throws Exception {
+        monthCommand("", month()).andExpect(status().isOk());
+        long id = jdbc.queryForObject(
+                "SELECT id FROM care_task WHERE resident_id=? AND status='DRAFT'", Long.class, residentId);
+        mvc.perform(post("/api/v1/care-tasks/month-drafts/" + id + "/discard").header("Idempotency-Key", "del-" + id))
+                .andExpect(status().isOk());
+        assertThat(countStatus("DRAFT")).isZero();
+        monthCommand("/publish", month()).andExpect(jsonPath("$.published").value(0));
+    }
+
+    @Test
+    void Q453_onlyFloorManagerCopiesMonth() throws Exception {
+        user.set(caregiver.user());
+        monthCommand("", month()).andExpect(status().isForbidden());
+        assertThat(countStatus("DRAFT")).isZero();
+    }
+
     private long effectiveItem(int revision, LocalDate effectiveFrom, LocalTime due) {
         long planId = TestUsers.nextId(), itemId = TestUsers.nextId();
         var data = new com.eldercare.backend.care.internal.careplan.domain.CarePlanItemData(

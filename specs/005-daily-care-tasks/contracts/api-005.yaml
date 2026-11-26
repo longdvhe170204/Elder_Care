@@ -687,6 +687,41 @@ paths:
                   $ref: "#/components/schemas/CareTask"
       operationId: listShiftCareTasks
       x-implementation-phase: 4
+  /care-tasks/month-drafts:
+    post:
+      x-implementation-phase: 11
+      operationId: copyCareTaskMonthFromPlans
+      tags: [cong-viec]
+      summary: Chép từ kế hoạch cho cả tháng của tầng, tạo công việc Nháp (Trưởng tầng; Q-453, FR-054)
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CareMonthRequest' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CareMonthCopyResult' } } } } }
+    get:
+      x-implementation-phase: 11
+      operationId: listCareTaskMonthDrafts
+      tags: [cong-viec]
+      summary: Công việc Nháp của tầng trong tháng (Q-453)
+      parameters:
+        - { name: floorAreaId, in: query, required: true, schema: { type: integer, format: int64 } }
+        - { name: month, in: query, required: true, schema: { type: string, example: '2026-12' } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CareMonthDraft' } } } } } }
+  /care-tasks/month-drafts/publish:
+    post:
+      x-implementation-phase: 11
+      operationId: publishCareTaskMonth
+      tags: [cong-viec]
+      summary: Công bố công việc tháng, Nháp sang Chưa đến hạn (Trưởng tầng; Q-453)
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CareMonthRequest' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CareMonthPublishResult' } } } } }
+  /care-tasks/month-drafts/{id}/discard:
+    post:
+      x-implementation-phase: 11
+      operationId: discardCareTaskDraft
+      tags: [cong-viec]
+      summary: Bỏ một công việc Nháp (Trưởng tầng; Q-453)
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK } }
   /shifts/{shiftId}/care-tasks/plan:
     post:
       tags:
@@ -1583,9 +1618,36 @@ components:
         - AD_HOC
         - AD_HOC_RECORDING
         - REWORK
+    CareMonthRequest:
+      type: object
+      required: [floorAreaId, month]
+      properties:
+        floorAreaId: { type: integer, format: int64 }
+        month: { type: string, example: '2026-12' }
+    CareMonthCopyResult:
+      type: object
+      properties:
+        created: { type: integer, format: int32 }
+        skipped: { type: integer, format: int32 }
+        shifts: { type: integer, format: int32 }
+    CareMonthPublishResult:
+      type: object
+      properties:
+        published: { type: integer, format: int32 }
+    CareMonthDraft:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        residentId: { type: [integer, 'null'], format: int64 }
+        taskTypeId: { type: integer, format: int64 }
+        shiftId: { type: integer, format: int64 }
+        plannedAt: { type: string, format: date-time }
+        importance: { $ref: '#/components/schemas/Importance' }
+        performerId: { type: [integer, 'null'], format: int64, description: 'Rỗng là việc chung của tầng' }
     CareTaskStatus:
       type: string
       enum:
+        - DRAFT
         - NOT_YET_DUE
         - DUE
         - OVERDUE
