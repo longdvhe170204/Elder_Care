@@ -136,9 +136,15 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND t.code='NURSING_LICENSE' WHERE c.staff_id=9011",
                         Integer.class))
                 .isEqualTo(1);
+        // V900_11 (Q-453): mỗi Trưởng tầng một tầng; Tầng 2 do demo.truongtang2 (9013) phụ trách, 9003 chỉ còn Tầng 1
+        assertThat(jdbc.queryForList(
+                        "SELECT CONCAT(staff_id,':',floor_area_id) FROM staff_assignment WHERE kind='FLOOR_MANAGER'"
+                                + " AND status='ACTIVE' AND staff_id IN (9003,9013) ORDER BY staff_id",
+                        String.class))
+                .containsExactly("9003:9001", "9013:9002");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staff_assignment WHERE kind='FLOOR_MANAGER' AND staff_id=9003"
-                                + " AND floor_area_id=9002 AND status='ACTIVE'",
+                        "SELECT COUNT(*) FROM account a JOIN permission_assignment r ON r.account_id=a.id"
+                                + " WHERE a.username='demo.truongtang2' AND a.staff_id=9013 AND r.role='AC-02'",
                         Integer.class))
                 .isEqualTo(1);
         // V900_10: nghiệp vụ Phát thuốc có loại giấy phép NURSING_LICENSE để Trưởng tầng đặt được Điều dưỡng phụ trách

@@ -294,6 +294,16 @@ class BR_18_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void Q453_pastOccurrencesAreNotCopied() throws Exception {
+        // Mốc kế hoạch đã qua (ca vẫn đang diễn ra): không chép, công bố xong sẽ không thành Quá hạn ngay
+        clock.setTo(planned.plusSeconds(60));
+        monthCommand("", month())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.created").value(0));
+        assertThat(countStatus("DRAFT")).isZero();
+    }
+
+    @Test
     void Q453_onlyFloorManagerCopiesMonth() throws Exception {
         user.set(caregiver.user());
         monthCommand("", month()).andExpect(status().isForbidden());

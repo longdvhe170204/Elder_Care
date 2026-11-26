@@ -94,6 +94,8 @@ public class CareMonthPlanning {
         floorManager();
         Instant from = start(month), to = end(month), now = time.now();
         var shifts = commands.staff().publishedShifts(floorAreaId, from, to).stream()
+                // Ca đã kết thúc không còn mốc nào để chép
+                .filter(s -> s.endsAt().isAfter(now))
                 .sorted(Comparator.comparing(ShiftStaffPort.ShiftView::startsAt))
                 .toList();
         int created = 0, skipped = 0;
@@ -104,9 +106,11 @@ public class CareMonthPlanning {
                 resident.planItems().forEach(item -> items.put(item.id(), item));
                 for (var occurrence : resident.planOccurrences()) {
                     var item = items.get(occurrence.itemId());
+                    // Chỉ chép mốc từ bây giờ trở đi: mốc đã qua mà công bố thì thành Quá hạn ngay
                     if (item == null
                             || occurrence.plannedAt().isBefore(from)
-                            || !occurrence.plannedAt().isBefore(to)) continue;
+                            || !occurrence.plannedAt().isBefore(to)
+                            || occurrence.plannedAt().isBefore(now)) continue;
                     var performer = performer(resident.assignments(), item.performerRole());
                     var draft = new CareTaskDraft(
                             resident.residentId(),
