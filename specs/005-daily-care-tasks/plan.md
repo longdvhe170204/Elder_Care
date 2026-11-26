@@ -1062,3 +1062,7 @@ Edge chạy với dữ liệu test ở 1366px chế độ sáng và 375px chế 
 - T070: thêm trường chỉ đọc `defaultWindowMinutes` vào phản hồi nguồn ca để người có quyền xem lập việc đọc được giá trị CFG-M04-02 dùng cho đúng luồng này. Web chỉ áp vào phía còn thiếu mặc định sau khi xét mục kế hoạch và loại công việc. Trường hợp khung toàn ca vẫn theo luật hiện có. Không mở quyền xem danh sách tham số và không sửa migration.
 
 Hai thay đổi hợp đồng cần chủ dự án duyệt trước khi triển khai, C review phần 005.
+
+### Kiểm hộp lập việc qua đêm trên Edge
+
+Dùng dữ liệu test ca 18:00–07:00. Ở 1366px chế độ sáng và 375px chế độ tối, mở hộp bằng Enter, kiểm giờ 07:00 bị chặn, nhập 01:07 thấy đúng ngày hôm sau, mở tùy chọn nâng cao thấy khung 00:57–01:27 và gửi đúng `plannedAt`. Lượt đầu phát hiện phần đầu hộp tràn ngang ở 375px. Đã cho tiêu đề và các nút xếp dọc ở màn hẹp, xếp ngang từ cỡ `sm`. Cả hộp và trang đều qua kiểm tràn ngang khi chạy lại. Toàn web 1470 test/205 file xanh, lint/build qua. Chưa demo với backend thật.

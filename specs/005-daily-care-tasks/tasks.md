@@ -425,7 +425,7 @@ Chia nhỏ theo kho để người dùng tự commit từng mốc; không tự c
 - [ ] T069 Web: hai chế độ căn cứ theo yêu cầu, đối tượng người/vị trí loại trừ nhau, nguồn thật và trạng thái rỗng; rà dữ liệu cấp tầng theo hợp đồng trước khi sửa.
   - 2026-11-26: đã cài hai chế độ và chọn đối tượng theo loại. Còn xác nhận trực quan và lọc hết hiệu lực/có mặt theo giờ trước khi gửi vì API ca thiếu dữ liệu có cấu trúc. Lệnh lưu vẫn kiểm ở backend.
 - [ ] T070 Web/backend: kiểm biên ca ngày/qua đêm và giá trị mặc định khung thời gian; thu gọn tùy chọn nâng cao, không tự đặt ngưỡng mới.
-  - 2026-11-26: đã cài chọn giờ trong ca và khung nâng cao, web 1459 test, lint/build qua, backend validator 5 test xanh. Còn kiểm trực quan và xem trước khung khi phải lấy CFG-M04-02.
+  - 2026-11-26: đã cài chọn giờ trong ca và khung nâng cao, web 1459 test, lint/build qua, backend validator 5 test xanh. Edge 1366px sáng và 375px tối qua ca đêm với dữ liệu test sau khi sửa tràn ngang. Còn demo với backend thật và xem trước khung khi phải lấy CFG-M04-02.
 - [x] T071 Backend: kiểm hồi quy thời điểm thực hiện/ghi nhận, quyền, căn cứ, đồng thời, bàn giao và sự kiện; sửa chỉ khi có lỗi được chứng minh. Quy tắc mới hoặc đổi hợp đồng phải chốt trước.
   - 2026-11-26: 101 ca đơn vị/kiến trúc, 25 ca tích hợp riêng biệt qua các lượt, gồm `ApiContractIT`, `PermissionMatrixIT`, bàn giao và chuỗi tính phí thật. Test mới kiểm hai yêu cầu ghi muộn cùng lúc. Không đổi mã nghiệp vụ.
 - [x] T072 Mobile: áp dụng thao tác hoàn thành tương ứng tại `lib/staff/care_tasks`, giữ giờ thiết bị và luồng ngoại tuyến; flutter analyze/test.
