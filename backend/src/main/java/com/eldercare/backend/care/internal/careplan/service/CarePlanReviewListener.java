@@ -9,6 +9,7 @@ import com.eldercare.backend.care.api.CarePlanReviewApi;
 import com.eldercare.backend.care.api.dto.CareEventContext;
 import com.eldercare.backend.care.api.dto.CarePlanStatus;
 import com.eldercare.backend.care.api.events.CarePlanReviewNeeded;
+import com.eldercare.backend.care.internal.careplan.persistence.CarePlanReviewStore;
 import com.eldercare.backend.care.internal.careplan.persistence.CarePlanStore;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.notification.RecipientGroup;
@@ -51,6 +52,7 @@ class CarePlanReviewListener implements CarePlanReviewApi {
     private final ReminderMarkers markers;
     private final AssessmentApi assessments;
     private final CarePlanStore plans;
+    private final CarePlanReviewStore reviews;
 
     CarePlanReviewListener(
             ApproverApi approvers,
@@ -59,7 +61,9 @@ class CarePlanReviewListener implements CarePlanReviewApi {
             ApplicationEventPublisher events,
             ReminderMarkers markers,
             AssessmentApi assessments,
-            CarePlanStore plans) {
+            CarePlanStore plans,
+            CarePlanReviewStore reviews) {
+        this.reviews = reviews;
         this.approvers = approvers;
         this.allocations = allocations;
         this.time = time;
@@ -127,6 +131,7 @@ class CarePlanReviewListener implements CarePlanReviewApi {
 
     private void review(
             long residentId, String source, long sourceId, String reference, String milestonePrefix, Instant now) {
+        reviews.open(residentId, source, sourceId, reference, now);
         var floor = allocations.openAt(residentId, now).map(BedAllocationView::floorAreaId);
         var target = new Target(CARE_PLAN, null, residentId, floor.orElse(null));
         var accounts = approvers.approvers(APPROVE, target);

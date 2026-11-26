@@ -423,3 +423,16 @@ Căn cứ: spec mục Cập nhật 2026-11-25, `design-care-plan-streamline.md`,
 - [x] T068 `CarePlanService`: Gửi duyệt không ngày; Duyệt cho Hiệu lực ngay (báo `CarePlanChanged` qua `CarePlanActivation.announce`) hoặc Chờ hiệu lực ngày mai, hủy bản Chờ hiệu lực trước; lập bản sửa luôn chép bản Chờ hiệu lực/Hiệu lực; `POST /care-plans/{id}/retract` (người lập); bỏ `/withdraw-approval`, `CarePlanApprovalWithdrawn`; `api-005.yaml` đổi theo. Test: `FR_003_CarePlanLifecycleIT` (9), `FR_003_CarePlanContractTest` (3).
 - [x] T069 Web màn Kế hoạch chăm sóc theo thiết kế 4.5 (một kế hoạch, Gửi Bác sĩ duyệt, Rút lại, Bỏ bản sửa, thay đổi so với hiện hành; bỏ danh sách, so sánh phiên bản, Thu hồi duyệt). Kho Elder_Care_Frontend 797868c. Test: `src/features/care-tasks/` 84/84; toàn bộ web 1287/1287, lint, build xanh; xem màn trên trình duyệt với backend demo (lập, bỏ bản nháp).
 - [x] T070 Mobile: bỏ "Kế hoạch lần N" ở `care_plans_screen.dart`. Test: `care_plans_screen_test.dart` (4).
+
+
+## Phase 15: Q-448 hàng chờ lập và sửa kế hoạch chăm sóc
+
+Căn cứ: spec mục Cập nhật 2026-11-26 (US8, FR-009, FR-011, FR-058, FR-059), `plan-q448.md`. Không đổi luồng Q-447.
+
+- [x] T071 Bảng `care_plan_review` (migration `V005_104`, quyền `eldercare_app` INSERT, UPDATE; `eldercare_retention` DELETE), `CarePlanReviewStore.open`; `CarePlanReviewListener` lưu yêu cầu Đang mở ở mọi nguồn trước khi báo. Test: `BR_17_CarePlanReviewIT` (`Q448_repeatedFallCreatesOneOpenReview`, `Q448_palliativeChoiceOpensOneReviewPerKey`, `Q448_reassessmentOpensReview`) đỏ 3/4 rồi xanh 4/4; `CarePlanReviewDedupTest`, `*ArchTest`, `ModuleBoundaryTest` xanh.
+- [ ] T072 Nguồn đánh giá đầu vào có nhu cầu (`InitialAssessmentConfirmed`), plan-q448 Task 2.
+- [ ] T073 Đóng yêu cầu: Duyệt, "Không cần thay đổi", kết thúc lưu trú; hợp đồng api-005, plan-q448 Task 3.
+- [ ] T074 Hàng chờ, số đếm, `planState`, `openReviews`, plan-q448 Task 4.
+- [ ] T075 Web hàng chờ và dải nguồn, plan-q448 Task 5.
+- [ ] T076 Mobile nhãn trạng thái kế hoạch, plan-q448 Task 6.
+- [ ] T077 Dữ liệu mẫu, tiến độ, plan-q448 Task 7.
