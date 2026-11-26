@@ -23,6 +23,7 @@ import com.eldercare.backend.billing.balance.internal.ledger.persistence.LedgerS
 import com.eldercare.backend.billing.balance.internal.ledger.service.BalanceQueries;
 import com.eldercare.backend.billing.balance.internal.ledger.service.DepositStatuses;
 import com.eldercare.backend.billing.balance.internal.ledger.service.LedgerPosting;
+import com.eldercare.backend.billing.balance.internal.ledger.service.TransactionFamilyNotices;
 import com.eldercare.backend.billing.balance.internal.settlement.service.SettlementChanges;
 import com.eldercare.backend.billing.balance.internal.status.domain.Trigger;
 import com.eldercare.backend.billing.balance.internal.status.service.BalanceStatusService;
@@ -71,6 +72,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
     private final ResidentApi residents;
     private final AuditLogApi audit;
     private final BusinessTime time;
+    private final TransactionFamilyNotices familyNotices;
 
     BalanceTransactionRequestHandler(
             BalanceTransactionService service,
@@ -84,7 +86,8 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
             SettlementChanges settlement,
             ResidentApi residents,
             AuditLogApi audit,
-            BusinessTime time) {
+            BusinessTime time,
+            TransactionFamilyNotices familyNotices) {
         this.service = service;
         this.posting = posting;
         this.ledgers = ledgers;
@@ -97,6 +100,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
         this.residents = residents;
         this.audit = audit;
         this.time = time;
+        this.familyNotices = familyNotices;
     }
 
     @Override
@@ -166,6 +170,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
             statuses.recalculate(row.residentId(), Trigger.DAILY, "TRANSACTION:" + row.id());
         }
         settlement.changed(row.residentId());
+        familyNotices.confirmed(row.residentId(), List.of(row));
         return new ResultRef(BalanceTypes.TRANSACTION, Long.toString(row.id()));
     }
 
@@ -192,6 +197,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
         if (!BalanceTypes.TRANSACTION.equals(request.type())) return;
         long id = transactionId(request.content());
         pending.close(id, status, time.now());
+        transactions.find(id).ifPresent(row -> familyNotices.closed(row, status));
         settlement.changed(residentId(request.content()));
         audit.write(AuditLogEntry.builder()
                 .action(CLOSED)
