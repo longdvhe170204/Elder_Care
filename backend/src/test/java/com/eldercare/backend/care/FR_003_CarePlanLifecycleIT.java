@@ -425,4 +425,40 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
 
         queue().andExpect(jsonPath(row()).isEmpty());
     }
+
+    @Test
+    void Q449_creatorDiscardsOwnDraftWithoutReason() throws Exception {
+        long id = create();
+        mvc.perform(get("/api/v1/care-plans/" + id))
+                .andExpect(jsonPath("$.allowedCommands").value(org.hamcrest.Matchers.hasItem("discardDraft")))
+                .andExpect(jsonPath("$.allowedCommands")
+                        .value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("cancel"))));
+
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/cancel"), "{}")).andExpect(status().isOk());
+
+        assertThat(column("status", id)).isEqualTo("CANCELLED");
+    }
+
+    @Test
+    void Q449_cancellingPendingApprovalStillNeedsReason() throws Exception {
+        long id = create();
+        submit(id);
+
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/cancel"), "{}"))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/cancel"), "{\"reason\":\"Gửi nhầm\"}"))
+                .andExpect(status().isOk());
+        assertThat(column("status", id)).isEqualTo("CANCELLED");
+    }
+
+    @Test
+    void Q449_approverCancellingSomeoneElsesDraftNeedsReason() throws Exception {
+        long id = create();
+        user.set(doctor.user());
+
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/cancel"), "{}"))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
+    }
 }

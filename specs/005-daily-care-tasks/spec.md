@@ -153,6 +153,10 @@ Ngày 2026-11-25 chủ dự án chốt tinh gọn lập và duyệt kế hoạch
 - Bản Chờ hiệu lực không chặn lập bản sửa mới; bản sau được duyệt thì bản Chờ hiệu lực trước chuyển Đã hủy.
 - Bỏ màn lịch sử và so sánh hai phiên bản bất kỳ; khi xem bản sửa Chờ duyệt, người duyệt thấy thay đổi so với kế hoạch Hiệu lực.
 
+### Cập nhật 2026-11-26 (đồng bộ Q-449, bỏ bản nháp không cần lý do)
+
+Chủ dự án chốt Q-449 cùng ngày: người lập tự bỏ bản Nháp của chính mình (chưa gửi Bác sĩ) thì không cần lý do, giao diện là "Bỏ bản nháp" chỉ hỏi xác nhận; nhật ký vẫn ghi người và thời điểm. Bỏ bản Chờ duyệt, hoặc người có quyền duyệt bỏ bản của người khác, vẫn bắt buộc lý do. Đã sửa dòng "Hủy phiên bản" ở bảng FR-003.
+
 ### Cập nhật 2026-11-26 (đồng bộ Q-448, hàng chờ lập và sửa kế hoạch chăm sóc)
 
 Ngày 2026-11-26 chủ dự án chốt Q-448 (docs/business/nghiep-vu.md 24.2): Điều dưỡng không biết ai cần lập hoặc sửa kế hoạch, vì nguồn phát sinh chỉ gửi thông báo. Đã sửa trực tiếp User Story 8, FR-009, FR-011, Edge Cases; thêm FR-058, FR-059.
@@ -436,7 +440,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Chờ duyệt | Duyệt | Hiệu lực | Người có quyền Duyệt kế hoạch chăm sóc (FR-005) | Người cao tuổi chưa có phiên bản Hiệu lực | Ngày hiệu lực = ngày duyệt; ghi người duyệt, thời điểm duyệt; áp FR-006 |
 | Chờ duyệt | Duyệt | Chờ hiệu lực | Người có quyền Duyệt kế hoạch chăm sóc (FR-005) | Người cao tuổi đã có phiên bản Hiệu lực | Ngày hiệu lực = ngày hôm sau ngày duyệt (Q-34); ghi người duyệt, thời điểm duyệt; phiên bản Chờ hiệu lực trước (nếu có) chuyển Đã hủy |
 | Chờ duyệt | Trả lại | Nháp | Người có quyền duyệt | Bắt buộc lý do | Thông báo người lập kèm lý do |
-| Nháp, Chờ duyệt | Hủy phiên bản (giao diện: Bỏ bản sửa) | Đã hủy | Người lập, người có quyền duyệt | Bắt buộc lý do | — |
+| Nháp, Chờ duyệt | Hủy phiên bản (giao diện: Bỏ bản nháp, Bỏ bản sửa) | Đã hủy | Người lập, người có quyền duyệt | Bắt buộc lý do; người lập tự bỏ bản Nháp của mình thì không cần lý do (**sửa 2026-11-26, Q-449**) | — |
 | Chờ hiệu lực | Phiên bản sau được duyệt | Đã hủy | Hệ thống | — | Lý do: thay bằng phiên bản sau |
 | Chờ hiệu lực | Tới ngày hiệu lực | Hiệu lực | Bộ lập lịch | Người cao tuổi chưa ở trạng thái cuối | Áp FR-006 |
 | Hiệu lực | Phiên bản mới có hiệu lực | Hết hiệu lực | Hệ thống | — | Ngày hết hiệu lực = ngày liền trước ngày hiệu lực của phiên bản mới |

@@ -161,9 +161,10 @@ paths:
       operationId: cancelCarePlan
       tags: [ke-hoach]
       summary: Hủy phiên bản Nháp hoặc Chờ duyệt (người lập, người có quyền duyệt)
+      description: 'Q-449: bắt buộc reason, trừ khi người lập tự bỏ bản Nháp của mình (allowedCommands có discardDraft thay cho cancel).'
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
+      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plan-reviews/queue:
     get:

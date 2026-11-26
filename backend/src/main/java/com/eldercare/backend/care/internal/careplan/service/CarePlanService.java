@@ -315,7 +315,8 @@ public class CarePlanService {
     }
 
     @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.VIEW)
-    @BusinessCommand
+    // Q-449: lý do kiểm trong lệnh (người lập tự bỏ bản Nháp của mình thì không cần), không để aspect chặn trước
+    @BusinessCommand(requiresReason = false)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void cancel(Target target, long id, Reason reason) {
         var plan = locked(id);
@@ -324,15 +325,17 @@ public class CarePlanService {
                         .hasPermission(user, new PermissionKey(Function.CARE_PLAN, Operation.APPROVE), target)
                         .allowed())
             throw new PermissionDeniedException("Chỉ người lập hoặc người có quyền duyệt được hủy");
-        changeLocked(plan, "CANCEL", reason);
+        // Q-449: người lập tự bỏ bản Nháp của mình không cần lý do; nhật ký vẫn ghi người và thời điểm
+        boolean ownDraft = plan.createdBy() == user.accountId() && plan.status() == CarePlanStatus.DRAFT;
+        changeLocked(plan, "CANCEL", reason, !ownDraft);
     }
 
     private void change(long id, String command, Reason reason) {
-        changeLocked(locked(id), command, reason);
+        changeLocked(locked(id), command, reason, true);
     }
 
-    private void changeLocked(CarePlan plan, String command, Reason reason) {
-        if (reason == null) throw new ReasonRequiredException();
+    private void changeLocked(CarePlan plan, String command, Reason reason, boolean reasonRequired) {
+        if (reasonRequired && reason == null) throw new ReasonRequiredException();
         writable(plan.residentId());
         var next = CarePlanTransitions.next(plan.status(), command);
         store.transition(

@@ -219,7 +219,10 @@ public class CarePlanController {
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = CareProblemBody.class)))
     public void cancel(
-            @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody CarePlanApprovalWrite body) {
+        // Q-449: lý do không bắt buộc khi người lập tự bỏ bản Nháp của mình; service kiểm
         service.cancel(service.target(id), id, body.reason());
     }
 
@@ -340,8 +343,10 @@ public class CarePlanController {
                 commands.put("replaceItems", key(Operation.UPDATE));
                 commands.put("replaceRiskAgreements", key(Operation.UPDATE));
                 commands.put("submit", key(Operation.UPDATE));
-                commands.put(
-                        "cancel", row.createdBy() == user.accountId() ? key(Operation.VIEW) : key(Operation.APPROVE));
+                // Q-449: người lập tự bỏ bản Nháp của mình không cần lý do; cùng lệnh cancel, tên khác để giao diện
+                // biết
+                if (row.createdBy() == user.accountId()) commands.put("discardDraft", key(Operation.VIEW));
+                else commands.put("cancel", key(Operation.APPROVE));
             }
             case PENDING_APPROVAL -> {
                 commands.put("approve", key(Operation.APPROVE));
