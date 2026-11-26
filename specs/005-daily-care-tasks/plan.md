@@ -1029,3 +1029,9 @@ T070: ô giờ dự kiến dùng mốc thật của ca, nhận giờ bắt đầ
 Khung nâng cao thu gọn mặc định. Khi dữ liệu nguồn đủ, hiển thị khung từ mục kế hoạch hoặc loại công việc, toàn ca đối với việc cấp ca và mục không có giờ cố định. Chỉ cho nhập số phút của việc phát sinh mức Thường với loại kết quả `PERFORMED`. Để trống không gửi trường ghi đè. Khi danh mục thiếu số phút mặc định, backend áp dụng CFG-M04-02. API tham số hiện yêu cầu quyền xem riêng và hợp đồng nguồn ca không trả giá trị này, nên chưa xem trước được giờ cụ thể ở nhánh dùng cấu hình hệ thống. Không thêm quyền hoặc trường API.
 
 Hai test mới đỏ trước khi cài. Các ca đã kiểm: đúng ngày sau nửa đêm, nhập phút lẻ, chặn đúng giờ kết thúc, khung danh mục và sửa một phía, xem khung kế hoạch mà không chỉnh, không gửi hai trường khi dùng mặc định. Web 1459 test/205 file, lint/build qua. Backend `FR_017_CareTaskValidatorTest` 5/5. Chưa kiểm trực quan trên trình duyệt.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 5 (2026-11-26)
+
+T071 chạy hồi quy lập việc, ghi kết quả, phạm vi quyền, nguồn thật, nhắc quá hạn, bàn giao, hợp đồng và sự kiện chi phí. Dùng MySQL 8.0.45 độc lập trên loopback, dữ liệu nằm trong `backend/target` và được tắt sau lượt test. Ca mới đặt công việc vào Quá hạn với giờ thực hiện còn trong khung và gửi hai yêu cầu có khóa idempotency khác nhau. Ca kiểm kết quả Hoàn thành, nhãn ghi nhận muộn, hai mốc thời gian và yêu cầu còn lại gặp xung đột.
+
+Kết quả: 101 ca đơn vị/kiến trúc xanh, gồm `ModuleBoundaryTest`. 25 ca tích hợp riêng biệt xanh qua các lượt, gồm so hợp đồng, ma trận quyền, nguồn đo/hoạt động thật, chuyển quá hạn, bàn giao và chuỗi 005 → 010. Lượt đầu có 3 lỗi thiếu class ở `HandoverIT` do trùng thời điểm Maven biên dịch. Chạy lại riêng sau khi lượt khác kết thúc, cả 3 ca bàn giao và 1 ca ma trận quyền xanh. `spotless:apply` lớp Java đã sửa và check Spotless trong verify qua. Chưa chạy `clean verify` toàn kho trước PR.
