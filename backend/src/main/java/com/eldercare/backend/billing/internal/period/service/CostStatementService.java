@@ -40,6 +40,8 @@ public class CostStatementService {
     private final ApplicationEventPublisher events;
     private final CostNotifications notifications;
     private final com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory;
+    private final org.springframework.beans.factory.ObjectProvider<com.eldercare.backend.resident.api.ResidentApi>
+            residents;
 
     public CostStatementService(
             CostStatementStore store,
@@ -52,7 +54,9 @@ public class CostStatementService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             CostNotifications notifications,
-            com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory) {
+            com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory,
+            org.springframework.beans.factory.ObjectProvider<com.eldercare.backend.resident.api.ResidentApi>
+                    residents) {
         this.store = store;
         this.items = items;
         this.locks = locks;
@@ -64,6 +68,7 @@ public class CostStatementService {
         this.events = events;
         this.notifications = notifications;
         this.itemHistory = itemHistory;
+        this.residents = residents;
     }
 
     public CostStatementRecord read(long id) {
@@ -257,6 +262,32 @@ public class CostStatementService {
                 at,
                 List.of(request)));
         events.publishEvent(new CostItemChanged(s.residentId(), s.periodId()));
+        // Demo 2026-11-26 (E): bảng kỳ cuối chốt thì Kế toán được báo việc tiếp theo; nguồn là số dư của người cao tuổi
+        // (M11.BALANCE) để nút Xử lý ở web mở thẳng số dư
+        if (s.finalPeriod())
+            notifications.staff(
+                    "COST_FINAL_STATEMENT_FOR_ACCOUNTANT",
+                    "M11.BALANCE",
+                    s.residentId(),
+                    s.residentId(),
+                    "M11:FINAL_FOR_ACCOUNTANT:" + id,
+                    "Bảng chi phí kỳ cuối của " + residentName(s.residentId()) + " đã chốt: tổng " + vnd(total)
+                            + ", đã trừ vào số dư. Kiểm tra số dư: lập hoàn số dư, hoàn tiền cọc hoặc ghi nhận"
+                            + " tiền nộp, rồi xác nhận quyết toán.",
+                    Role.ACCOUNTANT,
+                    at,
+                    access.user().accountId());
+    }
+
+    // Tên người cao tuổi cho thông báo; không đọc được thì nêu mã
+    private String residentName(long residentId) {
+        try {
+            var api = residents.getIfAvailable();
+            if (api != null) return api.identity(residentId).fullName();
+        } catch (RuntimeException e) {
+            // hồ sơ không đọc được: dùng mã
+        }
+        return "người cao tuổi mã " + residentId;
     }
 
     /**
