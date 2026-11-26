@@ -52,6 +52,9 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
     FakeAssignments assignments;
 
     @Autowired
+    FakeStaffProfiles staffProfiles;
+
+    @Autowired
     JsonMapper json;
 
     @Autowired
@@ -478,6 +481,75 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                         .value(org.hamcrest.Matchers.contains(true)))
                 .andExpect(jsonPath("$[?(@.residentId==" + residentId + ")].draftId")
                         .value(org.hamcrest.Matchers.contains((int) revision)));
+    }
+
+    @Test
+    void Q451_recentApprovalsIncludeEffectivePendingSupersededAndExpiredVersions() throws Exception {
+        String approverName = "[Bác sĩ kiểm thử]";
+        staffProfiles.name(doctor.staffId(), approverName);
+        long original = effectivePlan();
+        var approved = get("/api/v1/care-plan-reviews/approved");
+        mvc.perform(approved)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(row() + ".planId").value(org.hamcrest.Matchers.contains((int) original)))
+                .andExpect(jsonPath(row() + ".fullName").value(org.hamcrest.Matchers.contains("[Họ tên kiểm thử]")))
+                .andExpect(jsonPath(row() + ".profileCode")
+                        .value(org.hamcrest.Matchers.contains("NCT-2026-" + residentId)))
+                .andExpect(jsonPath(row() + ".status").value(org.hamcrest.Matchers.contains("EFFECTIVE")))
+                .andExpect(jsonPath(row() + ".approvedBy").value(org.hamcrest.Matchers.contains(approverName)))
+                .andExpect(jsonPath(row() + ".approvedAt")
+                        .value(org.hamcrest.Matchers.contains(
+                                org.hamcrest.Matchers.not(org.hamcrest.Matchers.blankOrNullString()))))
+                .andExpect(jsonPath(row() + ".effectiveFrom")
+                        .value(org.hamcrest.Matchers.contains(time.today().toString())))
+                .andExpect(jsonPath(row() + ".selfApproved").value(org.hamcrest.Matchers.contains(false)));
+
+        long superseded = createCopy();
+        submit(superseded, "{}");
+        approveAsDoctor(superseded);
+        long current = createCopy();
+        submit(current, "{}");
+        approveAsDoctor(current);
+
+        mvc.perform(approved)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(row() + ".planId")
+                        .value(org.hamcrest.Matchers.contains((int) current, (int) superseded, (int) original)))
+                .andExpect(jsonPath(row() + ".status")
+                        .value(org.hamcrest.Matchers.contains("PENDING_EFFECT", "CANCELLED", "EFFECTIVE")));
+
+        activation().run(time.today().plusDays(1), time.now());
+        mvc.perform(approved)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(row() + ".status")
+                        .value(org.hamcrest.Matchers.contains("EFFECTIVE", "CANCELLED", "EXPIRED")));
+    }
+
+    @Test
+    void Q451_approvedListHidesOutOfScopeAndFinalResidents() throws Exception {
+        effectivePlan();
+        user.set(new TestUsers(jdbc, time).staff(Role.NURSING_STAFF).user());
+        mvc.perform(get("/api/v1/care-plan-reviews/approved"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(row()).isEmpty());
+
+        user.set(doctor.user());
+        residents.resident(residentId, "[Họ tên kiểm thử]", Gender.MALE, ResidentStatus.DECEASED);
+        mvc.perform(get("/api/v1/care-plan-reviews/approved"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(row()).isEmpty());
+    }
+
+    @Test
+    void Q451_approvedListUsesApprovalTimeAndHidesApprovalsOlderThanSevenDays() throws Exception {
+        long id = effectivePlan();
+        jdbc.update(
+                "UPDATE care_plan SET approved_at=? WHERE id=?",
+                java.time.LocalDateTime.ofInstant(time.now().minus(Duration.ofDays(8)), BusinessTime.ZONE),
+                id);
+        mvc.perform(get("/api/v1/care-plan-reviews/approved"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(row()).isEmpty());
     }
 
     @Test

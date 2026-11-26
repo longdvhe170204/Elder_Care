@@ -81,6 +81,17 @@ public class CarePlanStore {
                 "SELECT DISTINCT resident_id FROM care_plan WHERE status IN ('DRAFT','PENDING_APPROVAL')", Long.class);
     }
 
+    /** Các bản đã được duyệt từ mốc Q-451, kể cả bản hết hiệu lực hoặc bị bản khác thay thế. */
+    public List<CarePlan> approvedSince(Instant cutoff) {
+        return jdbc.query("""
+                SELECT * FROM care_plan
+                WHERE approved_at >= ?
+                  AND (status IN ('EFFECTIVE','PENDING_EFFECT','EXPIRED')
+                       OR (status = 'CANCELLED' AND end_reason = 'SUPERSEDED'))
+                ORDER BY approved_at DESC, id DESC
+                """, this::row, local(cutoff));
+    }
+
     public CarePlan create(long residentId, int revision, Long previous, long actor, Instant now) {
         long id = insert(
                 "INSERT INTO care_plan(resident_id,revision,status,previous_plan_id,created_by,created_at) VALUES(?,?,'DRAFT',?,?,?)",

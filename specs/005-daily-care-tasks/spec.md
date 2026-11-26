@@ -153,6 +153,10 @@ Ngày 2026-11-25 chủ dự án chốt tinh gọn lập và duyệt kế hoạch
 - Bản Chờ hiệu lực không chặn lập bản sửa mới; bản sau được duyệt thì bản Chờ hiệu lực trước chuyển Đã hủy.
 - Bỏ màn lịch sử và so sánh hai phiên bản bất kỳ; khi xem bản sửa Chờ duyệt, người duyệt thấy thay đổi so với kế hoạch Hiệu lực.
 
+### Cập nhật 2026-11-26 (đồng bộ Q-451)
+
+Màn Kế hoạch chăm sóc có tab “Đã duyệt” cạnh “Đang chờ duyệt”. Tab này đọc riêng các bản được duyệt trong 7 ngày theo thời điểm duyệt, theo phạm vi xem kế hoạch và bỏ hồ sơ ở trạng thái cuối. Một người cao tuổi có thể có nhiều dòng nếu nhiều bản được duyệt trong khoảng này. Hiện cả bản Hết hiệu lực và bản đã bị bản mới hơn thay thế. Xem FR-059.
+
 ### Cập nhật 2026-11-26 (đồng bộ Q-450, bỏ ô "Lý do sửa"; nhóm "Đang chờ Bác sĩ duyệt")
 
 Chủ dự án chốt Q-450 cùng ngày: hộp thoại soạn kế hoạch không còn ô "Lý do sửa", gửi duyệt không bắt lý do; hệ thống ghi lý do thay đổi từ các yêu cầu xem xét Đang mở (ví dụ "Theo sự cố ngã ngày 24/11/2026"), không có thì để trống. Bác sĩ xem thay đổi qua phần so với kế hoạch Hiệu lực (FR-008). Hàng chờ FR-059 có lại nhóm "Đang chờ Bác sĩ duyệt" (bản đã gửi, tính từ lúc gửi). Đã sửa dòng "Gửi duyệt" ở bảng FR-003 và FR-059.
@@ -608,6 +612,8 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **FR-057**: **(Bổ sung 2026-11-22, Q-443)** Khi người cao tuổi có cảnh báo đang mở (feature 007), dòng của người đó trên checklist mọi ca MUST hiện nhãn "Đang theo dõi: <loại cảnh báo>" cho tới khi cảnh báo đóng; từ nhãn, nhân viên trong phạm vi MUST mở được lệnh ghi kết quả theo dõi của feature 007 (FR-087). Nhãn MUST NOT tạo công việc. *(Nguồn: Q-443)*
 - **FR-058**: **(Thêm 2026-11-26, Q-448)** Mỗi nguồn của FR-011 MUST lưu một **yêu cầu xem xét kế hoạch chăm sóc** (người cao tuổi, nguồn, mã tham chiếu, thời điểm phát sinh), trạng thái Đang mở; cùng nguồn và mã tham chiếu chỉ một yêu cầu. Yêu cầu Đang mở MUST chuyển **Đã xử lý** khi một phiên bản lập sau thời điểm phát sinh được duyệt (ghi phiên bản đó), và MUST chuyển **Không cần thay đổi** khi người có quyền Lập hoặc Duyệt kế hoạch chăm sóc trong phạm vi chọn lệnh đó kèm lý do bắt buộc; lệnh này đóng mọi yêu cầu Đang mở của người cao tuổi. Phiên bản bị hủy hoặc trả lại MUST NOT đóng yêu cầu. Người cao tuổi không còn Đang lưu trú thì không hiện trong hàng chờ. Lệnh "Không cần thay đổi" MUST ghi nhật ký. Trạng thái Đã xử lý, Không cần thay đổi được suy ra lúc đọc từ mốc phát sinh, ngày lập phiên bản được duyệt và mốc "Không cần thay đổi"; không có bảng riêng (chủ dự án 2026-11-26). *(Nguồn: BR-M04-20, Q-448)*
 - **FR-059**: **(Thêm 2026-11-26, Q-448)** Màn Kế hoạch chăm sóc MUST có hàng chờ "Cần lập hoặc sửa kế hoạch" theo phạm vi xem của người dùng, mỗi người cao tuổi Đang lưu trú một dòng: người có yêu cầu Đang mở (hiện mọi nguồn và thời gian đã chờ tính từ yêu cầu cũ nhất), người có bản bị trả lại và người có bản Nháp đang soạn; sắp yêu cầu cũ nhất trước. Người có bản Chờ duyệt MUST hiện ở nhóm riêng "Đang chờ Bác sĩ duyệt" kèm người gửi và lúc gửi (**sửa 2026-11-26, Q-450**). Khi mở kế hoạch của người có yêu cầu Đang mở, màn MUST hiện các nguồn đó phía trên kế hoạch kèm lệnh "Không cần thay đổi". *(Nguồn: Q-448)*
+
+  **Bổ sung 2026-11-26, Q-451**: Tab “Đã duyệt” MUST hiện mỗi bản được duyệt trong 7 ngày gần nhất theo thời điểm duyệt, mới nhất trước, theo cùng phạm vi xem và điều kiện trạng thái cuối như hàng chờ. Gồm bản Hiệu lực, Chờ hiệu lực, Hết hiệu lực và bản Hủy do bị thay thế (SUPERSEDED). Mỗi dòng hiện họ tên, mã hồ sơ, người duyệt, dấu “Tự duyệt” nếu có, thời điểm duyệt (dd/MM/yyyy HH:mm), ngày áp dụng (dd/MM/yyyy) và nhãn “Đang áp dụng” với bản Hiệu lực hoặc “Từ ngày mai” với bản Chờ hiệu lực. Nút “Xem kế hoạch” mở màn kế hoạch của người cao tuổi. Khi trống, hiện “Chưa có kế hoạch nào được duyệt trong 7 ngày qua”. Mỗi trang 10 dòng, đổi tab về trang đầu. Dữ liệu lấy qua GET /care-plan-reviews/approved.
 
 ### Key Entities *(include if feature involves data)*
 

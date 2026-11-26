@@ -174,6 +174,14 @@ paths:
       summary: Hàng chờ cần lập hoặc sửa kế hoạch theo phạm vi xem, chờ lâu nhất trước (Q-448)
       x-fr: [FR-009, FR-059]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanQueueRow' } } } } } }
+  /care-plan-reviews/approved:
+    get:
+      x-implementation-phase: 3
+      operationId: listApprovedCarePlans
+      tags: [ke-hoach]
+      summary: Kế hoạch được duyệt trong 7 ngày qua theo phạm vi xem, mới nhất trước (Q-451)
+      x-fr: [FR-059]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanApprovedRow' } } } } } }
   /residents/{residentId}/care-plan-reviews:
     get:
       x-implementation-phase: 3
@@ -1047,6 +1055,19 @@ components:
         pendingApproval: { type: boolean, description: 'Bản đã gửi Bác sĩ duyệt (Q-448 sửa 2026-11-26); waitingSince khi đó là lúc gửi' }
         createdBy: { type: [string, 'null'], description: 'Người lập bản đang xử lý' }
         waitingSince: { type: string, format: date-time }
+    CarePlanApprovedRow:
+      type: object
+      required: [residentId, fullName, profileCode, planId, status, approvedBy, approvedAt, effectiveFrom, selfApproved]
+      properties:
+        residentId: { type: integer, format: int64 }
+        fullName: { type: string }
+        profileCode: { type: string }
+        planId: { type: integer, format: int64 }
+        status: { type: string, enum: [EFFECTIVE, PENDING_EFFECT, EXPIRED, CANCELLED] }
+        approvedBy: { type: [string, 'null'], description: 'Họ tên người duyệt nếu còn tra được' }
+        approvedAt: { type: string, format: date-time }
+        effectiveFrom: { type: [string, 'null'], format: date }
+        selfApproved: { type: boolean }
     CarePlanComparison:
       type: object
       properties:

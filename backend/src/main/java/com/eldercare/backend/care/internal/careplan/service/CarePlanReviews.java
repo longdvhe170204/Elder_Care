@@ -21,9 +21,11 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.ResidentApi;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class CarePlanReviews {
+    private static final Duration APPROVAL_WINDOW = Duration.ofDays(7);
     private static final PermissionKey VIEW = new PermissionKey(Function.CARE_PLAN, Operation.VIEW);
     private static final PermissionKey CREATE = new PermissionKey(Function.CARE_PLAN, Operation.CREATE);
     private static final PermissionKey APPROVE = new PermissionKey(Function.CARE_PLAN, Operation.APPROVE);
@@ -100,10 +103,7 @@ public class CarePlanReviews {
         candidates.addAll(plans.residentsWithDraft());
         var rows = new ArrayList<QueueRow>();
         for (long residentId : candidates) {
-            if (residents.isFinalStatus(residentId)) continue;
-            if (!permissions
-                    .hasPermission(user, VIEW, CarePlanService.residentTarget(residentId, 0))
-                    .allowed()) continue;
+            if (!canViewResident(residentId)) continue;
             var all = plans.list(residentId, false);
             var open = CarePlanReviewRule.open(reviews.raised(residentId), all, reviews.dismissals(residentId));
             var draft = all.stream()
@@ -120,6 +120,22 @@ public class CarePlanReviews {
         }
         rows.sort(Comparator.comparing(QueueRow::waitingSince));
         return rows;
+    }
+
+    /** Bản đã duyệt trong 7 ngày gần nhất, theo cùng phạm vi xem với hàng chờ (Q-451). */
+    @Transactional(readOnly = true)
+    public List<CarePlan> approved() {
+        var visibleResidents = new HashMap<Long, Boolean>();
+        return plans.approvedSince(time.now().minus(APPROVAL_WINDOW)).stream()
+                .filter(plan -> visibleResidents.computeIfAbsent(plan.residentId(), this::canViewResident))
+                .toList();
+    }
+
+    private boolean canViewResident(long residentId) {
+        return !residents.isFinalStatus(residentId)
+                && permissions
+                        .hasPermission(user, VIEW, CarePlanService.residentTarget(residentId, 0))
+                        .allowed();
     }
 
     /** "Không cần thay đổi": người có quyền Lập hoặc Duyệt kế hoạch chăm sóc trong phạm vi, lý do bắt buộc. */

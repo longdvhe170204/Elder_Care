@@ -254,6 +254,30 @@ public class CarePlanController {
                 .toList();
     }
 
+    /** Q-451 (FR-059): kế hoạch đã duyệt trong 7 ngày gần nhất, mới nhất trước. */
+    @GetMapping("/care-plan-reviews/approved")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<CarePlanApprovedResponse> approvedReviews() {
+        return reviews.approved().stream()
+                .map(plan -> {
+                    var identity = residentApi.identity(plan.residentId());
+                    String approvedBy = plan.approvedBy() == null
+                            ? null
+                            : accounts.fullName(plan.approvedBy()).orElse(null);
+                    return new CarePlanApprovedResponse(
+                            plan.residentId(),
+                            identity.fullName(),
+                            identity.profileCode(),
+                            plan.id(),
+                            plan.status().name(),
+                            approvedBy,
+                            plan.approvedAt(),
+                            plan.effectiveFrom(),
+                            plan.selfApproved());
+                })
+                .toList();
+    }
+
     /** Q-448 (FR-059): yêu cầu xem xét Đang mở của một người cao tuổi, hiện phía trên kế hoạch. */
     @GetMapping("/residents/{residentId}/care-plan-reviews")
     @ApiResponse(responseCode = "200", description = "OK")
