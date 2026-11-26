@@ -142,6 +142,36 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/BlockingProblem' }
         '422': { $ref: '#/components/responses/Problem' }
+  /balance-transactions/{id}/receipt:
+    get:
+      tags: [payments]
+      summary: Kế toán, Quản lý viện tải biên nhận nộp tiền
+      description: 'Bổ sung 2026-11-27 (Q-451): PDF dựng khi tải từ khoản nộp đã xác nhận (nộp tiền mặt, chuyển khoản, tiền cọc); số BN- theo mã giao dịch; ghi không thay hóa đơn. 409 RECEIPT_NOT_AVAILABLE với giao dịch khác.'
+      x-fr: [FR-005, FR-006]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200':
+          description: File
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /family-portal/balance-transactions/{id}/receipt:
+    get:
+      tags: [family-portal]
+      summary: Người thân có quyền xem chi phí tải biên nhận nộp tiền
+      description: 'Bổ sung 2026-11-27 (Q-451): PDF dựng khi tải từ khoản nộp đã xác nhận (nộp tiền mặt, chuyển khoản, tiền cọc); số BN- theo mã giao dịch; ghi không thay hóa đơn. 409 RECEIPT_NOT_AVAILABLE với giao dịch khác.'
+      x-fr: [FR-005, FR-006]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200':
+          description: File
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
   /balance-transactions/pending-approval:
     get:
       tags: [balance-transactions]
