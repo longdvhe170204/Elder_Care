@@ -30,6 +30,7 @@ import com.eldercare.backend.medication.internal.reconciliation.domain.Reconcili
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationCorrectionResponse;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationDecision;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItem;
+import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemSource;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationReason;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationResponse;
@@ -568,5 +569,69 @@ class MedicationReconciliationTest {
         var byOther = ReconciliationBodies.ReconciliationBody.of(res, 31L);
         assertThat(byOther.corrections().get(0).allowedCommands()).containsExactly("CONFIRM", "RETURN");
         assertThat(byOther.corrections().get(1).allowedCommands()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Q-413: Điều dưỡng không được Ngừng hoặc Thay đổi liều đơn nội bộ trên phiếu đối chiếu")
+    void Q_413_nurseCannotDiscontinueOrChangeDoseInternalPrescription() {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.PROFESSIONAL_REQUEST, "Rà soát", null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 10L);
+        when(reconciliationRepo.findById(10L)).thenReturn(Optional.of(ticket));
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(false);
+
+        Prescription internal = createSamplePrescription(201L, 100L, PrescriptionStatus.ACTIVE);
+        when(prescriptionRepo.findById(201L)).thenReturn(Optional.of(internal));
+
+        ReconciliationItemBody line = new ReconciliationItemBody();
+        line.setSource("CURRENT_PRESCRIPTION");
+        line.setPrescriptionId(201L);
+        line.setDecision("DISCONTINUE");
+        line.setReason("Bệnh viện Bạch Mai, BS Hùng, 25/11/2026");
+
+        assertThatThrownBy(() -> reconciliationService.updateItems(10L, null, List.of(line), 20L))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).status()).isEqualTo(HttpStatus.CONFLICT));
+    }
+
+    @Test
+    @DisplayName("FR-036: Xác nhận Thay đổi liều trên phiếu đối chiếu hủy các liều mở của đơn cũ")
+    void FR_036_confirmChangeDoseCancelsOpenDosesOfOldPrescription() {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.PROFESSIONAL_REQUEST, "Đổi liều", null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 11L);
+        ticket.submit(10L, Instant.now());
+        when(reconciliationRepo.findById(11L)).thenReturn(Optional.of(ticket));
+        when(reconciliationRepo.save(any())).thenReturn(ticket);
+
+        Prescription oldP = createSamplePrescription(202L, 100L, PrescriptionStatus.ACTIVE);
+        when(prescriptionRepo.findById(202L)).thenReturn(Optional.of(oldP));
+        MedicationDose openDose = createSampleDose(502L, 202L, DoseStatus.DUE);
+        when(doseRepo.findByPrescriptionIdAndStatusIn(eq(202L), any())).thenReturn(List.of(openDose));
+
+        ReconciliationItem item = new ReconciliationItem(
+                11L,
+                1,
+                ReconciliationItemSource.CURRENT_PRESCRIPTION,
+                202L,
+                null,
+                "Omeprazol",
+                ReconciliationDecision.CHANGE_DOSE,
+                "Tăng liều",
+                "{\"medicationId\":9101,\"prescriptionType\":\"REGULAR\",\"dosage\":2,\"dosageUnit\":\"viên\",\"route\":\"Uống\",\"frequency\":{\"type\":\"TIMED_SLOTS\",\"timedSlots\":[\"16:00\"]},\"prescriber\":{\"type\":\"EXTERNAL\",\"facilityName\":\"BV\",\"prescriberName\":\"BS\",\"prescribedAt\":\"2026-11-25\"}}",
+                10L,
+                Instant.now(),
+                Instant.now());
+        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(11L)).thenReturn(List.of(item));
+        var created = mock(com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse.class);
+        when(created.id()).thenReturn(203L);
+        when(prescriptionService.createFromReconciliation(any(), eq(100L), any(), eq(30L)))
+                .thenReturn(created);
+
+        reconciliationService.confirm(11L, 30L, true);
+
+        assertThat(oldP.getStatus()).isEqualTo(PrescriptionStatus.DISCONTINUED);
+        assertThat(openDose.getStatus()).isEqualTo(DoseStatus.CANCELLED);
+        verify(doseRepo).save(openDose);
     }
 }

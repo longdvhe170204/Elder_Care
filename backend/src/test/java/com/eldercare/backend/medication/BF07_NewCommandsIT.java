@@ -97,6 +97,12 @@ class BF07_NewCommandsIT extends M07IntegrationTestBase {
     @Autowired
     ApplicationEvents events;
 
+    @Autowired
+    com.eldercare.backend.support.fake.medication.FakeShiftNursePort shiftNurses;
+
+    @Autowired
+    com.eldercare.backend.administration.account.api.CurrentUser currentUser;
+
     private final long residentId = TestUsers.nextId();
     private Long medicationId;
     private Instant now;
@@ -112,6 +118,7 @@ class BF07_NewCommandsIT extends M07IntegrationTestBase {
         medicationRepository.save(medication);
         medicationId = medication.getId();
         now = time.now();
+        shiftNurses.assignNurse(residentId, currentUser.staffId().orElse(currentUser.accountId()));
     }
 
     private Prescription prescription(
@@ -176,7 +183,7 @@ class BF07_NewCommandsIT extends M07IntegrationTestBase {
     }
 
     @Test
-    void claim_blocksOtherNurseUntilReleased_thenAdministerClearsClaim() {
+    void administer_blocksDuplicateConfirmation_andDoesNotSetClaim() {
         Prescription p = prescription(PrescriptionType.PERIODIC, TimeCriticality.NORMAL, null, PrescriberType.INTERNAL);
         Instant scheduled = now.minus(5, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.MINUTES);
         MedicationDose dose = openDose(p, scheduled);
@@ -184,23 +191,32 @@ class BF07_NewCommandsIT extends M07IntegrationTestBase {
         long nurseA = TestUsers.nextId();
         long nurseB = TestUsers.nextId();
 
-        workflow.claim(key, nurseA, now);
-        BusinessException blocked = catchThrowableOfType(
-                BusinessException.class,
-                () -> administration.administerDose(key, administer(now, null), nurseB, null, now));
-        assertThat(blocked.errorCode()).isEqualTo("DOSE_CLAIMED");
-        assertThat(blocked.status()).isEqualTo(HttpStatus.CONFLICT);
-
-        // Người khác cũng không nhận được khi lượt nhận còn hạn
-        assertThat(catchThrowableOfType(BusinessException.class, () -> workflow.claim(key, nurseB, now))
-                        .errorCode())
-                .isEqualTo("DOSE_CLAIMED");
-
-        // Hết hạn (CFG-M07-08, 15 phút) thì người khác ghi được
-        administration.administerDose(key, administer(now, null), nurseB, null, now.plus(20, ChronoUnit.MINUTES));
+        administration.administerDose(key, administer(now, null), nurseA, null, now);
         MedicationDose closed = doseRepository.findById(dose.getId()).orElseThrow();
         assertThat(closed.getStatus()).isEqualTo(DoseStatus.ADMINISTERED);
         assertThat(closed.getClaimedById()).isNull();
+
+        BusinessException duplicate = catchThrowableOfType(
+                BusinessException.class,
+                () -> administration.administerDose(key, administer(now, null), nurseB, null, now));
+        assertThat(duplicate).isNotNull();
+        assertThat(duplicate.status()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    void administer_blocksUnassignedNurseWith403() {
+        Prescription p = prescription(PrescriptionType.PERIODIC, TimeCriticality.NORMAL, null, PrescriberType.INTERNAL);
+        Instant scheduled = now.minus(5, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.MINUTES);
+        openDose(p, scheduled);
+        String key = MedicationScheduleCalculator.doseKey(p.getId(), scheduled);
+        shiftNurses.assignNurse(residentId, TestUsers.nextId());
+
+        BusinessException forbidden = catchThrowableOfType(
+                BusinessException.class,
+                () -> administration.administerDose(key, administer(now, null), TestUsers.nextId(), null, now));
+        assertThat(forbidden).isNotNull();
+        assertThat(forbidden.status()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(forbidden.errorCode()).isEqualTo("NURSE_NOT_ASSIGNED");
     }
 
     @Test
