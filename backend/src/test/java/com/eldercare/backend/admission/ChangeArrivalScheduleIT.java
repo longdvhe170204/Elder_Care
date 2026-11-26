@@ -51,4 +51,40 @@ class ChangeArrivalScheduleIT extends ChangeTestBase {
         // hiệu lực thì chặn với mã của 003 (trước đó là BED_ALLOCATION_CHECK_UNAVAILABLE khi chưa có bản cài).
         assertThat(unmetCodes(blocked)).contains("ALLOCATION_NOT_ACTIVE");
     }
+
+    @Test
+    void BR_M02_16_unchangedOrDuplicateArrivalSchedule_rejectedOnCreate() throws Exception {
+        long residentId = residentWithRepresentative();
+        long contractId = dayCareContract(residentId);
+
+        user.set(office.user());
+        // Trùng y hệt lịch hiện tại (dayOfWeek=1, 08:00-16:00) -> 422 ARRIVAL_SCHEDULE_UNCHANGED
+        MvcResult unchanged = createRaw(
+                        "/api/v1/residency-change-requests",
+                        request(
+                                contractId,
+                                "[\"ARRIVAL_SCHEDULE\"]",
+                                "{\"arrivalSchedule\": [{\"dayOfWeek\": 1, \"arrivalTime\": \"08:00\", \"departureTime\": \"16:00\"}]}",
+                                today().plusDays(2)))
+                .andExpect(status().is(422))
+                .andReturn();
+        assertThat(unchanged.getResponse().getContentAsString()).contains("ARRIVAL_SCHEDULE_UNCHANGED");
+
+        // Trùng thứ trong lịch mới -> 422 ARRIVAL_SCHEDULE_DUPLICATE_DAY
+        MvcResult duplicate = createRaw(
+                        "/api/v1/residency-change-requests",
+                        request(
+                                contractId,
+                                "[\"ARRIVAL_SCHEDULE\"]",
+                                "{\"arrivalSchedule\": [{\"dayOfWeek\": 2, \"arrivalTime\": \"08:00\", \"departureTime\": \"12:00\"}, {\"dayOfWeek\": 2, \"arrivalTime\": \"13:00\", \"departureTime\": \"16:00\"}]}",
+                                today().plusDays(2)))
+                .andExpect(status().is(422))
+                .andReturn();
+        assertThat(duplicate.getResponse().getContentAsString()).contains("ARRIVAL_SCHEDULE_DUPLICATE_DAY");
+
+        // Đổi sang thứ khác hợp lệ -> 201
+        assertThat(createChange(request(contractId, "[\"ARRIVAL_SCHEDULE\"]", SCHEDULE, today().plusDays(2)))
+                        .get("approvalRequestId"))
+                .isNotNull();
+    }
 }

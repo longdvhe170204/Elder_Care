@@ -88,4 +88,33 @@ class FR_041_DayCareToResidentialIT extends ChangeTestBase {
         assertThat(content.get("bedId").asLong()).isEqualTo(bed);
         assertThat(content.get("roomTypeId").asLong()).isEqualTo(roomType);
     }
+
+    @Test
+    void FR_041_unchangedResidenceType_rejectedForStaffAndFamily() throws Exception {
+        long residentId = residentWithRepresentative();
+        long contractId = dayCareContract(residentId);
+        ObjectNode sameToDayCare = request(
+                contractId,
+                "[\"RESIDENCE_TYPE\", \"ARRIVAL_SCHEDULE\"]",
+                "{\"residenceType\": \"DAY_CARE\", \"arrivalSchedule\": [{\"dayOfWeek\": 1, \"arrivalTime\": \"08:00\", \"departureTime\": \"16:00\"}]}",
+                today().plusDays(1));
+
+        // Nhân viên lập yêu cầu trùng loại lưu trú hiện hành -> 422 RESIDENCE_TYPE_UNCHANGED
+        user.set(office.user());
+        MvcResult staffResult = createRaw("/api/v1/residency-change-requests", sameToDayCare)
+                .andExpect(status().is(422))
+                .andReturn();
+        assertThat(staffResult.getResponse().getContentAsString()).contains("RESIDENCE_TYPE_UNCHANGED");
+
+        // Người đại diện gửi qua cổng người thân trùng loại lưu trú hiện hành -> 422 RESIDENCE_TYPE_UNCHANGED
+        long memberId = representativeOf(residentId);
+        families.representative(families.relate(memberId, residentId));
+        ObjectNode familyBody = sameToDayCare.deepCopy();
+        familyBody.remove("representativeConfirmation");
+        user.set(users.family(memberId).user());
+        MvcResult familyResult = createRaw("/api/v1/residency-change-requests", familyBody)
+                .andExpect(status().is(422))
+                .andReturn();
+        assertThat(familyResult.getResponse().getContentAsString()).contains("RESIDENCE_TYPE_UNCHANGED");
+    }
 }

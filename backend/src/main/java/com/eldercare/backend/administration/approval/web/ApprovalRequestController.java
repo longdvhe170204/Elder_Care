@@ -16,6 +16,7 @@ import com.eldercare.backend.administration.approval.web.request.RejectBody;
 import com.eldercare.backend.administration.approval.web.request.ReturnToDraftBody;
 import com.eldercare.backend.administration.approval.web.request.SubmitBody;
 import com.eldercare.backend.administration.approval.web.response.ApprovalRequestPageBody;
+import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.web.VersionEtag;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -137,8 +138,15 @@ public class ApprovalRequestController {
     @CommandResponses
     public ResponseEntity<ApprovalRequestBody> returnToDraft(
             @PathVariable long id, @RequestHeader("If-Match") String ifMatch, @RequestBody ReturnToDraftBody body) {
-        requests.returnToDraft(id, ifMatch, body.reason());
-        return withEtag(HttpStatus.OK, requests.detail(id));
+        ApprovalRequestView returned = requests.returnToDraft(id, ifMatch, body.reason());
+        ApprovalRequestDetails details;
+        try {
+            details = requests.detail(id);
+        } catch (NotFoundException hidden) {
+            // Người duyệt trả về Nháp nhưng không còn xem Nháp đó vẫn nhận đủ thông tin bản vừa trả (004)
+            details = new ApprovalRequestDetails(returned, List.of());
+        }
+        return withEtag(HttpStatus.OK, details);
     }
 
     @PostMapping("/{id}/approve")

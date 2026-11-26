@@ -98,6 +98,42 @@ public class PrescriptionController {
                 .body(PrescriptionBody.of(created));
     }
 
+    public record NewPrescriptionBatchRequest(
+            @jakarta.validation.constraints.NotEmpty List<@Valid NewPrescriptionRequest> items) {}
+
+    @PostMapping("/api/v1/residents/{residentId}/prescriptions/batch")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Đã tạo các dòng thuốc thuộc cùng đơn"),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M07Problems.Issues.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<List<PrescriptionBody>> createBatch(
+            @PathVariable("residentId") Long residentId,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody NewPrescriptionBatchRequest body) {
+        List<PrescriptionBody> created = prescriptionService
+                .createBatch(
+                        PrescriptionService.target(residentId),
+                        residentId,
+                        body.items().stream()
+                                .map(item -> prescriptionService.toCommand(
+                                        M07RequestMapper.prescription(item), currentUser.accountId()))
+                                .toList(),
+                        currentUser.accountId(),
+                        isDoctor())
+                .stream()
+                .map(PrescriptionBody::of)
+                .toList();
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
     @PostMapping("/api/v1/residents/{residentId}/prescriptions/check")
     @ApiResponse(responseCode = "200", description = "OK")
     public CheckBody check(

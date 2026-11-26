@@ -15,6 +15,14 @@ public class ReconciliationResponse {
     private Long residentId;
     private String reason;
     private String reasonDetail;
+    private String facilityName;
+    private String prescriberName;
+    private java.time.LocalDate prescribedAt;
+    private String comparisonSource;
+    private Long attachmentFileId;
+    private String attachmentName;
+    private String nurseNote;
+    private String doctorConclusion;
     private String status;
     private Instant deadlineAt;
     private Boolean overdue;
@@ -22,6 +30,7 @@ public class ReconciliationResponse {
     private String submittedBy;
     private String confirmedBy;
     private String returnReason;
+    private String cancelReason;
     private List<ReconciliationItemResponse> items = new ArrayList<>();
     private List<String> permittedActions = new ArrayList<>();
     private List<ReconciliationCorrectionResponse> corrections = new ArrayList<>();
@@ -74,6 +83,14 @@ public class ReconciliationResponse {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
     }
 
     public Instant getDeadlineAt() {
@@ -146,5 +163,69 @@ public class ReconciliationResponse {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public String getFacilityName() {
+        return facilityName;
+    }
+
+    public void setFacilityName(String facilityName) {
+        this.facilityName = facilityName;
+    }
+
+    public String getPrescriberName() {
+        return prescriberName;
+    }
+
+    public void setPrescriberName(String prescriberName) {
+        this.prescriberName = prescriberName;
+    }
+
+    public java.time.LocalDate getPrescribedAt() {
+        return prescribedAt;
+    }
+
+    public void setPrescribedAt(java.time.LocalDate prescribedAt) {
+        this.prescribedAt = prescribedAt;
+    }
+
+    public String getComparisonSource() {
+        return comparisonSource;
+    }
+
+    public void setComparisonSource(String comparisonSource) {
+        this.comparisonSource = comparisonSource;
+    }
+
+    public Long getAttachmentFileId() {
+        return attachmentFileId;
+    }
+
+    public void setAttachmentFileId(Long attachmentFileId) {
+        this.attachmentFileId = attachmentFileId;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
+    }
+
+    public String getNurseNote() {
+        return nurseNote;
+    }
+
+    public void setNurseNote(String nurseNote) {
+        this.nurseNote = nurseNote;
+    }
+
+    public String getDoctorConclusion() {
+        return doctorConclusion;
+    }
+
+    public void setDoctorConclusion(String doctorConclusion) {
+        this.doctorConclusion = doctorConclusion;
     }
 }

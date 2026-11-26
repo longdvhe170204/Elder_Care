@@ -149,4 +149,12 @@ public interface RequestTypeHandler {
     default boolean mayActOnDraft(CurrentUser user, ApprovalRequestView request) {
         return request.requesterId() == user.accountId();
     }
+
+    /**
+     * Người được xem yêu cầu còn Nháp: mặc định cho phép mọi vai trò xem được loại yêu cầu ({@code true}); loại cần giấu
+     * bản Nháp đang soạn dở khỏi người chỉ duyệt (ví dụ điều chỉnh hợp đồng với Quản lý viện) ghi đè tại đây.
+     */
+    default boolean mayViewDraft(CurrentUser user, ApprovalRequestView request) {
+        return true;
+    }
 }

@@ -75,6 +75,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 - Nếu tới lúc Hoàn tất tiếp nhận mà phiếu đối chiếu chưa được xác nhận: người cao tuổi chưa có liều nào, và hạn đối chiếu [4 giờ] tính từ lúc Hoàn tất tiếp nhận (Q-57, BR-M07-09).
 - Nếu tới lúc Hoàn tất tiếp nhận mà kế hoạch chăm sóc vẫn ở Nháp hoặc Chờ duyệt: lệnh **không bị chặn**. Người cao tuổi mang dấu "chưa có kế hoạch chăm sóc hiệu lực", Trưởng tầng và Điều dưỡng phụ trách thấy dấu này. Người phụ trách ca vẫn lập công việc từ lịch đo, lịch bữa và hoạt động. Việc gấp dùng công việc phát sinh (spec 005 FR-009, Q-34).
 - Chưa có bản gán chế độ ăn cũng không chặn tiếp nhận: người cao tuổi dùng chế độ ăn mặc định và Bác sĩ được nhắc (12.1).
+- Với **bán trú**, khi lập hợp đồng (bước 9), gia đình thỏa thuận **lịch đến cố định theo tuần** (thứ trong tuần, giờ đến – giờ về trong ngày) và Hành chính nhập vào hợp đồng; khi ghi nhận đã ký (bước 10), hệ thống kiểm tra sức chứa từng buổi của khu nghỉ bán trú (`BR-M03-03`, `Q-323`).
 
 ---
 
@@ -102,6 +103,10 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 - **(Bổ sung 2026-11-22, Q-440)** "Lịch chăm sóc hằng ngày" cho người thân, người cao tuổi ghép giờ bữa, buổi hoạt động, mốc sinh hoạt cố định và công việc chăm sóc riêng đã công bố; chỉ xem. Người khỏe bình thường chỉ có lịch sinh hoạt chung.
 - Người bán trú quên điểm danh về: cuối ngày Người phụ trách ca được báo mức Trung bình, Trưởng tầng mức Nhẹ; trạng thái có mặt không tự chuyển (spec 005 FR-019).
 - Bán trú không qua đêm: đến và về trong cùng ngày. Người bán trú cần ở lại qua đêm phải thuê giường bằng nội trú ngắn ngày (hợp đồng hoặc phụ lục riêng, phân bổ giường theo BF-01 bước 8 → 10); khoảng đó không ghi là bán trú. Giá bán trú theo dịch vụ đăng ký trong hợp đồng.
+- **Vận hành ngày của bán trú (lịch cố định + báo vắng / buổi phát sinh):**
+  - **Báo vắng bán trú (`FR-060`):** gia đình báo nghỉ vào ngày có lịch đến, Hành chính ghi nhận kèm thời điểm gia đình báo; hệ thống kiểm đủ hạn trước `[24 giờ]` (`CFG-M02-06`) để tính `Vắng có báo` (nếu quá giờ đến `[2 giờ]` chưa điểm danh và không có báo vắng thì thành `Vắng không báo`), làm căn cứ tính tỷ lệ phí vắng (`CFG-M02-05`).
+  - **Buổi phát sinh (`3.4`, `Q-140`, `Q-324`):** người bán trú đến vào ngày không có trong lịch cố định vẫn được Hành chính, Nhân viên chăm sóc hoặc Điều dưỡng điểm danh đến trực tiếp ở màn Điểm danh bán trú; buổi này tự đánh dấu là **buổi phát sinh** (không kiểm sức chứa khu nghỉ, tính 100% đơn giá buổi bán trú ngoài giá tháng).
+  - **Ngày khu bán trú nghỉ (`FR-060a`):** Hành chính khai báo ngày nghỉ của khu bán trú; buổi có lịch trùng ngày nghỉ tự hủy (`Đã hủy do ngày nghỉ`), không chuyển Vắng không báo và không tính phí.
 
 ---
 
@@ -307,6 +312,7 @@ Khởi phát: người đại diện đề nghị thay đổi, Bác sĩ đánh g
 - Xác nhận ở 1a, 1b là xác nhận ý định để gửi duyệt; phụ lục đã ký ở 3a là căn cứ để áp dụng. Thay đổi nhỏ viện tự quyết, không cần xác nhận, không cần ký.
 - Người duyệt không sửa nội dung yêu cầu; muốn sửa thì Trả về nháp, để nội dung gia đình đã xác nhận và ký trùng nội dung được áp dụng.
 - Ý kiến người cao tuổi không chặn luồng, như BF-01; quyết định cuối thuộc người có thẩm quyền theo BR-M01-15.
+- **Bán trú và đổi lịch đến (`BR-M02-16`):** lịch đến trong hợp đồng bán trú là lịch cố định hằng tuần; nghỉ lẻ ngày hoặc đi thêm ngày lẻ xử lý qua **Báo vắng bán trú** hoặc **Buổi phát sinh** ở BF-02 mà không sửa hợp đồng. Chỉ khi đổi lịch đến cố định mới lập yêu cầu điều chỉnh loại **Lịch đến** (lịch mới không được trùng lịch hiện tại và không trùng thứ/ngày giữa các dòng). Yêu cầu đổi **Loại lưu trú** không được chọn trùng loại lưu trú hiện hành của hợp đồng.
 
 ---
 

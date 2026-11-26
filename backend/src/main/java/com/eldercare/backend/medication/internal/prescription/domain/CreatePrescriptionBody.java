@@ -56,6 +56,10 @@ public class CreatePrescriptionBody {
 
     private List<String> requiredMeasurements;
 
+    private String measurementConditions;
+
+    private boolean chronicDisease;
+
     private String indication;
 
     @Valid
@@ -187,6 +191,22 @@ public class CreatePrescriptionBody {
 
     public void setRequiredMeasurements(List<String> requiredMeasurements) {
         this.requiredMeasurements = requiredMeasurements;
+    }
+
+    public String getMeasurementConditions() {
+        return measurementConditions;
+    }
+
+    public void setMeasurementConditions(String measurementConditions) {
+        this.measurementConditions = measurementConditions;
+    }
+
+    public boolean isChronicDisease() {
+        return chronicDisease;
+    }
+
+    public void setChronicDisease(boolean chronicDisease) {
+        this.chronicDisease = chronicDisease;
     }
 
     public String getIndication() {

@@ -33,6 +33,8 @@ public interface MedicationDoseRepository extends JpaRepository<MedicationDose, 
 
     List<MedicationDose> findByFloorAreaIdAndScheduledTimeBetween(Long floorAreaId, Instant fromTime, Instant toTime);
 
+    List<MedicationDose> findByScheduledTimeBetween(Instant fromTime, Instant toTime);
+
     List<MedicationDose> findByFloorAreaIdAndStatusIn(Long floorAreaId, Collection<DoseStatus> statuses);
 
     List<MedicationDose> findByResidentIdAndStatusIn(Long residentId, Collection<DoseStatus> statuses);

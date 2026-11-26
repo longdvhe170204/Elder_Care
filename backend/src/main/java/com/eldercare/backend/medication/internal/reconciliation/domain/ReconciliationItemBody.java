@@ -21,6 +21,12 @@ public class ReconciliationItemBody {
 
     private String decision;
 
+    private String nurseFinding;
+
+    private String comparisonSummary;
+
+    private java.time.Instant lastHospitalDoseAt;
+
     private String reason;
 
     private CreatePrescriptionBody newPrescription;
@@ -87,5 +93,29 @@ public class ReconciliationItemBody {
 
     public void setNewPrescription(CreatePrescriptionBody newPrescription) {
         this.newPrescription = newPrescription;
+    }
+
+    public String getNurseFinding() {
+        return nurseFinding;
+    }
+
+    public void setNurseFinding(String nurseFinding) {
+        this.nurseFinding = nurseFinding;
+    }
+
+    public String getComparisonSummary() {
+        return comparisonSummary;
+    }
+
+    public void setComparisonSummary(String comparisonSummary) {
+        this.comparisonSummary = comparisonSummary;
+    }
+
+    public java.time.Instant getLastHospitalDoseAt() {
+        return lastHospitalDoseAt;
+    }
+
+    public void setLastHospitalDoseAt(java.time.Instant lastHospitalDoseAt) {
+        this.lastHospitalDoseAt = lastHospitalDoseAt;
     }
 }
