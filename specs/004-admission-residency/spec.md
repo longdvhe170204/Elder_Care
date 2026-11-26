@@ -166,6 +166,7 @@ Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại củ
 - **Kết thúc lưu trú (US7)**: bỏ xin ngoại lệ trên màn; nút Xác nhận kết thúc ghi bàn giao (người nhận là người thân) rồi gửi lệnh Kết thúc lưu trú của 001; điều kiện hiện dạng bảng, dòng chưa đạt có nút mở màn xử lý. API ngoại lệ, bàn giao cho cơ sở tiếp nhận vẫn còn ở backend.
 - Web: thông báo nhắc hợp đồng mở thẳng hợp đồng (`ContractsPage` nhận `contractId`).
 - **Bổ sung 2026-11-26 (FR-065, FR-072)**: khi lệnh Kết thúc lưu trú thành công, người đại diện được báo (mức Trung bình, `M02_FAMILY_RESIDENCY_ENDED`, nguồn `M02.RESIDENCY_ENDING`): ngày kết thúc, lý do, bàn giao (người nhận, thời điểm, nhân viên bàn giao) và nơi xem bảng chi phí kỳ cuối, bảng quyết toán. Sự kiện `ResidencyEndingCompleted` (api/events) thêm `at`, `familyText` và mang yêu cầu thông báo; giữ hàm dựng ba tham số cũ. Quan hệ người thân giữ Hiệu lực sau kết thúc (FR-075) nên thông báo tới được. Test: `EndingConditionsIT`.
+- **Bổ sung 2026-11-26 (web, form Lập hồ sơ kết thúc)**: Hành chính chỉ thấy hai trường hợp "Hết hạn hợp đồng" (đổi tên từ "Hết hợp đồng") và "Chấm dứt hợp đồng", không có ô "Vì lý do y tế", "Nơi chuyển đến"; Bác sĩ vẫn lập xuất viện, chuyển cơ sở kèm hai ô đó như cũ. API, backend không đổi (backend vẫn nhận đủ bốn trường hợp).
 - **Bổ sung 2026-11-26 (web)**: bảng điều kiện ẩn (f) hợp đồng, (g) giường (tự động) và đưa (e) bàn giao xuống cuối; hồ sơ hiện người đại diện kèm số điện thoại, phòng và giường (api-012, api-003 có sẵn); nút Xử lý của (h) mở thẳng số dư của người đó.
 
 ## Phạm vi
