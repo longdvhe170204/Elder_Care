@@ -1074,3 +1074,13 @@ Dùng JAR backend đã có và MySQL 8.0 riêng trên loopback. Trên Edge 375px
 Demo phát hiện trình duyệt có thể từ chối giờ hợp lệ khi đồng hồ máy đi sau backend. T074 dùng `loadedAt` do checklist trả cộng thời gian trôi qua trên máy để kiểm giờ tương lai, trong khi lệnh lưu vẫn do backend xác nhận. Test mới đỏ trước khi cài và xanh sau sửa. Toàn web 1471 test/205 file xanh, lint/build qua.
 
 Gọi trực tiếp API demo xác nhận giờ tương lai trả 422, tài khoản ngoài phạm vi nhận 404, thực hiện sau khung trả `COMPLETED_LATE`. Đã thao tác Điều dưỡng lập mục và Bác sĩ duyệt, kế hoạch chuyển Chờ hiệu lực. Chưa đi tiếp luồng lập từ kế hoạch hiệu lực trong demo này vì job kích hoạt theo ngày bị tắt ở cấu hình cô lập. Phần chọn mục kế hoạch đã có test web với dữ liệu giả lập. Các thay đổi đề xuất cho API nguồn ca vẫn chờ duyệt.
+
+### Demo lập việc từ kế hoạch đã hiệu lực
+
+T075 chạy với backend demo và MySQL 8.0 cô lập, bật job kích hoạt kế hoạch. Điều dưỡng lập và gửi duyệt, Bác sĩ duyệt, job chuyển từ Chờ hiệu lực sang Hiệu lực sau khi đặt đồng hồ demo sang ngày bắt đầu. Trên Edge 375px chế độ tối, Trưởng tầng chọn mục kế hoạch và phân công, nhân viên mở checklist và xác nhận Hoàn thành.
+
+Lượt đầu phát hiện mục Một lần mỗi ca xuất hiện với giờ 08:30 nhưng backend trả `PLAN_ITEM_MISMATCH`. `CarePlanItemSequence` dùng giờ đầu ca làm giờ dự kiến, còn `CareTaskValidator` dùng cả ca làm khung thực hiện. Web chỉ hiện mục không có giờ cố định ở đầu ca, báo rõ mốc này trong bảng đối chiếu và lọc mục theo đúng thứ trong tuần của giờ đã nhập. Mục lặp mỗi N giờ lấy chuỗi từ giờ bắt đầu như backend.
+
+Backend lưu nội dung của mục kế hoạch đã duyệt. Web hiển thị nội dung đó ở chế độ chỉ xem và không gửi nội dung nhập tay cho căn cứ `CARE_PLAN_ITEM`. Các căn cứ khác vẫn có ô nhập. Lượt Edge cuối đã lưu căn cứ thật, ngày giờ dự kiến 07:00, khung 07:00–18:00 và trạng thái từ Đến hạn sang Hoàn thành. Không thay đổi hợp đồng hoặc quy tắc backend.
+
+Test lập việc 23/23, toàn web 1472 test/205 file xanh khi chạy với 4 worker, lint/build qua. Lượt chạy trước có hai lỗi không tìm thấy nút trong thời hạn ở test điều chỉnh hợp đồng và hồ sơ người cao tuổi, hai ca đều qua khi chạy lại toàn web.

@@ -432,3 +432,4 @@ Chia nhỏ theo kho để người dùng tự commit từng mốc; không tự c
   - 2026-11-26: hai ca mới chạy đỏ trước khi cài, toàn app 652 test xanh sau sửa, phân tích sạch. Chưa demo trên thiết bị thật.
 - [x] T073 Web: kiểm giờ thực hiện trước đầu khung hoặc trong tương lai ngay tại ô nhập, giữ ô nhập và liên kết lỗi bằng thuộc tính trợ năng. Kiểm Edge cho nút nhanh ở 1366px sáng, 375px tối và Enter với dữ liệu test. Toàn web 1470 test xanh, lint/build qua.
 - [x] T074 Web: kiểm giờ tương lai theo mốc giờ backend khi đồng hồ máy lệch. Test đỏ trước cài, toàn web 1471 test xanh, lint/build qua. Demo ca đêm trên Edge 375px với backend và MySQL riêng đã kiểm lập phát sinh, hai chế độ ghi nhận và khung mặc định.
+- [x] T075 Web: khớp mốc dự kiến của mục kế hoạch với backend, hiện nội dung chỉ xem cho việc theo mục đã duyệt. Demo Edge 375px với backend và MySQL riêng từ lập kế hoạch, duyệt, kích hoạt đến lập việc và ghi nhận đã qua. Toàn web 1472 test xanh, lint/build qua.
