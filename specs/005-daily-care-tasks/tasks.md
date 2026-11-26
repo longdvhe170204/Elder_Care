@@ -430,7 +430,7 @@ Căn cứ: spec mục Cập nhật 2026-11-25, `design-care-plan-streamline.md`,
 Căn cứ: spec mục Cập nhật 2026-11-26 (US8, FR-009, FR-011, FR-058, FR-059), `plan-q448.md`. Không đổi luồng Q-447.
 
 - [x] T071 Lưu mốc phát sinh yêu cầu xem xét ở `reminder_marker` có sẵn (kind `M04.CARE_PLAN_REVIEW_RAISED`, theo người cao tuổi; không tạo bảng mới, chủ dự án 2026-11-26), `CarePlanReviewStore.raise`; `CarePlanReviewListener` ghi mốc ở mọi nguồn trước khi báo. Test: `BR_17_CarePlanReviewIT` (`Q448_repeatedFallCreatesOneOpenReview`, `Q448_palliativeChoiceOpensOneReviewPerKey`, `Q448_reassessmentOpensReview`) đỏ 3/4 rồi xanh 4/4; `CarePlanReviewDedupTest`, `*ArchTest`, `ModuleBoundaryTest` xanh.
-- [ ] T072 Nguồn đánh giá đầu vào có nhu cầu (`InitialAssessmentConfirmed`), plan-q448 Task 2.
+- [x] T072 `CarePlanReviewListener.onInitialAssessment`: đánh giá đầu vào Đã xác nhận có ít nhất một nhu cầu (đọc `AssessmentApi.latestConfirmed`, phải trùng lần vừa xác nhận) và chưa có kế hoạch Hiệu lực hay Chờ hiệu lực thì báo và ghi mốc nguồn `M01.INITIAL_ASSESSMENT`; không có nhu cầu thì theo lịch chung. Test: `CarePlanReviewInitialAssessmentTest` 4/4 (đỏ khi chưa cài), IT `BR_04_AssessmentIT`, `BR_05_ReassessmentNoticeIT`, `FR_047_RollbackEffectsIT`, `BR_17_CarePlanReviewIT` xanh.
 - [ ] T073 Lệnh "Không cần thay đổi" (mốc `M04.CARE_PLAN_REVIEW_DISMISSED`) và quy tắc suy ra yêu cầu Đang mở; hợp đồng api-005, plan-q448 Task 3.
 - [ ] T074 Hàng chờ, số đếm, `planState`, `openReviews`, plan-q448 Task 4.
 - [ ] T075 Web hàng chờ và dải nguồn, plan-q448 Task 5.

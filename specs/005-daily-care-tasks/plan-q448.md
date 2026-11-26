@@ -55,7 +55,7 @@
 - [x] `CarePlanReviewStore.raise` ghi `INSERT IGNORE` (không bắt buộc giao dịch, vì `onAddendum` có thể chạy ngoài giao dịch); listener gọi trước khi báo.
 - [x] Xanh 4/4. Nhật ký `backend/logs/005/20261126-q448-t1-marker-green.log`.
 
-### Task 2: Nguồn mới từ đánh giá đầu vào (backend)
+### Task 2: Nguồn mới từ đánh giá đầu vào (backend) — xong, T072
 
 **Files:**
 - Modify: `CarePlanReviewListener.java`
