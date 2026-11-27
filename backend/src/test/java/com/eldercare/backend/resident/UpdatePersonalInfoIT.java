@@ -26,7 +26,7 @@ class UpdatePersonalInfoIT extends ResidentProfileTestBase {
     ApplicationEvents events;
 
     private ProfileView created() {
-        return createAsOffice(noDocument(uniqueName())).profile();
+        return createAsOffice(minimal(uniqueName())).profile();
     }
 
     private static Target target(ProfileView profile) {
@@ -44,8 +44,8 @@ class UpdatePersonalInfoIT extends ResidentProfileTestBase {
                 before.personalInfo().fullName() + " Sửa",
                 before.personalInfo().dateOfBirth(),
                 Gender.MALE,
-                null,
-                null,
+                before.personalInfo().idDocumentType(),
+                before.personalInfo().idDocumentNumber(),
                 null,
                 "Địa chỉ mới",
                 null,

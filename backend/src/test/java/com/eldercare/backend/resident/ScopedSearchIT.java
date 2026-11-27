@@ -21,7 +21,7 @@ class ScopedSearchIT extends ResidentProfileTestBase {
     }
 
     private ProfileView created(String name) {
-        return createAsOffice(noDocument(name)).profile();
+        return createAsOffice(minimal(name)).profile();
     }
 
     @Test

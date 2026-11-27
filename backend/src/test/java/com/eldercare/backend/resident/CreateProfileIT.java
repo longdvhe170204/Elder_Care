@@ -22,8 +22,8 @@ class CreateProfileIT extends ResidentProfileTestBase {
     void US1_1_create_issuesUniqueCodeAndAdmissionStatus() {
         String name = uniqueName();
 
-        CreateResult first = createAsOffice(noDocument(name));
-        CreateResult second = createAsOffice(noDocument(uniqueName()));
+        CreateResult first = createAsOffice(minimal(name));
+        CreateResult second = createAsOffice(minimal(uniqueName()));
 
         assertThat(first.profile().profileCode()).matches("NCT-\\d{4}-\\d{6,}");
         assertThat(first.profile().profileCode()).isNotEqualTo(second.profile().profileCode());
@@ -37,7 +37,7 @@ class CreateProfileIT extends ResidentProfileTestBase {
 
     @Test
     void DBR_23_create_writesExactlyOneAuditEntryAndPublishesEvent() {
-        CreateResult created = createAsOffice(noDocument(uniqueName()));
+        CreateResult created = createAsOffice(minimal(uniqueName()));
         long id = created.profile().id();
 
         assertThat(jdbc.queryForObject(

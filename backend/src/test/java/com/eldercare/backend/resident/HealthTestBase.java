@@ -7,11 +7,13 @@ import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.Gender;
+import com.eldercare.backend.resident.internal.profile.domain.IdDocumentType;
 import com.eldercare.backend.resident.internal.profile.domain.PersonalInfo;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
 import com.eldercare.backend.support.SwitchableUserConfig;
+import com.eldercare.backend.support.TestCitizenIds;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
@@ -71,7 +73,10 @@ public abstract class HealthTestBase extends MySqlIntegrationTestBase {
         office = users.staff(Role.OFFICE_STAFF);
     }
 
-    /** Hồ sơ người cao tuổi mới ở Đang lưu trú (lệnh chuyển trạng thái thuộc 004, nên đặt thẳng ở cơ sở dữ liệu). */
+    /**
+     * Hồ sơ người cao tuổi mới ở Đang lưu trú (lệnh chuyển trạng thái thuộc 004, nên đặt thẳng ở cơ sở dữ liệu); CCCD bắt
+     * buộc (BF-01 2026-11-26).
+     */
     protected long newResident() {
         user.set(office.user());
         long id = profiles.create(
@@ -79,8 +84,8 @@ public abstract class HealthTestBase extends MySqlIntegrationTestBase {
                                 "Nguyễn Văn Sức Khỏe " + SEQUENCE.incrementAndGet(),
                                 LocalDate.of(1945, 4, 2),
                                 Gender.MALE,
-                                null,
-                                null,
+                                IdDocumentType.CITIZEN_ID,
+                                TestCitizenIds.next(),
                                 null,
                                 null,
                                 null,
