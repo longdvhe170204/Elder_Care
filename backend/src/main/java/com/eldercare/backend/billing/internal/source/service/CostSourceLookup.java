@@ -110,10 +110,13 @@ public class CostSourceLookup {
                                 "billingPeriod",
                                 c.content().path("residencyFeeBillingPeriod").asString());
                         facts.put("contractId", c.contractId());
+                        facts.put("contractEndDate", c.content().path("endDate").asString(""));
                         facts.put("contentVersion", c.version());
                         facts.put("recordedUnitPrices", c.recordedUnitPrices());
                     });
-                    String code = window.afterDeath(resident, d.date(), null, true)
+                    boolean afterDeath = window.afterDeath(resident, d.date(), null, true);
+                    if (afterDeath) facts.put("afterDeath", true);
+                    String code = afterDeath
                             ? "OUTSIDE_BILLING_PERIOD"
                             : d.bedReleased()
                                     ? "NOT_A_BILLABLE_EVENT"

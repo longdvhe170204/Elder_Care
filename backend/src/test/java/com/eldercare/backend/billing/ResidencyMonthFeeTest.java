@@ -76,6 +76,57 @@ class ResidencyMonthFeeTest {
                 .satisfies(c -> assertThat(c.blockedCode()).isEqualTo("NOT_A_BILLABLE_EVENT"));
     }
 
+    private CostSourceCandidate ending(int day, String blocked, String contractEnd, boolean afterDeath) {
+        LocalDate date = MONTH.atDay(day);
+        var facts = new java.util.HashMap<String, Object>(Map.of(
+                "residenceType", "LONG_TERM_RESIDENTIAL", "billingPeriod", "MONTH", "contractEndDate", contractEnd));
+        if (afterDeath) facts.put("afterDeath", true);
+        return new CostSourceCandidate(
+                42,
+                "RESIDENCY_DAY",
+                "42:" + date,
+                "DAY",
+                date,
+                null,
+                5L,
+                CostType.RESIDENCY_FEE,
+                "ngày",
+                "Phí lưu trú",
+                BigDecimal.ONE,
+                new BigDecimal("100"),
+                Set.of(),
+                null,
+                blocked,
+                blocked == null ? null : "lý do",
+                facts);
+    }
+
+    // Q-459 sửa 2026-11-27: tháng cuối khi kết thúc đúng hạn, sau hạn hoặc qua đời tính theo ngày
+    @Test
+    void lastMonth_endingOnOrAfterContractEnd_isDaily() {
+        var whole = List.of(
+                ending(9, null, "2026-11-10", false),
+                ending(10, null, "2026-11-10", false),
+                ending(11, "OUTSIDE_BILLING_PERIOD", "2026-11-10", false));
+        assertThat(ResidencyMonthFee.select(MONTH, whole, whole, null)).isEqualTo(whole);
+    }
+
+    @Test
+    void lastMonth_death_isDaily_evenBeforeContractEnd() {
+        var whole =
+                List.of(ending(9, null, "2027-06-30", false), ending(10, "OUTSIDE_BILLING_PERIOD", "2027-06-30", true));
+        assertThat(ResidencyMonthFee.select(MONTH, whole, whole, null)).isEqualTo(whole);
+    }
+
+    @Test
+    void lastMonth_terminatedEarly_staysFullMonth() {
+        var whole = List.of(
+                ending(9, null, "2027-06-30", false), ending(10, "OUTSIDE_BILLING_PERIOD", "2027-06-30", false));
+        assertThat(ResidencyMonthFee.select(MONTH, whole, whole, null))
+                .singleElement()
+                .satisfies(c -> assertThat(c.billingUnit()).isEqualTo("MONTH"));
+    }
+
     @Test
     void shortTermAnyDay_orDayPrice_staysDaily() {
         var mixed = List.of(day(1, "SHORT_TERM_RESIDENTIAL", "MONTH", null, null), longTerm(2, null));
