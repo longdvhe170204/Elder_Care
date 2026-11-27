@@ -100,7 +100,8 @@ class DBR_28_BalanceInvariantIT extends BalanceTestBase {
         getAs(accountant, "/api/v1/residents/" + a + "/balance-transactions?ledger=BALANCE")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].type").value("STATEMENT_PAYMENT"))
-                .andExpect(jsonPath("$[0].createdBy").value("Hệ thống"));
+                // góp ý demo BF-10: người lập là người chốt bảng
+                .andExpect(jsonPath("$[0].createdBy").value(org.hamcrest.Matchers.not("Hệ thống")));
         if (balance < 0) {
             getAs(accountant, "/api/v1/residents/" + a + "/balance")
                     .andExpect(jsonPath("$.debt").value(-balance));

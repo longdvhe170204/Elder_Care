@@ -997,3 +997,90 @@ Nhánh phát sinh đo không nguy hiểm (`SAVED`, `BLOCKED`) không mâu thuẫ
 
 - Quyết định 05/11 mục 1, 2 cài đủ: lệnh ghi kết quả có tính phí đọc dịch vụ qua `admission.api.UnitPriceApi.service` (004, có sẵn) và chỉ phát `BillableCareResultRecorded` khi kỳ tính khớp loại kết quả (`PERFORMED` ↔ `OCCURRENCE`/`SESSION` là 1; `ITEM_QUANTITY` ↔ `UNIT` là lượng thực); không khớp hoặc không thấy dịch vụ thì 503 `CARE_SOURCE_UNAVAILABLE`, không mặc định 1. Loại kết quả khác vẫn chặn theo mục 2 cho tới khi có quyết định quy đổi riêng.
 - Nghiệm thu chuỗi bean thật `T033_RealCareBillingChainIT` (005 → chỉ mục 010 → khoản theo đơn giá 004 → đính chính, Hủy ghi nhận).
+
+### Ghi chú triển khai — UX chăm sóc, mốc 1 (2026-11-26)
+
+Theo yêu cầu trực tiếp của người dùng, chia T067–T072 thành các mốc commit nhỏ ở từng kho. Checkout web thực tế là `frontend-source/` nằm trong kho backend, remote Elder_Care_Frontend; mobile ở `../Elder_Care_Mobile`. Cả ba đang dùng `fix/bf10-demo-followup`; không đổi nhánh hoặc tự commit. Các thư mục chưa theo dõi `frontend/`, `mobile/`, `frontend-source/` và `docs/demo-010-notes.md` có từ đầu phiên, không đưa vào commit backend.
+
+T067 sửa `src/features/care-tasks/CareResultForm.jsx` và thêm test cùng tên. Giữ mẫu Dòng thời gian ca, form trong khung chi tiết hiện có. Chỉ `PERFORMED` có hai lựa chọn thời điểm. Vừa hoàn thành bỏ `performedAt` để `CareResultService` dùng `BusinessTime`; chọn trước đó bắt buộc nhập giờ Việt Nam. Không gửi `recordedAt`. Form chuyên môn vẫn giữ dữ liệu bắt buộc, form Quan trọng/Bắt buộc vẫn có lý do hoàn thành trễ. Chặn submit khi busy. Chưa làm T068 (nút ngay trên danh sách và kiểm đồng thời toàn luồng).
+
+Đối chiếu: `CareResultTiming` đã xét trạng thái bằng `performedAt`; `CareResultService` lưu giờ server và nhãn ghi nhận muộn riêng, từ chối thời điểm tương lai/trước đầu khung. Không sửa state machine, schema, API, sự kiện tính phí hoặc quy tắc Q-32/Q-37 của bàn giao. Không mở lại công việc đã đóng bằng thao tác nhanh. Chưa chạy test backend trong mốc chỉ sửa web này.
+
+TDD: 4 ca form, trước sửa 3 đỏ vì thiếu lựa chọn mới, 1 xanh kiểm form số đo; sau sửa 4/4 xanh. Form + checklist 10/10; toàn web 205 file, 1454 test xanh; npm run lint/build exit 0. Build có cảnh báo chunk lớn; jsdom báo navigation chưa hỗ trợ nhưng không có test thất bại. Chưa kiểm trực quan trình duyệt; không coi toàn Phase 14 hoàn tất. Không thêm thuật ngữ API/domain mới nên glossary giữ nguyên. C cần review phần 005.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 2 (2026-11-26)
+
+T068: Checklist ca dùng mẫu Dòng thời gian ca (DESIGN.md mục 7.2). Nút Đánh dấu hoàn thành nằm cạnh khối việc và mở khung chi tiết sẵn có. Nút hiện khi loại kết quả trong snapshot là `PERFORMED` và checklist trả quyền `record`. Khi mở, đọc lại chi tiết và chỉ cho thao tác khi đọc thành công. Một lệnh đang gửi khóa thao tác tiếp theo, thử lại cùng nội dung giữ Idempotency-Key. Khi lưu xong, tải trạng thái từ backend.
+
+Hai test mới đỏ trước khi cài vì không tìm thấy nút. Kiểm thành công: nhấn nút chỉ mở form, gửi hai lần liên tiếp chỉ có một POST, tải lại thấy việc Hoàn thành. Kiểm bị từ chối: chi tiết trả 403 thì hiện lỗi và không gửi lệnh. Bộ test bố cục bắt lỗi bọc cả các khối không có nút nhanh, đã sửa để chỉ bọc khối có nút. Toàn web 205 file, 1456 test xanh, lint/build qua. Còn kiểm trực quan laptop, 375px, bàn phím và nền tối.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 3 (2026-11-26)
+
+T069 dùng hộp Lập công việc cho ca hiện có. Dòng cá nhân mặc định là Công việc phát sinh, gửi `basis.type = AD_HOC` và bỏ `basis.id` theo hợp đồng hiện hành. Dòng theo kế hoạch hoặc sự kiện phải chọn bản ghi đã được trả trong nguồn của người cao tuổi đã chọn. Đổi người, loại, giờ hoặc cách lập thì xóa nguồn đã chọn. Dòng cấp tầng chỉ áp dụng cho loại Kiểm tra đầu ca hoặc Giám sát có vai trò Điều dưỡng, theo danh mục và `CareTaskValidator`. Dòng cấp tầng dùng vị trí của ca và không cho chọn người cao tuổi hoặc việc chung chưa có người nhận.
+
+API nguồn cho cả ca có danh sách theo phạm vi và quyền đọc, nhưng thiếu mốc kết thúc có cấu trúc cho theo dõi sau ngã và tiếp xúc, thiếu khoảng có mặt của người bán trú tại giờ dự kiến. Giữ backend xác nhận hiệu lực, người cao tuổi, thời điểm và quyền trên lệnh lưu. Khi backend trả `INVALID_BASIS` cho nguồn đã chọn, báo tại ô nguồn và giữ nội dung. Không tách giờ kết thúc từ văn bản mô tả. Hiện không thấy provider `WATER_INTAKE_ALERT` trong mã thực thi, nên chỉ dùng bản ghi hệ thống thực sự trả. Muốn lọc đầy đủ tại giao diện trước khi lưu cần chốt bổ sung dữ liệu có cấu trúc của API với chủ dự án và C.
+
+Test hiện có đổi theo thao tác chọn nguồn mới. Bổ sung ca chọn nguồn bắt đầu hôm trước, loại nguồn của người khác và hiện lỗi khi backend từ chối. Ca cấp tầng kiểm tra việc xóa người đã chọn khi đổi sang loại cấp tầng và không dùng phân công chung.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 4 (2026-11-26)
+
+T070: ô giờ dự kiến dùng mốc thật của ca, nhận giờ bắt đầu và loại trừ giờ kết thúc theo `CareTaskValidator`. Dùng giờ Việt Nam, gợi ý theo bước 15 phút và cho nhập phút chính xác. Ô hiển thị ngày tương ứng sau khi nhập giờ hợp lệ. Ca qua đêm gửi đúng ngày hôm sau cho phần sau nửa đêm. Khi còn dòng chưa gửi, ô đổi ca đang được khóa như thiết kế lập lô.
+
+Khung nâng cao thu gọn mặc định. Khi dữ liệu nguồn đủ, hiển thị khung từ mục kế hoạch hoặc loại công việc, toàn ca đối với việc cấp ca và mục không có giờ cố định. Chỉ cho nhập số phút của việc phát sinh mức Thường với loại kết quả `PERFORMED`. Để trống không gửi trường ghi đè. Khi danh mục thiếu số phút mặc định, backend áp dụng CFG-M04-02. API tham số hiện yêu cầu quyền xem riêng và hợp đồng nguồn ca không trả giá trị này, nên chưa xem trước được giờ cụ thể ở nhánh dùng cấu hình hệ thống. Không thêm quyền hoặc trường API.
+
+Hai test mới đỏ trước khi cài. Các ca đã kiểm: đúng ngày sau nửa đêm, nhập phút lẻ, chặn đúng giờ kết thúc, khung danh mục và sửa một phía, xem khung kế hoạch mà không chỉnh, không gửi hai trường khi dùng mặc định. Web 1459 test/205 file, lint/build qua. Backend `FR_017_CareTaskValidatorTest` 5/5. Chưa kiểm trực quan trên trình duyệt.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 5 (2026-11-26)
+
+T071 chạy hồi quy lập việc, ghi kết quả, phạm vi quyền, nguồn thật, nhắc quá hạn, bàn giao, hợp đồng và sự kiện chi phí. Dùng MySQL 8.0.45 độc lập trên loopback, dữ liệu nằm trong `backend/target` và được tắt sau lượt test. Ca mới đặt công việc vào Quá hạn với giờ thực hiện còn trong khung và gửi hai yêu cầu có khóa idempotency khác nhau. Ca kiểm kết quả Hoàn thành, nhãn ghi nhận muộn, hai mốc thời gian và yêu cầu còn lại gặp xung đột.
+
+Kết quả: 101 ca đơn vị/kiến trúc xanh, gồm `ModuleBoundaryTest`. 25 ca tích hợp riêng biệt xanh qua các lượt, gồm so hợp đồng, ma trận quyền, nguồn đo/hoạt động thật, chuyển quá hạn, bàn giao và chuỗi 005 → 010. Lượt đầu có 3 lỗi thiếu class ở `HandoverIT` do trùng thời điểm Maven biên dịch. Chạy lại riêng sau khi lượt khác kết thúc, cả 3 ca bàn giao và 1 ca ma trận quyền xanh. `spotless:apply` lớp Java đã sửa và check Spotless trong verify qua. Chưa chạy `clean verify` toàn kho trước PR.
+
+### Ghi chú triển khai — UX chăm sóc, mốc 6 (2026-11-26)
+
+T072 sửa `care_checklist_screen.dart` và `care_result_form.dart` trong kho mobile. Nút Đánh dấu hoàn thành mở bottom sheet của việc có snapshot `PERFORMED`, được phép `record`, và chưa có bản ghi chờ đồng bộ. Vừa hoàn thành bỏ `performedAt` để dùng giờ hệ thống ở đường ghi trực tiếp hoặc `deviceTime` ở đường đồng bộ hiện hành. Đã hoàn thành trước đó bắt buộc nhập giờ thực tế, chặn giờ tương lai và giờ trước đầu khung. Hàng đợi giữ độc lập `deviceTime` và `performedAt`. Công việc chuyên môn vẫn đi qua biểu mẫu cũ. Khi lưu hoặc xếp hàng, tải lại checklist; việc chờ đồng bộ có nhãn và nút nhanh biến mất.
+
+Test widget ở `care_checklist_screen_test.dart` thêm cả luồng làm mới trực tuyến và lưu hai mốc ngoại tuyến. Hai ca đỏ vì thiếu nút trước thay đổi, sau sửa cả 17 ca trong lớp xanh. Bản này chưa kiểm trên thiết bị thật.
+
+Lượt test toàn app đầu tiên phát hiện lối đi từ lịch tuần cần giữ nút Ghi nhận kết quả. Chỉ nút nhanh trên danh sách mở form nhanh; lối ghi chi tiết tiếp tục dùng form đầy đủ. Nhóm checklist và lịch tuần chạy lại 25 ca xanh. Toàn app 652 ca xanh, `flutter analyze` sạch.
+
+Kịch bản demo:
+
+1. Trên web với quyền Trưởng tầng, chọn ca đã công bố. Lập một việc cá nhân theo chế độ Công việc phát sinh và một việc theo mục kế hoạch hoặc sự kiện có sẵn. Mở tùy chọn nâng cao để xem khung, rồi gửi lô. Với ca qua đêm, nhập giờ sau nửa đêm để kiểm tra ngày hiển thị.
+2. Trên checklist nhân viên được giao, mở một việc có loại kết quả Thực hiện và còn quyền ghi nhận. Bấm Đánh dấu hoàn thành, thử Vừa hoàn thành trên một việc và Đã hoàn thành trước đó trên một việc khác. Chọn giờ thực hiện thật trong khung nếu cần kiểm nhãn ghi nhận muộn. Xác nhận và đối chiếu trạng thái sau khi danh sách tải lại. Với việc đo chỉ số, kiểm tra biểu mẫu vẫn yêu cầu giá trị đo.
+3. Trên app, tải checklist khi có mạng rồi tắt mạng. Ghi một công việc đủ điều kiện bằng nút nhanh, kiểm Chưa đồng bộ và bật mạng lại. Mở Đồng bộ để kiểm kết quả; tải lại checklist để kiểm trạng thái từ backend.
+
+### Ghi chú triển khai — kiểm giờ thực hiện trên web (2026-11-26)
+
+T073: form ghi kết quả ở checklist kiểm giờ nhập trước đầu khung hoặc sau giờ hiện tại trên trình duyệt. Hiển thị lỗi cạnh ô, liên kết qua `aria-describedby` và giữ ô đang nhập. Vừa hoàn thành vẫn lấy giờ backend qua lệnh ghi hiện hành. Backend vẫn quyết định tính hợp lệ và trạng thái kết quả. Test mới đỏ trước khi cài và xanh sau sửa, kiểm cả giờ đúng đầu khung.
+
+Edge chạy với dữ liệu test ở 1366px chế độ sáng và 375px chế độ tối, dùng Enter mở form và kiểm xác nhận, tải lại, không tràn ngang. Toàn web 1470 test/205 file xanh ở lượt chạy sau khi đóng Edge, lint/build qua. Chưa kiểm trình đọc màn hình hoặc demo kết nối backend thật. Việc kiểm bản demo cho lập công việc và app vẫn theo kịch bản trên. Ghi tiến độ mốc này tại đây để tránh chỉnh nhật ký chung khi luồng kết thúc lưu trú đang được sửa song song.
+
+### Đề xuất hợp đồng cho phần còn thiếu của T069 và T070
+
+- T069: thêm tham số thời điểm tùy chọn `plannedAt` cho truy vấn nguồn ca của 005. Khi có tham số, trả người cao tuổi đủ điều kiện tại thời điểm đó và nguồn được provider xác nhận ở thời điểm đó. Truy vấn không có tham số tiếp tục trả dữ liệu cả ca để dùng cho màn đối chiếu nguồn. Dùng quyền xem lập việc và cùng điều kiện hiện có ở lệnh lưu, gồm trong ca, lưu trú, có mặt bán trú, quyền và hiệu lực nguồn. Lệnh lưu vẫn kiểm lại vì dữ liệu có thể đổi sau khi đọc.
+- T070: thêm trường chỉ đọc `defaultWindowMinutes` vào phản hồi nguồn ca để người có quyền xem lập việc đọc được giá trị CFG-M04-02 dùng cho đúng luồng này. Web chỉ áp vào phía còn thiếu mặc định sau khi xét mục kế hoạch và loại công việc. Trường hợp khung toàn ca vẫn theo luật hiện có. Không mở quyền xem danh sách tham số và không sửa migration.
+
+Hai thay đổi hợp đồng cần chủ dự án duyệt trước khi triển khai, C review phần 005.
+
+### Kiểm hộp lập việc qua đêm trên Edge
+
+Dùng dữ liệu test ca 18:00–07:00. Ở 1366px chế độ sáng và 375px chế độ tối, mở hộp bằng Enter, kiểm giờ 07:00 bị chặn, nhập 01:07 thấy đúng ngày hôm sau, mở tùy chọn nâng cao thấy khung 00:57–01:27 và gửi đúng `plannedAt`. Lượt đầu phát hiện phần đầu hộp tràn ngang ở 375px. Đã cho tiêu đề và các nút xếp dọc ở màn hẹp, xếp ngang từ cỡ `sm`. Cả hộp và trang đều qua kiểm tràn ngang khi chạy lại. Toàn web 1470 test/205 file xanh, lint/build qua. Chưa demo với backend thật.
+
+### Demo ca đêm với backend thật và kiểm chênh lệch giờ
+
+Dùng JAR backend đã có và MySQL 8.0 riêng trên loopback. Trên Edge 375px chế độ tối, Trưởng tầng lập việc phát sinh của ca 18:00–07:00 cho nhân viên được giao. Giờ kết thúc bị chặn. Backend lưu đúng ngày hôm sau và áp mặc định 15 phút mỗi phía khi danh mục để trống. Nhân viên mở checklist, xác nhận Vừa hoàn thành và API trả `COMPLETED` với cùng mốc thực hiện và mốc ghi. Đã thử tiếp chọn Đã hoàn thành trước đó, gửi 01:11, backend ghi lúc 01:13 và trả `COMPLETED` với hai mốc riêng.
+
+Demo phát hiện trình duyệt có thể từ chối giờ hợp lệ khi đồng hồ máy đi sau backend. T074 dùng `loadedAt` do checklist trả cộng thời gian trôi qua trên máy để kiểm giờ tương lai, trong khi lệnh lưu vẫn do backend xác nhận. Test mới đỏ trước khi cài và xanh sau sửa. Toàn web 1471 test/205 file xanh, lint/build qua.
+
+Gọi trực tiếp API demo xác nhận giờ tương lai trả 422, tài khoản ngoài phạm vi nhận 404, thực hiện sau khung trả `COMPLETED_LATE`. Đã thao tác Điều dưỡng lập mục và Bác sĩ duyệt, kế hoạch chuyển Chờ hiệu lực. Chưa đi tiếp luồng lập từ kế hoạch hiệu lực trong demo này vì job kích hoạt theo ngày bị tắt ở cấu hình cô lập. Phần chọn mục kế hoạch đã có test web với dữ liệu giả lập. Các thay đổi đề xuất cho API nguồn ca vẫn chờ duyệt.
+
+### Demo lập việc từ kế hoạch đã hiệu lực
+
+T075 chạy với backend demo và MySQL 8.0 cô lập, bật job kích hoạt kế hoạch. Điều dưỡng lập và gửi duyệt, Bác sĩ duyệt, job chuyển từ Chờ hiệu lực sang Hiệu lực sau khi đặt đồng hồ demo sang ngày bắt đầu. Trên Edge 375px chế độ tối, Trưởng tầng chọn mục kế hoạch và phân công, nhân viên mở checklist và xác nhận Hoàn thành.
+
+Lượt đầu phát hiện mục Một lần mỗi ca xuất hiện với giờ 08:30 nhưng backend trả `PLAN_ITEM_MISMATCH`. `CarePlanItemSequence` dùng giờ đầu ca làm giờ dự kiến, còn `CareTaskValidator` dùng cả ca làm khung thực hiện. Web chỉ hiện mục không có giờ cố định ở đầu ca, báo rõ mốc này trong bảng đối chiếu và lọc mục theo đúng thứ trong tuần của giờ đã nhập. Mục lặp mỗi N giờ lấy chuỗi từ giờ bắt đầu như backend.
+
+Backend lưu nội dung của mục kế hoạch đã duyệt. Web hiển thị nội dung đó ở chế độ chỉ xem và không gửi nội dung nhập tay cho căn cứ `CARE_PLAN_ITEM`. Các căn cứ khác vẫn có ô nhập. Lượt Edge cuối đã lưu căn cứ thật, ngày giờ dự kiến 07:00, khung 07:00–18:00 và trạng thái từ Đến hạn sang Hoàn thành. Không thay đổi hợp đồng hoặc quy tắc backend.
+
+Test lập việc 23/23, toàn web 1472 test/205 file xanh khi chạy với 4 worker, lint/build qua. Lượt chạy trước có hai lỗi không tìm thấy nút trong thời hạn ở test điều chỉnh hợp đồng và hồ sơ người cao tuổi, hai ca đều qua khi chạy lại toàn web.

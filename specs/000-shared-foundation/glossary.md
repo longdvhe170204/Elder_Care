@@ -1004,7 +1004,7 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 
 *Bổ sung 2026-10-25, khi dịch `contracts/api-004.yaml` (chờ chủ dự án duyệt). Tên bảng, cột, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
 
-Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (không dùng `registration`, tránh trùng 018 `residence registration`); hồ sơ chờ = `waiting list entry`; điểm ưu tiên = `priority score`; tình huống (đặc biệt) = `circumstance`; lượt trống (của giường) = `vacancy`; giữ chỗ tạm (cho hồ sơ chờ) = `reservation`; giữ giường (khi vắng) = `bed hold`; hợp đồng = `contract`; phụ lục = `addendum` (số nhiều `addenda`); điều khoản khác chuẩn = `non-standard term`; dịch vụ = `service`; đơn giá, phiên bản đơn giá = `unit price`, `price version`; đặt cọc = `deposit`; lượt vắng, ngày vắng = `absence`, `absence day`; chính sách vắng = `absence policy`; hệ số = `coefficient`; lịch đến (bán trú) = `arrival schedule`; báo vắng bán trú = `day care absence notice`; ngày nghỉ bán trú = `day care closure day`; hồ sơ kết thúc lưu trú = `residency ending`; bàn giao người cao tuổi = `resident handover`; ngoại lệ (điều kiện kết thúc) = `ending exception`; kỳ cuối = `final period`; bản ghi qua đời = `death record`; việc sau qua đời = `post-death task`; ý kiến về việc vào ở = `admission opinion`. `nct` trong tên cũ = `resident`.
+Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (không dùng `registration`, tránh trùng 018 `residence registration`); hồ sơ chờ = `waiting list entry`; điểm ưu tiên = `priority score`; tình huống (đặc biệt) = `circumstance`; lượt trống (của giường) = `vacancy`; giữ chỗ tạm (cho hồ sơ chờ) = `reservation`; giữ giường (khi vắng) = `bed hold`; hợp đồng = `contract`; phụ lục = `addendum` (số nhiều `addenda`); điều khoản khác chuẩn = `non-standard term`; dịch vụ = `service`; đơn giá, phiên bản đơn giá = `unit price`, `price version`; đặt cọc = `deposit`; lượt vắng, ngày vắng = `absence`, `absence day`; chính sách vắng = `absence policy`; hệ số = `coefficient`; lịch đến (bán trú) = `arrival schedule`; báo vắng bán trú = `day care absence notice`; ngày nghỉ bán trú = `day care closure day`; hồ sơ kết thúc lưu trú = `residency ending`; bàn giao người cao tuổi = `resident handover`; ngoại lệ (điều kiện kết thúc) = `ending exception`; kỳ cuối = `final period`; bản ghi qua đời = `death record`; việc sau qua đời = `post-death task`; ý kiến về việc vào ở = `admission opinion`; yêu cầu kết thúc lưu trú (người đại diện gửi trên app, bổ sung 2026-11-26) = `residency ending request` (trạng thái Chờ xử lý, Đã xử lý, Từ chối, Đã hủy = `PENDING`, `HANDLED`, `REJECTED`, `CANCELLED`). `nct` trong tên cũ = `resident`.
 
 ### 10.1. Đường dẫn API (tiền tố `/api/v1`) và tag
 
@@ -3411,6 +3411,31 @@ Chưa nghiệm thu; phần thiếu nguồn và phương án tại specs/010-incu
 | *(bổ sung 2026-11-07, Phase 10)* `XemLaiListener`, thông báo xem lại, nguồn `AN_KEM_KEO_DAI`, `SUT_CAN`; thân trả `nctId`, `nguon`, `nguonId`, `luc`, `banGanDangDungId`; `thongBaoXemLaiId` | `ReviewNoticeService` (`onProlongedPoorEating`, `onWeightLossDetected`, `list`, `requireOfResident`), `ReviewNoticeStore` (`Notice`), `ReviewEventListener`, `ReviewNoticeController`, `ReviewNoticeResponse`; `source` `PROLONGED_POOR_EATING`, `WEIGHT_LOSS`; `residentId`, `sourceId`, `noticedAt`, `currentAssignmentId`; `reviewNoticeId`; mốc `M08.REVIEW_NOTICE` ở `reminder_marker` |
 | *(bổ sung 2026-11-07, Phase 10)* thông báo FR-065 dòng "Ăn kém kéo dài hoặc sụt cân: xem lại chế độ ăn" tới Bác sĩ | sự kiện `ReviewDietNotice(noticeId, residentId, source, currentDiet, at)` (`DIET_REVIEW`, Nhẹ, `FacilityRole(DOCTOR)`) |
 | *(bổ sung 2026-11-07, Phase 10)* test `BR_M08_05_XemLaiIT` | `BR_22_ReviewIT` |
+
+### 17.7. Sửa theo Q-454 (2026-11-24, thực đơn chung, Quản lý viện duyệt)
+
+Thêm hoặc đổi so với 17.1 → 17.6; tên bỏ ở cột phải giữ trong lịch sử git.
+
+| Tên logic | Tên trong mã |
+| --- | --- |
+| Đưa vào dùng (lệnh món) | `activate` (`POST /nutrition/dishes/{id}/activate`, `DishCommand.ACTIVATE`) |
+| Ảnh món | `PUT`, `DELETE /nutrition/dishes/{id}/image`; `Dish.imageUrl`; thuộc tính `imageFileId` |
+| Mô tả món | `description` (`DishCommand`, `Dish`, thuộc tính `DishAttributes.description`) |
+| Lý do ngừng món | `inactiveReason` |
+| Thực đơn chung đã công bố | `GET /menus/shared` (`from`, `to`), `SharedMenuDay` (`date`, `meals` {`mealId`, `name`, `expectedTime`, `dishes` {`id`, `name`, `description`, `imageUrl`}}) |
+| Thông tin lập thực đơn (số suất dự kiến, số người theo dị ứng) | `MealPlanningInfo` (`date`, `mealId`, `residentPortions`, `familyPortions`, `staffPortions`, `allergyCounts` {`allergenId`, `name`, `residentCount`}) |
+| Kết quả lập đề xuất bản gán | `DietAssignmentCheck` (`professionalReasonRequired`) |
+| Người gửi, thời điểm gửi duyệt thực đơn | `submittedBy`, `submittedAt` (`Menu`) |
+| Nhóm phiếu: tầng/khu, nhân viên | `group` (`FLOOR`, `STAFF`) ở `ClosingResult.portionsByGroup`, `Adjustment`, `KitchenMealSlip` |
+| Phiếu nhân viên; suất nhân viên | `KitchenMealSlip` với `group = STAFF`; `staffPortions` |
+| Các món của bữa trên phiếu; tổng suất | `dishes`, `portionCount` (`KitchenMealSlip`) |
+| Suất giữ trên phiếu | `heldPortionCount` (`KitchenMealSlip`), `heldPortions` {`id`, `residentId`, `fullName`, `status` `HELD`, `SERVED`, `DISCARDED`} (`FloorMealSlip`) |
+| Phục vụ, hủy bỏ suất giữ | `POST /held-portions/{id}/serve`, `/held-portions/{id}/discard` (thay `/special-portions/{id}/serve-held-portion`, `discard-held-portion`) |
+| Thiếu dữ liệu ca | `missingData` `SHIFT` |
+| Nguồn phát sinh đổi ca | `SHIFT_CHANGED` |
+| Nhân viên có ca bao trùm thời điểm | `staffing.api.ShiftApi.staffOnShiftAt(Instant)` |
+
+Bỏ: `PENDING_CONFIRMATION` của `DishStatus`; `submit`, `withdraw`, `confirm`, `return`, `submit-revision`, `confirm-revision`, `return-revision`, `withdraw-revision` của món; `safeDishId`; `dietId`, `substituteDishIds` của `MenuContent`, `DishSwap`; `MenuCheckResult`, `Conflict`, `ServingConfirmation`; `POST /menus/{id}/check`, `GET /residents/{residentId}/dish-conflict-check`, `/special-portions/{id}/assign-dish`, `mark-prepared`, `confirm-serving`; `processingCheckConfirmed`, `processingNote`, `confirmedWarnings`; `portionsByDiet`, `labels`, `needsCrossCheck`, `allergies` của phiếu; dấu `MISSING_SUBSTITUTE_DISH`, `NO_DIET_ASSIGNED`; lệnh thực đơn `submit` nay nghĩa là "Gửi duyệt".
 
 ## 18. Feature 012 (`012-family-portal`, A) *(bổ sung 2026-11-03, khi dịch `contracts/api-012.yaml`; chủ feature chuyển từ E sang A cùng ngày)*
 

@@ -40,6 +40,8 @@ public class CostStatementService {
     private final ApplicationEventPublisher events;
     private final CostNotifications notifications;
     private final com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory;
+    private final org.springframework.beans.factory.ObjectProvider<com.eldercare.backend.resident.api.ResidentApi>
+            residents;
 
     public CostStatementService(
             CostStatementStore store,
@@ -52,7 +54,9 @@ public class CostStatementService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             CostNotifications notifications,
-            com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory) {
+            com.eldercare.backend.billing.internal.item.service.CostItemHistory itemHistory,
+            org.springframework.beans.factory.ObjectProvider<com.eldercare.backend.resident.api.ResidentApi>
+                    residents) {
         this.store = store;
         this.items = items;
         this.locks = locks;
@@ -64,6 +68,7 @@ public class CostStatementService {
         this.events = events;
         this.notifications = notifications;
         this.itemHistory = itemHistory;
+        this.residents = residents;
     }
 
     public CostStatementRecord read(long id) {
@@ -91,18 +96,24 @@ public class CostStatementService {
         // Quản
         // lý viện chỉ được báo. Khoản nhập tay, mua hộ, điều chỉnh vẫn phải được Quản lý viện duyệt riêng trước
         // (BR-M11-04); còn khoản như vậy chưa duyệt thì bảng đi đường cũ (Chờ chốt, Quản lý viện duyệt, chốt).
-        if (s.finalPeriod()) {
-            var all = items.lockItems(id);
-            boolean awaitingApproval = all.stream()
-                    .anyMatch(i -> i.status().equals("CHECKED") && !i.origin().equals("EVENT_BASED"));
-            if (!awaitingApproval) {
+        // Demo 2026-11-26: bảng bổ sung của kết thúc lưu trú (mọi khoản mang cờ AFFECTS_TERMINATION, thường do đổi ngày
+        // kết thúc sau khi đã chốt kỳ cuối) cũng chốt luôn như bảng kỳ cuối, để không chặn quyết toán.
+        var all = items.lockItems(id);
+        boolean terminationSupplement = s.statementType().equals("SUPPLEMENTARY")
+                && all.stream()
+                        .filter(i -> !i.status().equals("CANCELLED"))
+                        .allMatch(i -> i.flags().contains("AFFECTS_TERMINATION"));
+        if (s.finalPeriod() || terminationSupplement) {
+            if (!items.hasCheckedItemsAwaitingManager(id)) {
                 finalizeLocked(s, all);
                 notifications.staff(
                         "COST_STATEMENT_FINALIZED_BY_OFFICE",
                         id,
                         s.residentId(),
                         "M11:OFFICE_FINALIZED:" + id,
-                        "Bảng chi phí kỳ cuối đã được Hành chính chốt",
+                        s.finalPeriod()
+                                ? "Bảng chi phí kỳ cuối đã được Hành chính chốt"
+                                : "Bảng chi phí bổ sung khi kết thúc lưu trú đã được Hành chính chốt",
                         Role.NURSING_HOME_MANAGER,
                         time.now(),
                         access.user().accountId());
@@ -251,6 +262,32 @@ public class CostStatementService {
                 at,
                 List.of(request)));
         events.publishEvent(new CostItemChanged(s.residentId(), s.periodId()));
+        // Demo 2026-11-26 (E): bảng kỳ cuối chốt thì Kế toán được báo việc tiếp theo; nguồn là số dư của người cao tuổi
+        // (M11.BALANCE) để nút Xử lý ở web mở thẳng số dư
+        if (s.finalPeriod())
+            notifications.staff(
+                    "COST_FINAL_STATEMENT_FOR_ACCOUNTANT",
+                    "M11.BALANCE",
+                    s.residentId(),
+                    s.residentId(),
+                    "M11:FINAL_FOR_ACCOUNTANT:" + id,
+                    "Bảng chi phí kỳ cuối của " + residentName(s.residentId()) + " đã chốt: tổng " + vnd(total)
+                            + ", đã trừ vào số dư. Kiểm tra số dư: lập hoàn số dư, hoàn tiền cọc hoặc ghi nhận"
+                            + " tiền nộp, rồi xác nhận quyết toán.",
+                    Role.ACCOUNTANT,
+                    at,
+                    access.user().accountId());
+    }
+
+    // Tên người cao tuổi cho thông báo; không đọc được thì nêu mã
+    private String residentName(long residentId) {
+        try {
+            var api = residents.getIfAvailable();
+            if (api != null) return api.identity(residentId).fullName();
+        } catch (RuntimeException e) {
+            // hồ sơ không đọc được: dùng mã
+        }
+        return "người cao tuổi mã " + residentId;
     }
 
     /**

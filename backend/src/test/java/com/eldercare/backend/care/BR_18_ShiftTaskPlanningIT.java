@@ -121,7 +121,8 @@ class BR_18_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
                 "Loại kiểm thử " + typeId,
                 "{\"group\":\"OTHER\",\"professional\":false,\"resultType\":\"PERFORMED\",\"defaultRole\":\"CAREGIVER\",\"defaultImportance\":\"NORMAL\",\"billable\":false,\"certificates\":[]}");
         // 011 T042: căn cứ là mục kế hoạch chăm sóc Hiệu lực (nguồn thật của 005), không còn bản giả MEAL.
-        sourceId = effectiveItem();
+        sourceId =
+                effectiveItem(1, time.today(), planned.atZone(BusinessTime.ZONE).toLocalTime());
     }
 
     @AfterEach
@@ -204,7 +205,112 @@ class BR_18_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
         plan("[" + row(residentId, sourceId, planned) + "]").andExpect(status().isCreated());
     }
 
-    private long effectiveItem() {
+    @Test
+    void Q452_sourceDataOffersOnlyOccurrencesOfThePlanEffectiveOnEachDate() throws Exception {
+        var today = time.today();
+        var tomorrow = today.plusDays(1);
+        var starts = today.atTime(20, 0).atZone(BusinessTime.ZONE).toInstant();
+        var ends = tomorrow.atTime(12, 0).atZone(BusinessTime.ZONE).toInstant();
+        shifts.shift(new ShiftView(shiftId, floor, starts, ends, true));
+        jdbc.update(
+                "UPDATE care_plan SET status='EXPIRED',effective_to=? WHERE resident_id=? AND revision=1",
+                today,
+                residentId);
+        var hour = LocalTime.of(6, 30);
+        long tomorrowItem = effectiveItem(2, tomorrow, hour);
+        var tomorrowAt = tomorrow.atTime(hour).atZone(BusinessTime.ZONE).toInstant();
+
+        mvc.perform(get("/api/v1/shifts/" + shiftId + "/source-data"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.residents[0].planItems.length()").value(2))
+                .andExpect(jsonPath("$.residents[0].planOccurrences.length()").value(1))
+                .andExpect(jsonPath("$.residents[0].planOccurrences[0].itemId").value(tomorrowItem))
+                .andExpect(
+                        jsonPath("$.residents[0].planOccurrences[0].plannedAt").value(tomorrowAt.toString()));
+    }
+
+    ResultActions monthCommand(String path, String body) throws Exception {
+        return mvc.perform(post("/api/v1/care-tasks/month-drafts" + path)
+                .header("Idempotency-Key", "month-" + TestUsers.nextId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
+    }
+
+    String month() {
+        return "{\"floorAreaId\":" + floor + ",\"month\":\""
+                + time.today().toString().substring(0, 7) + "\"}";
+    }
+
+    int countStatus(String status) {
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM care_task WHERE resident_id=? AND status=?", Integer.class, residentId, status);
+    }
+
+    @Test
+    void Q453_monthCopyCreatesDraftsOnceHiddenFromChecklistThenPublished() throws Exception {
+        monthCommand("", month())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.created").value(1));
+        assertThat(countStatus("DRAFT")).isEqualTo(1);
+        assertThat(jdbc.queryForObject(
+                        "SELECT performer_id FROM care_task WHERE resident_id=? AND status='DRAFT'",
+                        Long.class,
+                        residentId))
+                .isEqualTo(caregiver.staffId());
+        // Chép lại không tạo trùng
+        monthCommand("", month())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.created").value(0));
+        assertThat(countStatus("DRAFT")).isEqualTo(1);
+        mvc.perform(get("/api/v1/care-tasks/month-drafts")
+                        .param("floorAreaId", Long.toString(floor))
+                        .param("month", time.today().toString().substring(0, 7)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.residentId==" + residentId + ")]").isNotEmpty());
+        // Nhân viên không thấy việc Nháp trên checklist
+        user.set(caregiver.user());
+        mvc.perform(get("/api/v1/checklist").param("shiftId", Long.toString(shiftId)))
+                .andExpect(status().isOk())
+                .andExpect(
+                        jsonPath("$.tasks[?(@.residentId==" + residentId + ")]").isEmpty());
+        user.set(manager.user());
+
+        monthCommand("/publish", month())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.published").value(1));
+        assertThat(countStatus("DRAFT")).isZero();
+        assertThat(countStatus("NOT_YET_DUE")).isEqualTo(1);
+    }
+
+    @Test
+    void Q453_draftCanBeRemovedBeforePublish() throws Exception {
+        monthCommand("", month()).andExpect(status().isOk());
+        long id = jdbc.queryForObject(
+                "SELECT id FROM care_task WHERE resident_id=? AND status='DRAFT'", Long.class, residentId);
+        mvc.perform(post("/api/v1/care-tasks/month-drafts/" + id + "/discard").header("Idempotency-Key", "del-" + id))
+                .andExpect(status().isOk());
+        assertThat(countStatus("DRAFT")).isZero();
+        monthCommand("/publish", month()).andExpect(jsonPath("$.published").value(0));
+    }
+
+    @Test
+    void Q453_pastOccurrencesAreNotCopied() throws Exception {
+        // Mốc kế hoạch đã qua (ca vẫn đang diễn ra): không chép, công bố xong sẽ không thành Quá hạn ngay
+        clock.setTo(planned.plusSeconds(60));
+        monthCommand("", month())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.created").value(0));
+        assertThat(countStatus("DRAFT")).isZero();
+    }
+
+    @Test
+    void Q453_onlyFloorManagerCopiesMonth() throws Exception {
+        user.set(caregiver.user());
+        monthCommand("", month()).andExpect(status().isForbidden());
+        assertThat(countStatus("DRAFT")).isZero();
+    }
+
+    private long effectiveItem(int revision, LocalDate effectiveFrom, LocalTime due) {
         long planId = TestUsers.nextId(), itemId = TestUsers.nextId();
         var data = new com.eldercare.backend.care.internal.careplan.domain.CarePlanItemData(
                 typeId,
@@ -213,7 +319,7 @@ class BR_18_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
                 null,
                 1,
                 null,
-                List.of(planned.atZone(BusinessTime.ZONE).toLocalTime()),
+                List.of(due),
                 List.of(),
                 15,
                 15,
@@ -223,10 +329,11 @@ class BR_18_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
                 false,
                 null);
         jdbc.update(
-                "INSERT INTO care_plan(id,resident_id,revision,status,effective_from,created_by,created_at) VALUES(?,?,1,'DRAFT',?,?,?)",
+                "INSERT INTO care_plan(id,resident_id,revision,status,effective_from,created_by,created_at) VALUES(?,?,?,'DRAFT',?,?,?)",
                 planId,
                 residentId,
-                time.today(),
+                revision,
+                effectiveFrom,
                 manager.accountId(),
                 LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE));
         jdbc.update(

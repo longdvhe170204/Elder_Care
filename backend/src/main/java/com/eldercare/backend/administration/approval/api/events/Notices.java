@@ -22,7 +22,32 @@ final class Notices {
 
     static final String SOURCE_TYPE = "M15.APPROVAL_REQUEST";
 
+    // Demo 2026-11-26 (E): tiêu đề là tên chức năng (cùng nhãn web approvalStatus.js); loại chưa có nhãn giữ "Yêu cầu"
+    // + mã
+    private static final Map<String, String> TYPE_TITLES = Map.ofEntries(
+            Map.entry("M15.CORRECTION", "Đính chính"),
+            Map.entry("M02.RESIDENCY_CHANGE", "Điều chỉnh hợp đồng"),
+            Map.entry("M02.CONTRACT_TERMS_APPROVAL", "Duyệt điều khoản hợp đồng"),
+            Map.entry("M02.ENDING_EXCEPTION", "Ngoại lệ kết thúc lưu trú"),
+            Map.entry("M03.ASSET_DISPOSAL", "Thanh lý tài sản"),
+            Map.entry("M03.NHAP_BU_PHAN_BO", "Nhập bù phân bổ giường"),
+            Map.entry("M09.LEAVE_REQUEST", "Nghỉ đột xuất"),
+            Map.entry("M09.SHIFT_SWAP", "Đổi ca"),
+            Map.entry("M12.UNCLAIMED_BELONGING_DISPOSAL", "Xử lý đồ không người nhận"),
+            Map.entry("M15.RESIDENT_ACCOUNT_LOCK", "Khóa tài khoản người cao tuổi"),
+            Map.entry("M11.BALANCE_TRANSACTION", "Giao dịch số dư"));
+    private static final Map<String, String> BALANCE_TITLES =
+            Map.of("REFUND", "Hoàn số dư", "DEPOSIT_REFUND", "Hoàn tiền cọc", "ADJUSTMENT", "Điều chỉnh số dư");
+
     private Notices() {}
+
+    static String titleOf(ApprovalRequestView request) {
+        if ("M11.BALANCE_TRANSACTION".equals(request.type()) && request.content() != null) {
+            String title = BALANCE_TITLES.get(request.content().path("type").asString(""));
+            if (title != null) return title;
+        }
+        return TYPE_TITLES.getOrDefault(request.type(), "Yêu cầu " + request.displayCode());
+    }
 
     private static NotificationLevel levelOf(String eventType) {
         return switch (eventType) {
@@ -56,7 +81,7 @@ final class Notices {
                 recipients,
                 List.of(new ContentPart(InformationType.GENERAL, text)),
                 Optional.of(shortText),
-                Optional.of("Yêu cầu " + request.displayCode()),
+                Optional.of(titleOf(request)),
                 Optional.empty(),
                 false,
                 at,

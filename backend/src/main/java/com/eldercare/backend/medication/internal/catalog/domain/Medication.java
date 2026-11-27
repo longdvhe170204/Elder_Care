@@ -18,6 +18,7 @@ public class Medication {
     private Integer beforeWindowMinutes;
     private Integer afterWindowMinutes;
     private boolean specialControl;
+    private boolean allowInternalPrescribe = true;
     private MedicationStatus status = MedicationStatus.ACTIVE;
     private int version;
     private Set<Long> allergenIds = new HashSet<>();
@@ -57,6 +58,8 @@ public class Medication {
                 attributes.afterWindowMinutes(),
                 attributes.specialControl(),
                 Set.copyOf(attributes.activeIngredientIds()));
+        medication.allowInternalPrescribe =
+                attributes.allowInternalPrescribe() == null || attributes.allowInternalPrescribe();
         medication.synchronizeFromCatalog(item);
         return medication;
     }
@@ -79,7 +82,8 @@ public class Medication {
                 afterWindowMinutes,
                 specialControl,
                 allergenIds.stream().sorted().toList(),
-                null);
+                null,
+                allowInternalPrescribe);
     }
 
     public String catalogName() {
@@ -152,6 +156,14 @@ public class Medication {
 
     public boolean isSpecialControl() {
         return specialControl;
+    }
+
+    public boolean isAllowInternalPrescribe() {
+        return allowInternalPrescribe;
+    }
+
+    public void setAllowInternalPrescribe(boolean allowInternalPrescribe) {
+        this.allowInternalPrescribe = allowInternalPrescribe;
     }
 
     public MedicationStatus getStatus() {

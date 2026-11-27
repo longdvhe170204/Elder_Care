@@ -54,6 +54,14 @@ final class M07RequestMapper {
         b.setTimeCriticality(
                 r.timeCriticality() == null ? null : r.timeCriticality().name());
         b.setRequiredMeasurements(r.requiredMeasurements());
+        if (r.measurementConditions() != null && !r.measurementConditions().isEmpty()) {
+            try {
+                b.setMeasurementConditions(new com.fasterxml.jackson.databind.ObjectMapper()
+                        .writeValueAsString(r.measurementConditions()));
+            } catch (Exception ignored) {
+            }
+        }
+        b.setChronicDisease(Boolean.TRUE.equals(r.chronicDisease()));
         b.setIndication(r.indication());
         if (r.issueConfirmations() != null) {
             b.setConfirmedIssues(r.issueConfirmations().stream()
@@ -119,6 +127,9 @@ final class M07RequestMapper {
         b.setAdmissionMedicationItemId(r.admissionMedicationItemId());
         b.setMedicationDescription(r.medicationDescription());
         b.setDecision(r.decision() == null ? null : r.decision().name());
+        b.setNurseFinding(r.nurseFinding() == null ? null : r.nurseFinding().name());
+        b.setComparisonSummary(r.comparisonSummary());
+        b.setLastHospitalDoseAt(r.lastHospitalDoseAt());
         b.setReason(r.reason());
         b.setNewPrescription(r.newPrescription() == null ? null : prescription(r.newPrescription()));
         return b;

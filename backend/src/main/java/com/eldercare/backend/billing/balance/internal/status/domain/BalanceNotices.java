@@ -78,19 +78,9 @@ public final class BalanceNotices {
                             "Còn nợ kéo dài",
                             f.fullName() + " còn nợ liên tục từ " + date(f.inDebtSince()) + ": số dư "
                                     + money(f.balance()) + "."));
-                case PAYMENT_SUFFICIENT ->
-                    requests.add(family(
-                            f,
-                            "M11_BALANCE_PAYMENT_SUFFICIENT",
-                            NotificationLevel.LOW,
-                            "Đã ghi nhận khoản nộp cho " + f.fullName() + ", số dư đã đủ."));
-                case PAYMENT_RECORDED ->
-                    requests.add(family(
-                            f,
-                            "M11_BALANCE_PAYMENT_RECORDED",
-                            NotificationLevel.LOW,
-                            "Đã ghi nhận khoản nộp cho " + f.fullName() + ", tình trạng sau khi nộp: "
-                                    + label(f.status()) + "."));
+                // Demo 2026-11-26 (E): khoản nộp đã báo người đại diện bằng thông báo biến động số dư
+                // (TransactionNotices, kèm số tiền và số dư sau nộp) nên không báo thêm ở đây, tránh trùng
+                case PAYMENT_SUFFICIENT, PAYMENT_RECORDED -> {}
             }
         }
         return new BalanceNotice(requests);

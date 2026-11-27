@@ -89,6 +89,9 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     static final String SUPERSEDE = "SUPERSEDE";
     static final String SUPERSEDED = "SUPERSEDED";
     static final String CONFIRMATION_REQUIRED = "REPRESENTATIVE_CONFIRMATION_REQUIRED";
+    static final String RESIDENCE_TYPE_UNCHANGED = "RESIDENCE_TYPE_UNCHANGED";
+    static final String ARRIVAL_SCHEDULE_UNCHANGED = "ARRIVAL_SCHEDULE_UNCHANGED";
+    static final String ARRIVAL_SCHEDULE_DUPLICATE_DAY = "ARRIVAL_SCHEDULE_DUPLICATE_DAY";
     static final String SAME_ROOM_TYPE = "BED_CHANGE_SAME_ROOM_TYPE";
     static final String CARE_LEVEL_NOT_FROM_ASSESSMENT = "CARE_LEVEL_NOT_FROM_ASSESSMENT";
     static final String RESIDENT_DISAGREE_REASON_REQUIRED = "RESIDENT_DISAGREE_REASON_REQUIRED";
@@ -181,7 +184,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (user.roles().contains(Role.DOCTOR)
                 && !user.roles().contains(Role.OFFICE_STAFF)
                 && !change.changeTypes().equals(Set.of(ChangeType.CARE_LEVEL))) {
-            throw new PermissionDeniedException("Bác sĩ chỉ lập yêu cầu đổi mức chăm sóc (FR-039)");
+            throw new PermissionDeniedException("Bác sĩ chỉ có quyền lập yêu cầu thay đổi mức chăm sóc.");
         }
         if (user.type() == AccountType.FAMILY_MEMBER) {
             Contract contract = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
@@ -191,7 +194,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                             .map(id -> port.isActiveRepresentative(id, contract.residentId(), time.today()))
                             .orElse(false);
             if (!representative) {
-                throw new PermissionDeniedException("Chỉ người đại diện hiệu lực lập yêu cầu qua cổng (FR-039)");
+                throw new PermissionDeniedException(
+                        "Chỉ người đại diện hợp pháp đang có hiệu lực mới được lập yêu cầu qua cổng thông tin gia đình.");
             }
         }
         List<UnmetCondition> serviceTypes = serviceTypeConditions(change);
@@ -212,6 +216,81 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                     SAME_ROOM_TYPE,
                     roomType.stream().map(UnmetCondition::description).collect(Collectors.joining("; ")));
         }
+        List<UnmetCondition> residenceType = residenceTypeConditions(change);
+        if (!residenceType.isEmpty()) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    RESIDENCE_TYPE_UNCHANGED,
+                    residenceType.stream().map(UnmetCondition::description).collect(Collectors.joining("; ")));
+        }
+        List<UnmetCondition> arrivalSchedule = arrivalScheduleConditions(change);
+        if (!arrivalSchedule.isEmpty()) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    arrivalSchedule.getFirst().code(),
+                    arrivalSchedule.stream().map(UnmetCondition::description).collect(Collectors.joining("; ")));
+        }
+    }
+
+    /**
+     * Lịch đến mới không được trùng thứ/ngày giữa các dòng và không được trùng hoàn toàn lịch đến hiện hành của hợp
+     * đồng bán trú (khi không đồng thời đổi loại lưu trú). Kiểm khi lập, sửa (422 qua {@link #validateContent}), gửi
+     * duyệt và duyệt (409 cùng mã).
+     */
+    List<UnmetCondition> arrivalScheduleConditions(ResidencyChangeContent change) {
+        if (!change.has(ChangeType.ARRIVAL_SCHEDULE) || change.arrivalSchedule().isEmpty()) {
+            return List.of();
+        }
+        Set<String> seenKeys = new java.util.HashSet<>();
+        for (ResidencyChangeContent.ArrivalChange line : change.arrivalSchedule()) {
+            String key = line.dayOfWeek() != null ? "W:" + line.dayOfWeek() : "D:" + line.date();
+            if (!seenKeys.add(key)) {
+                return List.of(new UnmetCondition(
+                        ARRIVAL_SCHEDULE_DUPLICATE_DAY, "Mỗi thứ hoặc ngày trong lịch đến chỉ được chọn một dòng."));
+            }
+        }
+        if (change.has(ChangeType.RESIDENCE_TYPE)) {
+            return List.of();
+        }
+        Optional<ContractVersion> base = base(change.contractId());
+        if (base.isEmpty() || baseType(base.get()) != ResidenceType.DAY_CARE) {
+            return List.of();
+        }
+        Set<ResidencyChangeContent.ArrivalChange> current = new java.util.HashSet<>();
+        for (JsonNode node : base.get().content().path("arrivalSchedule")) {
+            Integer day = node.hasNonNull("dayOfWeek") ? node.get("dayOfWeek").asInt() : null;
+            LocalDate date =
+                    node.hasNonNull("date") ? LocalDate.parse(node.get("date").asString()) : null;
+            java.time.LocalTime arrival =
+                    java.time.LocalTime.parse(node.path("arrivalTime").asString(""));
+            java.time.LocalTime departure =
+                    java.time.LocalTime.parse(node.path("departureTime").asString(""));
+            current.add(new ResidencyChangeContent.ArrivalChange(day, date, arrival, departure));
+        }
+        if (!current.isEmpty() && current.equals(new java.util.HashSet<>(change.arrivalSchedule()))) {
+            return List.of(new UnmetCondition(
+                    ARRIVAL_SCHEDULE_UNCHANGED, "Lịch đến mới trùng với lịch đến hiện hành của hợp đồng."));
+        }
+        return List.of();
+    }
+
+    /**
+     * Loại lưu trú mới không được trùng loại lưu trú hiện hành của hợp đồng. Kiểm khi lập, sửa (422 qua {@link
+     * #validateContent}), gửi duyệt (409 cùng mã qua {@link #checkOnSubmit}) và duyệt.
+     */
+    List<UnmetCondition> residenceTypeConditions(ResidencyChangeContent change) {
+        if (!change.has(ChangeType.RESIDENCE_TYPE) || change.residenceType() == null) {
+            return List.of();
+        }
+        Optional<ContractVersion> base = base(change.contractId());
+        if (base.isEmpty()) {
+            return List.of();
+        }
+        if (baseType(base.get()) == change.residenceType()) {
+            return List.of(new UnmetCondition(
+                    RESIDENCE_TYPE_UNCHANGED, "Loại lưu trú mới trùng loại lưu trú hiện hành của hợp đồng."));
+        }
+        return List.of();
     }
 
     /**
@@ -335,6 +414,16 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                         .isPresent();
     }
 
+    /**
+     * Chỉ người lập, Hành chính (xem nháp cùng bộ phận, của Bác sĩ và của người đại diện) được xem bản Nháp; Quản lý
+     * viện chỉ xem khi yêu cầu đã gửi duyệt hoặc do chính mình lập.
+     */
+    @Override
+    public boolean mayViewDraft(CurrentUser user, ApprovalRequestView request) {
+        return mayActOnDraft(user, request)
+                || (user.type() != AccountType.FAMILY_MEMBER && user.roles().contains(Role.OFFICE_STAFF));
+    }
+
     /** Hành chính, Bác sĩ, người đại diện lập (Phụ lục 27 dòng "Yêu cầu thay đổi lưu trú", ô T). */
     @Override
     public PermissionKey createPermission() {
@@ -399,6 +488,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         List<UnmetCondition> content = new ArrayList<>(serviceTypeConditions(change));
         content.addAll(careLevelConditions(change));
         content.addAll(roomTypeConditions(change));
+        content.addAll(residenceTypeConditions(change));
+        content.addAll(arrivalScheduleConditions(change));
         if (!content.isEmpty()) {
             return content;
         }
@@ -510,7 +601,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             addenda.setPending(request.id(), true);
         } catch (DuplicateKeyException e) {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
-                    "DUPLICATE_PENDING_ATTRIBUTE", "Đã có yêu cầu Đã duyệt chờ hiệu lực cùng thuộc tính (FR-046)")));
+                    "DUPLICATE_PENDING_ATTRIBUTE",
+                    "Đã có yêu cầu khác được duyệt và đang chờ tới ngày hiệu lực với cùng nội dung thay đổi này.")));
         }
         if (change.afterUrgentTransfer()) {
             beds.getObject().urgentTransferRequestResult(change.urgentTransferAllocationId(), true);
@@ -558,7 +650,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         }
         BedAllocationCommandApi api = beds.getObject();
         api.cancelScheduledAllocation(
-                request.id(), new com.eldercare.backend.common.Reason("Ký phụ lục muộn, dời ngày hiệu lực (Q-420)"));
+                request.id(), new com.eldercare.backend.common.Reason("Ký phụ lục muộn, dời ngày hiệu lực"));
         List<UnmetCondition> unmet = first
                 ? api.checkFirstAllocationReservation(
                         contract.residentId(),
@@ -603,11 +695,14 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     /**
-     * FR-043f (Q-421): Nháp, Chờ duyệt do người lập, Hành chính, Quản lý viện hủy; tài khoản người thân chỉ hủy yêu cầu do
-     * chính mình lập. Đã duyệt vẫn do người duyệt (000).
+     * Nháp chỉ người lập hoặc Hành chính hủy; Chờ duyệt do người lập, Hành chính, Quản lý viện; tài khoản người thân chỉ
+     * hủy yêu cầu do chính mình lập. Đã duyệt vẫn do người duyệt (000).
      */
     @Override
     public boolean mayCancel(CurrentUser user, ApprovalRequestView request) {
+        if (ApprovalStatus.DRAFT.equals(request.status())) {
+            return mayViewDraft(user, request);
+        }
         if (request.requesterId() == user.accountId()) {
             return true;
         }

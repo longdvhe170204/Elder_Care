@@ -2,6 +2,7 @@ package com.eldercare.backend.staffing.internal.duty.service;
 
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.dto.AccountStatus;
+import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.administration.account.api.spi.*;
 import com.eldercare.backend.administration.parameter.api.*;
 import com.eldercare.backend.administration.parameter.api.dto.*;
@@ -60,13 +61,18 @@ public class ShiftQueries implements ShiftApi {
         if (account.isPresent()
                 && !Collections.disjoint(
                         account.get().roles(), Set.of(Role.NURSING_HOME_MANAGER, Role.OFFICE_STAFF, Role.ACCOUNTANT))) {
-            var hours = parameters.read(ParameterCode.CFG_M13_06).asTable(OfficeHours.class);
-            var local = at.atZone(BusinessTime.ZONE);
-            return hours.days().contains(local.getDayOfWeek())
-                    && !local.toLocalTime().isBefore(hours.from())
-                    && local.toLocalTime().isBefore(hours.to());
+            return officeHours(at);
         }
         return inProgressMember(staffId, at);
+    }
+
+    /** Giờ hành chính CFG-M13-06 của Quản lý viện, Hành chính, Kế toán (không theo lịch ca). */
+    private boolean officeHours(Instant at) {
+        var hours = parameters.read(ParameterCode.CFG_M13_06).asTable(OfficeHours.class);
+        var local = at.atZone(BusinessTime.ZONE);
+        return hours.days().contains(local.getDayOfWeek())
+                && !local.toLocalTime().isBefore(hours.from())
+                && local.toLocalTime().isBefore(hours.to());
     }
 
     public Optional<StaffPublicView> staff(long id) {
@@ -81,6 +87,23 @@ public class ShiftQueries implements ShiftApi {
                 .map(ShiftMember::staffId)
                 .distinct()
                 .toList();
+    }
+
+    public List<Long> staffOnShiftAt(Instant at) {
+        Set<Long> ids = new java.util.LinkedHashSet<>();
+        store.at(at, false)
+                .forEach(s -> store.members(s.id()).stream()
+                        .filter(m -> m.presentAt(at))
+                        .forEach(m -> ids.add(m.staffId())));
+        if (officeHours(at)) {
+            for (Role role : List.of(Role.NURSING_HOME_MANAGER, Role.OFFICE_STAFF, Role.ACCOUNTANT)) {
+                accounts.activeWithRole(role).stream()
+                        .map(AccountView::staffId)
+                        .filter(java.util.Objects::nonNull)
+                        .forEach(ids::add);
+            }
+        }
+        return List.copyOf(ids);
     }
 
     public List<Long> onDutyDoctors(Instant at) {

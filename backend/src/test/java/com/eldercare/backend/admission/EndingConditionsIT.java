@@ -47,7 +47,21 @@ class EndingConditionsIT extends EndingTestBase {
                 .isNotNull();
         assertThat(events.stream(ResidencyEndingCompleted.class).filter(e -> e.residencyEndingId() == ready.endingId()))
                 .singleElement()
-                .satisfies(e -> assertThat(e.endDate()).isEqualTo(d0.plusDays(1)));
+                .satisfies(e -> assertThat(e.endDate()).isEqualTo(d0.plusDays(1)))
+                // Demo 2026-11-26 (E): người đại diện được báo kết thúc lưu trú kèm ngày, lý do và bàn giao
+                .satisfies(e -> assertThat(e.notificationRequests())
+                        .singleElement()
+                        .satisfies(r -> {
+                            assertThat(r.recipientGroups())
+                                    .containsExactly(
+                                            new com.eldercare.backend.common.notification.RecipientGroup.Representative(
+                                                    ready.residentId()));
+                            assertThat(r.content().getFirst().content())
+                                    .contains("đã kết thúc lưu trú")
+                                    .contains(d0.plusDays(1)
+                                            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                                    .contains("Bàn giao");
+                        }));
         assertThat(events.stream(ContractStatusChanged.class)
                         .filter(e -> e.contractId() == contractId && e.to() == ContractStatus.TERMINATED))
                 .hasSize(1);

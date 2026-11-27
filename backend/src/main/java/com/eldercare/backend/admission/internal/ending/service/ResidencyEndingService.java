@@ -86,6 +86,7 @@ public class ResidencyEndingService {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
+    private final EndingRequestService requests;
 
     ResidencyEndingService(
             ResidencyEndingStore store,
@@ -98,7 +99,8 @@ public class ResidencyEndingService {
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
             BusinessTime time,
-            ObjectProvider<CurrentUser> currentUser) {
+            ObjectProvider<CurrentUser> currentUser,
+            EndingRequestService requests) {
         this.store = store;
         this.residencyLock = residencyLock;
         this.residents = residents;
@@ -110,6 +112,7 @@ public class ResidencyEndingService {
         this.events = events;
         this.time = time;
         this.currentUser = currentUser;
+        this.requests = requests;
     }
 
     /** Dữ liệu lập hồ sơ kết thúc. */
@@ -119,7 +122,20 @@ public class ResidencyEndingService {
             boolean medicalReason,
             LocalDate expectedEndDate,
             String destination,
-            String requestedBy) {}
+            String requestedBy,
+            Long endingRequestId) {
+
+        /** Lập trực tiếp, không đi từ yêu cầu của người thân. */
+        public NewEndingInput(
+                long residentId,
+                EndCase endCase,
+                boolean medicalReason,
+                LocalDate expectedEndDate,
+                String destination,
+                String requestedBy) {
+            this(residentId, endCase, medicalReason, expectedEndDate, destination, requestedBy, null);
+        }
+    }
 
     /** Dữ liệu bàn giao người cao tuổi. */
     public record HandoverInput(
@@ -214,6 +230,9 @@ public class ResidencyEndingService {
                     "RESIDENCY_ENDING_ALREADY_OPEN",
                     "Người cao tuổi đã có hồ sơ kết thúc lưu trú Đang chuẩn bị (FR-062)");
         }
+        if (input.endingRequestId() != null) {
+            requests.requireUsable(input.endingRequestId(), residentId);
+        }
         Instant now = time.now();
         long id = store.insert(new NewEnding(
                 residentId,
@@ -238,6 +257,7 @@ public class ResidencyEndingService {
                 .reason(reason)
                 .build());
         events.publishEvent(new ResidencyEndingCreated(id, residentId, input.expectedEndDate()));
+        requests.handledBy(id, residentId, input.expectedEndDate());
         return created;
     }
 

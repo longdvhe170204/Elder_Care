@@ -45,7 +45,17 @@ public record NewPrescriptionRequest(
         List<@Valid IssueConfirmationInput> issueConfirmations,
         TimeCriticality timeCriticality,
         List<String> requiredMeasurements,
+        List<@Valid MeasurementConditionInput> measurementConditions,
+        Boolean chronicDisease,
         @Size(max = 500) String indication) {
+
+    public record MeasurementConditionInput(
+            @Schema(requiredMode = RequiredMode.REQUIRED) @NotBlank
+            String metric,
+
+            BigDecimal minValue,
+            BigDecimal maxValue,
+            @Size(max = 500) String holdInstruction) {}
 
     public enum TimeCriticality {
         NORMAL,

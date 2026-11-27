@@ -6,13 +6,20 @@ import com.eldercare.backend.medication.internal.reconciliation.domain.Reconcili
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationResponse;
 import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationWorklist;
 import com.eldercare.backend.medication.web.request.NewPrescriptionRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-/** Phản hồi đối chiếu thuốc theo api-006 ({@code Reconciliation}, {@code ReconciliationItem}; FR-034 → FR-038). */
+/**
+ * Phản hồi đối chiếu thuốc theo api-006 ({@code Reconciliation},
+ * {@code ReconciliationItem}; FR-034 → FR-038).
+ */
 public final class ReconciliationBodies {
+
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     private ReconciliationBodies() {}
 
@@ -32,6 +39,20 @@ public final class ReconciliationBodies {
             @Schema(allowableValues = {"CONTINUE", "DISCONTINUE", "CHANGE_DOSE", "ADD_NEW"})
             String decision,
 
+            @Schema(
+                    allowableValues = {
+                        "NO_CHANGE",
+                        "CONTINUE",
+                        "DISCONTINUE",
+                        "DOSE_CHANGED",
+                        "NEW_MEDICATION",
+                        "NOT_FOUND_IN_NEW",
+                        "UNCLEAR_INDICATION"
+                    })
+            String nurseFinding,
+
+            String comparisonSummary,
+            Instant lastHospitalDoseAt,
             String reason,
             NewPrescriptionRequest newPrescription,
             Boolean discontinuedOutsideTicket,
@@ -49,6 +70,9 @@ public final class ReconciliationBodies {
                     i.getAdmissionMedicationItemId(),
                     i.getMedicationDescription(),
                     i.getDecision(),
+                    i.getNurseFinding(),
+                    i.getComparisonSummary(),
+                    i.getLastHospitalDoseAt(),
                     i.getReason(),
                     ReconciliationBodies.newPrescription(i.getNewPrescription()),
                     i.getDiscontinuedOutsideTicket(),
@@ -66,8 +90,18 @@ public final class ReconciliationBodies {
             String reason,
 
             String reasonDetail,
+            String facilityName,
+            String prescriberName,
+            java.time.LocalDate prescribedAt,
+            String comparisonSource,
+            Long attachmentFileId,
+            String attachmentName,
+            String nurseNote,
+            String doctorConclusion,
+            String returnReason,
+            String cancelReason,
 
-            @Schema(allowableValues = {"OPEN", "PENDING_CONFIRMATION", "CONFIRMED", "CANCELLED"})
+            @Schema(allowableValues = {"OPEN", "DRAFT", "PENDING_CONFIRMATION", "CONFIRMED", "CANCELLED"})
             String status,
 
             Instant deadlineAt,
@@ -87,11 +121,29 @@ public final class ReconciliationBodies {
 
         /** viewerId: người xem, để tính lệnh của từng đề nghị (người lập không tự xác nhận, BR-M07-17). */
         public static ReconciliationBody of(ReconciliationResponse r, Long viewerId) {
+            List<String> commands = r.getPermittedActions() == null
+                    ? List.of()
+                    : r.getPermittedActions().stream()
+                            .filter(cmd -> !"TRA_LAI".equals(cmd)
+                                    || (r.getSubmittedBy() != null
+                                            && (viewerId == null
+                                                    || !String.valueOf(viewerId).equals(r.getSubmittedBy()))))
+                            .toList();
             return new ReconciliationBody(
                     r.getId(),
                     r.getResidentId(),
                     r.getReason(),
                     r.getReasonDetail(),
+                    r.getFacilityName(),
+                    r.getPrescriberName(),
+                    r.getPrescribedAt(),
+                    r.getComparisonSource(),
+                    r.getAttachmentFileId(),
+                    r.getAttachmentName(),
+                    r.getNurseNote(),
+                    r.getDoctorConclusion(),
+                    r.getReturnReason(),
+                    r.getCancelReason(),
                     r.getStatus(),
                     r.getDeadlineAt(),
                     r.getOverdue(),
@@ -103,14 +155,17 @@ public final class ReconciliationBodies {
                             : r.getItems().stream()
                                     .map(ReconciliationItemBody::of)
                                     .toList(),
-                    r.getPermittedActions(),
+                    commands,
                     r.getCorrections().stream()
                             .map(c -> ReconciliationCorrectionBody.of(c, viewerId))
                             .toList());
         }
     }
 
-    /** api-006 {@code ReconciliationCorrection} (FR-039; bổ sung 2026-11-19, 006 T076). */
+    /**
+     * api-006 {@code ReconciliationCorrection} (FR-039; bổ sung 2026-11-19, 006
+     * T076).
+     */
     public record ReconciliationCorrectionBody(
             Long id,
             Long reconciliationId,
@@ -147,7 +202,10 @@ public final class ReconciliationBodies {
         }
     }
 
-    /** api-006 {@code ReconciliationWorklistEntry} (bổ sung 2026-11-19, 006 T075, T076). */
+    /**
+     * api-006 {@code ReconciliationWorklistEntry} (bổ sung 2026-11-19, 006 T075,
+     * T076).
+     */
     public record ReconciliationWorklistEntryBody(
             Long residentId,
             Long reconciliationId,
@@ -222,6 +280,19 @@ public final class ReconciliationBodies {
                         ? null
                         : NewPrescriptionRequest.TimeCriticality.valueOf(b.getTimeCriticality()),
                 b.getRequiredMeasurements(),
+                parseMeasurementConditions(b.getMeasurementConditions()),
+                b.isChronicDisease(),
                 b.getIndication());
+    }
+
+    private static List<NewPrescriptionRequest.MeasurementConditionInput> parseMeasurementConditions(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return JSON.readValue(raw, new TypeReference<List<NewPrescriptionRequest.MeasurementConditionInput>>() {});
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

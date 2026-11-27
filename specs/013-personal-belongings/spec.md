@@ -73,6 +73,11 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 
 - **Q-366**: người cao tuổi xem đồ gửi của mình đang Đang giữ hoặc Đang được sử dụng trên kênh người cao tuổi (FR-030a, kịch bản 5 của User Story 6); không đổi quy tắc trả đồ (BR-M12-04, BR-M12-06).
 
+### Cập nhật 2026-11-26 (góp ý demo BF-10 của nhóm; E làm, **chờ chủ module, chủ dự án duyệt khi review PR**)
+
+- **Ẩn luồng người nhận khác ở web (FR-017 → FR-017b)**: màn Đồ gửi không còn người nhận "Người khác" khi trả đồ và không hiện mục "Xác nhận người nhận khác"; chỉ trả cho người thân hoặc chính người cao tuổi. Mã web giữ, bật lại bằng tham số `allowOtherRecipient` của `BelongingsPage`; backend, API, cổng người thân không đổi. Test luồng FR-017 vẫn chạy với tham số bật.
+- Dòng mô tả đồ khi chọn trả, xác nhận người nhận khác không hiện mã đồ gửi; màn Đồ gửi chọn người cao tuổi bằng ô tìm có danh sách thả xuống.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 12, mục 16; UC-65; DBR-22):

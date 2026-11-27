@@ -35,6 +35,7 @@ public class CareTaskController {
     private final StatusHistoryApi history;
     private final com.eldercare.backend.care.internal.result.service.CareResultQueries results;
     private final com.eldercare.backend.care.internal.result.service.CareResultService recording;
+    private final com.eldercare.backend.care.internal.result.service.CareResultReRecording reRecording;
     private final com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist;
     private final com.eldercare.backend.administration.correction.api.CorrectionApi corrections;
     private final SharedCareTasks shared;
@@ -57,7 +58,8 @@ public class CareTaskController {
             com.eldercare.backend.administration.correction.api.CorrectionApi corrections,
             SharedCareTasks shared,
             com.eldercare.backend.care.internal.timetable.service.CareTimetable timetable,
-            CareTaskHistory taskHistory) {
+            CareTaskHistory taskHistory,
+            com.eldercare.backend.care.internal.result.service.CareResultReRecording reRecording) {
         this.commands = commands;
         this.queries = queries;
         this.user = user;
@@ -69,6 +71,7 @@ public class CareTaskController {
         this.history = history;
         this.results = results;
         this.recording = recording;
+        this.reRecording = reRecording;
         this.checklist = checklist;
         this.corrections = corrections;
         this.shared = shared;
@@ -298,6 +301,9 @@ public class CareTaskController {
         }
         if (checklist.canClaim(row))
             available.put("claim", new PermissionKey(Function.TASK_CHECKLIST, Operation.CONFIRM));
+        // Q-446: người đã ghi kết quả ghi nhận lại (đính chính) khi ca còn diễn ra.
+        if (reRecording.allowed(row))
+            available.put("reRecord", new PermissionKey(Function.TASK_CHECKLIST, Operation.CONFIRM));
         if (row.status() == TaskStatus.NOT_YET_DUE && user.roles().contains(Role.FLOOR_MANAGER))
             available.put("cancel", new PermissionKey(Function.SHIFT_TASK_PLANNING, Operation.UPDATE));
         CareTaskResponse.ResidentCard card = null;

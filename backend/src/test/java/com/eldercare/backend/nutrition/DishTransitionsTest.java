@@ -9,70 +9,47 @@ import com.eldercare.backend.nutrition.internal.catalog.domain.DishTransitions.O
 import com.eldercare.backend.support.TableRows;
 import org.junit.jupiter.api.Test;
 
-/** 011 T008: bảng trạng thái món ăn của spec (FR-004a, Q-308), kiểm bằng bảng. */
+/** 011 T048: bảng trạng thái món ăn của spec (FR-004a, Q-445), kiểm bằng bảng. */
 class DishTransitionsTest {
 
     @Test
     void FR_004a_allowedTransitions() {
-        // từ, bản sửa chờ, lệnh, tới
+        // từ, lệnh, tới
         TableRows.csv(
-                r -> assertThat(DishTransitions.apply(
-                                DishStatus.valueOf(r[0]), Boolean.parseBoolean(r[1]), DishCommand.valueOf(r[2])))
-                        .isEqualTo(Outcome.to(DishStatus.valueOf(r[3]))),
-                "DRAFT, false, SUBMIT, PENDING_CONFIRMATION",
-                "PENDING_CONFIRMATION, false, WITHDRAW, DRAFT",
-                "PENDING_CONFIRMATION, false, CONFIRM, ACTIVE",
-                "PENDING_CONFIRMATION, false, RETURN, DRAFT",
-                "DRAFT, false, CANCEL, CANCELLED",
-                "ACTIVE, false, SUBMIT_REVISION, ACTIVE",
-                "ACTIVE, true, CONFIRM_REVISION, ACTIVE",
-                "ACTIVE, true, RETURN_REVISION, ACTIVE",
-                "ACTIVE, true, WITHDRAW_REVISION, ACTIVE",
-                "ACTIVE, false, DEACTIVATE, INACTIVE",
-                "ACTIVE, true, DEACTIVATE, INACTIVE");
+                r -> assertThat(DishTransitions.apply(DishStatus.valueOf(r[0]), DishCommand.valueOf(r[1])))
+                        .isEqualTo(Outcome.to(DishStatus.valueOf(r[2]))),
+                "DRAFT, ACTIVATE, ACTIVE",
+                "DRAFT, CANCEL, CANCELLED",
+                "ACTIVE, DEACTIVATE, INACTIVE");
     }
 
     @Test
     void FR_004a_blockedTransitions() {
-        // từ, bản sửa chờ, lệnh, mã lỗi
+        // từ, lệnh, mã lỗi
         TableRows.csv(
-                r -> assertThat(DishTransitions.apply(
-                                DishStatus.valueOf(r[0]), Boolean.parseBoolean(r[1]), DishCommand.valueOf(r[2])))
-                        .isEqualTo(Outcome.blocked(r[3])),
-                "DRAFT, false, CONFIRM, STATE_CHANGED",
-                "DRAFT, false, DEACTIVATE, STATE_CHANGED",
-                "PENDING_CONFIRMATION, false, SUBMIT, STATE_CHANGED",
-                "PENDING_CONFIRMATION, false, CANCEL, STATE_CHANGED",
-                "ACTIVE, false, CANCEL, STATE_CHANGED",
-                "ACTIVE, false, CONFIRM, STATE_CHANGED",
-                "ACTIVE, true, SUBMIT_REVISION, REVISION_EXISTS",
-                "ACTIVE, false, CONFIRM_REVISION, STATE_CHANGED",
-                "ACTIVE, false, WITHDRAW_REVISION, STATE_CHANGED",
-                "INACTIVE, false, SUBMIT_REVISION, STATE_CHANGED",
-                "INACTIVE, false, DEACTIVATE, STATE_CHANGED",
-                "CANCELLED, false, SUBMIT, STATE_CHANGED");
+                r -> assertThat(DishTransitions.apply(DishStatus.valueOf(r[0]), DishCommand.valueOf(r[1])))
+                        .isEqualTo(Outcome.blocked(r[2])),
+                "ACTIVE, ACTIVATE, STATE_CHANGED",
+                "ACTIVE, CANCEL, STATE_CHANGED",
+                "DRAFT, DEACTIVATE, STATE_CHANGED",
+                "INACTIVE, ACTIVATE, STATE_CHANGED",
+                "INACTIVE, DEACTIVATE, STATE_CHANGED",
+                "CANCELLED, ACTIVATE, STATE_CHANGED");
     }
 
     @Test
-    void FR_004a_commandActorsAndReason() {
-        // lệnh, path, bếp, Bác sĩ, lý do
+    void FR_004a_commandPathsAndReason() {
+        // lệnh, path, lý do
         TableRows.csv(
                 r -> {
-                    var command = DishCommand.valueOf(r[0]);
-                    assertThat(DishCommand.fromPath(r[1])).contains(command);
-                    assertThat(command.byKitchen()).isEqualTo(Boolean.parseBoolean(r[2]));
-                    assertThat(command.byDoctor()).isEqualTo(Boolean.parseBoolean(r[3]));
-                    assertThat(command.requiresReason()).isEqualTo(Boolean.parseBoolean(r[4]));
+                    DishCommand c = DishCommand.valueOf(r[0]);
+                    assertThat(c.path()).isEqualTo(r[1]);
+                    assertThat(DishCommand.fromPath(r[1])).contains(c);
+                    assertThat(c.requiresReason()).isEqualTo(Boolean.parseBoolean(r[2]));
                 },
-                "SUBMIT, submit, true, false, false",
-                "WITHDRAW, withdraw, true, false, false",
-                "CANCEL, cancel, true, false, false",
-                "CONFIRM, confirm, false, true, false",
-                "RETURN, return, false, true, true",
-                "SUBMIT_REVISION, submit-revision, true, false, false",
-                "CONFIRM_REVISION, confirm-revision, false, true, false",
-                "RETURN_REVISION, return-revision, false, true, true",
-                "WITHDRAW_REVISION, withdraw-revision, true, false, false",
-                "DEACTIVATE, deactivate, true, true, true");
+                "ACTIVATE, activate, false",
+                "CANCEL, cancel, false",
+                "DEACTIVATE, deactivate, true");
+        assertThat(DishCommand.fromPath("confirm")).isEmpty();
     }
 }

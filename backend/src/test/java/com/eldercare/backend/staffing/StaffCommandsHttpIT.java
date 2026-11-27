@@ -73,4 +73,14 @@ class StaffCommandsHttpIT extends MySqlIntegrationTestBase {
         command("/departments/" + dept + "/assign-lead", Map.of("staffId", staff, "reason", "Chỉ định phụ trách"))
                 .andExpect(status().isConflict());
     }
+
+    @Test
+    void FR_008_accountantCanListDepartmentsForProcurement() throws Exception {
+        var users = new TestUsers(jdbc, time);
+        String accountant =
+                TestUsers.bearer(users.session(users.staff(Role.ACCOUNTANT).accountId()));
+        mvc.perform(get("/api/v1/departments").header("Authorization", accountant))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").exists());
+    }
 }

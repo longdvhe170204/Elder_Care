@@ -70,6 +70,20 @@ class NFR_04_CareEventsTest {
                 .containsExactly(new RecipientGroup.FloorManager(2, new Substitution.Default()));
     }
 
+    @Test
+    void FR_006_planChangeNoticeIdentifiesTheActivation() {
+        var manager = new RecipientGroup.FloorManager(2, new Substitution.Default());
+        var context = new com.eldercare.backend.care.api.dto.CareEventContext(
+                "M04.CARE_PLAN", 7, "EFFECTIVE:2026-10-27", AT, Optional.of(2L), List.of(manager));
+        var notice = new com.eldercare.backend.care.api.events.CarePlanChanged(9, 7, Optional.empty(), context)
+                .notificationRequests()
+                .getFirst();
+
+        assertThat(notice.title()).contains("Kế hoạch chăm sóc đã có hiệu lực");
+        assertThat(notice.residentId()).contains(9L);
+        assertThat(notice.recipientGroups()).containsExactly(manager);
+    }
+
     private Object event(String name, Object context) throws Exception {
         var type = Class.forName("com.eldercare.backend.care.api.events." + name);
         var constructor = type.getConstructors()[0];

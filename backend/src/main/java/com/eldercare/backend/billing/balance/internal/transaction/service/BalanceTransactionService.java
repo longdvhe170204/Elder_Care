@@ -23,6 +23,7 @@ import com.eldercare.backend.billing.balance.internal.ledger.persistence.LedgerS
 import com.eldercare.backend.billing.balance.internal.ledger.service.AccountNames;
 import com.eldercare.backend.billing.balance.internal.ledger.service.DepositStatuses;
 import com.eldercare.backend.billing.balance.internal.ledger.service.LedgerPosting;
+import com.eldercare.backend.billing.balance.internal.ledger.service.TransactionFamilyNotices;
 import com.eldercare.backend.billing.balance.internal.settlement.service.SettlementChanges;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.PaymentMethod;
@@ -96,6 +97,7 @@ public class BalanceTransactionService {
     private final CurrentUser user;
     private final BusinessTime time;
     private final AccountNames names;
+    private final TransactionFamilyNotices familyNotices;
 
     public BalanceTransactionService(
             LedgerPosting posting,
@@ -113,8 +115,10 @@ public class BalanceTransactionService {
             AuditLogApi audit,
             CurrentUser user,
             BusinessTime time,
-            AccountNames names) {
+            AccountNames names,
+            TransactionFamilyNotices familyNotices) {
         this.names = names;
+        this.familyNotices = familyNotices;
         this.posting = posting;
         this.ledgers = ledgers;
         this.transactions = transactions;
@@ -300,6 +304,9 @@ public class BalanceTransactionService {
         }
         deposits.recheck(residentId, depositSide, by);
         settlement.changed(residentId);
+        // Một thông báo cho cặp cấn trừ (sổ cọc giảm, số dư tăng cùng số tiền)
+        familyNotices.confirmed(
+                residentId, List.of(transactions.find(depositSide).orElseThrow()));
         return List.of(depositSide, balanceSide).stream()
                 .map(id -> BalanceTransactionView.of(transactions.find(id).orElseThrow(), names))
                 .toList();

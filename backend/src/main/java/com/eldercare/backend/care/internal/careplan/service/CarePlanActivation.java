@@ -82,19 +82,22 @@ public class CarePlanActivation implements CareDailyWork {
             }
             store.activate(candidate.id());
             log(pending.get(), "EFFECTIVE", CarePlanStatus.EFFECTIVE);
-            var floor = allocations.openAt(candidate.residentId(), now).map(BedAllocationView::floorAreaId);
-            List<RecipientGroup> recipients = floor.<List<RecipientGroup>>map(id -> List.of(
-                            new RecipientGroup.ShiftLead(id, new Substitution.Default()),
-                            new RecipientGroup.FloorManager(id, new Substitution.Default())))
-                    .orElseGet(() -> List.of(
-                            new RecipientGroup.AssignedNurse(candidate.residentId(), new Substitution.Default())));
-            var context =
-                    new CareEventContext("M04.CARE_PLAN", candidate.id(), "EFFECTIVE:" + date, now, floor, recipients);
-            events.publishEvent(
-                    new CarePlanChanged(candidate.residentId(), candidate.id(), previous.map(CarePlan::id), context));
+            announce(candidate, previous, date, now);
             count++;
         }
         return count;
+    }
+
+    /** Báo kế hoạch đã đổi; dùng cả khi lệnh Duyệt cho hiệu lực ngay (Q-447). */
+    public void announce(CarePlan plan, Optional<CarePlan> previous, LocalDate date, Instant now) {
+        var floor = allocations.openAt(plan.residentId(), now).map(BedAllocationView::floorAreaId);
+        List<RecipientGroup> recipients = floor.<List<RecipientGroup>>map(id -> List.of(
+                        new RecipientGroup.ShiftLead(id, new Substitution.Default()),
+                        new RecipientGroup.FloorManager(id, new Substitution.Default())))
+                .orElseGet(
+                        () -> List.of(new RecipientGroup.AssignedNurse(plan.residentId(), new Substitution.Default())));
+        var context = new CareEventContext("M04.CARE_PLAN", plan.id(), "EFFECTIVE:" + date, now, floor, recipients);
+        events.publishEvent(new CarePlanChanged(plan.residentId(), plan.id(), previous.map(CarePlan::id), context));
     }
 
     private void log(CarePlan before, String action, CarePlanStatus after) {

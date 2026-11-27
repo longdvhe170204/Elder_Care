@@ -6,9 +6,8 @@ import com.eldercare.backend.nutrition.internal.assignment.service.DietAssignmen
 import com.eldercare.backend.nutrition.web.request.ApplyDietAssignmentRequest;
 import com.eldercare.backend.nutrition.web.request.DietAssignmentRequest;
 import com.eldercare.backend.nutrition.web.request.NutritionReason;
-import com.eldercare.backend.nutrition.web.response.ConflictResponse;
+import com.eldercare.backend.nutrition.web.response.DietAssignmentCheckResponse;
 import com.eldercare.backend.nutrition.web.response.DietAssignmentResponse;
-import com.eldercare.backend.nutrition.web.response.MenuCheckResultResponse;
 import com.eldercare.backend.nutrition.web.response.NutritionProblem;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Bản gán chế độ ăn của api-011 (thẻ {@code diet}; FR-010 → FR-017, BR-M08-03). Lập đề xuất trả kết quả đối chiếu và có
- * cần lý do chuyên môn ({@code MenuCheckResult}); id bản gán mới ở header {@code Location}.
+ * cần lý do chuyên môn ({@code DietAssignmentCheck}); id bản gán mới ở header {@code Location}.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -54,21 +53,13 @@ public class DietAssignmentController {
                 .toList();
     }
 
-    @GetMapping("/residents/{residentId}/dish-conflict-check")
-    @ApiResponse(responseCode = "200", description = "OK")
-    public List<ConflictResponse> dishConflictCheck(@PathVariable long residentId) {
-        return assignments.dishConflictCheck(DietAssignmentService.residentTarget(residentId), residentId).stream()
-                .map(ConflictResponse::of)
-                .toList();
-    }
-
     @PostMapping("/residents/{residentId}/diet-assignments")
     @ApiResponse(responseCode = "201", description = "OK")
     @ApiResponse(
             responseCode = "409",
             description = "Bị chặn",
             content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
-    public ResponseEntity<MenuCheckResultResponse> propose(
+    public ResponseEntity<DietAssignmentCheckResponse> propose(
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @PathVariable long residentId,
             @RequestBody DietAssignmentRequest body) {
@@ -85,16 +76,7 @@ public class DietAssignmentController {
                         body.reviewNoticeId(),
                         body.effectiveFrom()));
         return ResponseEntity.created(URI.create("/api/v1/diet-assignments/" + proposal.id()))
-                .body(new MenuCheckResultResponse(
-                        proposal.menuCheck().missingMeals().stream()
-                                .map(g -> new MenuCheckResultResponse.CoverageGap(g.dietId(), g.date(), g.mealId()))
-                                .toList(),
-                        List.of(),
-                        proposal.menuCheck().conflicts().stream()
-                                .<Object>map(ConflictResponse::of)
-                                .toList(),
-                        proposal.professionalReasonRequired(),
-                        proposal.warningCodes()));
+                .body(new DietAssignmentCheckResponse(proposal.professionalReasonRequired()));
     }
 
     @PostMapping("/diet-assignments/{id}/apply")
@@ -107,7 +89,7 @@ public class DietAssignmentController {
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @PathVariable long id,
             @RequestBody ApplyDietAssignmentRequest body) {
-        assignments.apply(assignments.targetOf(id), id, body.professionalReason(), body.confirmedWarnings());
+        assignments.apply(assignments.targetOf(id), id, body.professionalReason());
         return ResponseEntity.ok().build();
     }
 

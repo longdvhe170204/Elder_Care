@@ -42,7 +42,8 @@ class BR_71_CareResultCorrectionProviderTest {
                 mock(CareResultQueries.class),
                 mock(com.eldercare.backend.administration.account.api.CurrentUser.class),
                 mock(com.eldercare.backend.administration.account.api.FieldVisibilityApi.class),
-                mock(com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckTaskVoids.class));
+                mock(com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckTaskVoids.class),
+                mock(com.eldercare.backend.care.internal.result.service.CareResultReRecording.class));
     }
 
     CorrectionView correction(CreationMethod method) {

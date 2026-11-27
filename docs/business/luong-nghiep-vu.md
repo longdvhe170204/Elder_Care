@@ -51,7 +51,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 | 14 | Hệ thống | Kiểm tra điều kiện: đánh giá đầu vào chưa quá [90 ngày]; hợp đồng Hiệu lực và thời điểm tiếp nhận không sớm hơn ngày bắt đầu hợp đồng; mức chăm sóc của hợp đồng trùng mức chăm sóc hiện hành; đặt cọc đạt; nội trú có giường, và giường đó đã về Trống; có đúng một người liên hệ chính và ít nhất một người đại diện có quan hệ Hiệu lực (DBR-02). Thiếu điều kiện nào thì từ chối và liệt kê mọi điều kiện chưa đạt Không là điều kiện nhưng hiện cảnh báo: chưa ghi ý kiến của người cao tuổi; ý kiến "Không đồng ý" thì lệnh bắt buộc lý do (Q-356); còn phiếu đánh giá đầu vào, phiếu nguyện vọng Nháp tự khai chưa kiểm chứng (BR-M01-18) | Hồ sơ: Đang lưu trú. Lượt đăng ký: Đã tiếp nhận. Phân bổ bắt đầu thực tế | 5.6, Q-22, Q-50, Q-343, BR-M02-22, DBR-02, spec 004 FR-004, Q-412 |
 | 15 | Hệ thống | Đơn thuốc từ phiếu đối chiếu có hiệu lực; lịch thuốc, lịch cá nhân và suất ăn được tính từ lúc tiếp nhận. Người phụ trách ca được báo để lập công việc cho người mới (BF-02 bước 1) | — | 5.6, Q-57, BR-M07-01, Q-306 |
 | 15a | Hành chính; Hệ thống | Với nội trú: hệ thống nhắc, Hành chính lập khai báo tạm trú "Cần khai báo" (đăng ký tạm trú hoặc thông báo lưu trú theo CFG-M02-11, tính cộng dồn cả gia hạn; người thường trú cùng xã/phường với viện, do Hành chính xác nhận theo địa chỉ thường trú trên hồ sơ, luôn thông báo lưu trú, Q-215, Q-244; cộng dồn theo chuỗi hợp đồng nối tiếp trong cùng hồ sơ, Q-241). Hành chính khai báo với công an trong CFG-M02-12 (ngoài hệ thống), rồi ghi đã tiếp nhận kèm ảnh bằng chứng, đăng ký tạm trú kèm ngày hết hạn (Q-414) | Khai báo: Cần khai báo → Đã xác nhận | UC-80, 6.10, BR-M02-11, Q-215, Q-306 |
-| 16 | Điều dưỡng; người có quyền Duyệt kế hoạch chăm sóc (mặc định Bác sĩ) | Điều dưỡng hoàn thiện phiên bản kế hoạch chăm sóc; người có quyền duyệt | Kế hoạch: Nháp → Chờ duyệt → Hiệu lực, sớm nhất từ ngày hôm sau ngày duyệt | UC-22, UC-23, BR-M04-19, Q-34 |
+| 16 | Bác sĩ; người có quyền Duyệt kế hoạch chăm sóc | Bác sĩ lập kế hoạch chăm sóc rồi gửi duyệt (không nhập ngày hiệu lực); người có quyền duyệt duyệt hoặc trả lại | Kế hoạch: Nháp → Chờ duyệt → Hiệu lực ngay khi duyệt (người chưa có kế hoạch Hiệu lực) | UC-22, UC-23, BR-M04-19, Q-34, Q-456 |
 | 17 | — | Chuyển sang vòng ca hằng ngày (BF-02) | — | — |
 
 **Nhánh ngoại lệ**
@@ -73,8 +73,9 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 - Kênh đăng ký là liên hệ trực tiếp; Hành chính nhập vào hệ thống. Cổng người thân không có chức năng đăng ký tiếp nhận hay ký hợp đồng, vì người thân chỉ có tài khoản sau khi có quan hệ Hiệu lực (14.6, Q-341). Người thân vẫn là người đăng ký, cung cấp hồ sơ, chọn hình thức lưu trú, mức chăm sóc, dịch vụ và ký hợp đồng (bản ký scan) trực tiếp với viện.
 - Thứ tự thực tế là đăng ký → lập hợp đồng (chọn loại lưu trú, mức chăm sóc, dịch vụ) → đặt cọc → Hoàn tất tiếp nhận; đánh giá đầu vào (bước 4, 6) làm trước hoặc sau bước 9 đều được (Q-300). Với nội trú, giường được chọn cùng hợp đồng theo mức của hợp đồng khi chưa có đánh giá (Q-301); phân bổ phải có trước khi ghi nhận đã ký (Q-28). Bác sĩ đánh giá trước khi Hoàn tất tiếp nhận; mức lệch hợp đồng hoặc phòng không còn phù hợp thì xử lý theo nhánh ngoại lệ.
 - Nếu tới lúc Hoàn tất tiếp nhận mà phiếu đối chiếu chưa được xác nhận: người cao tuổi chưa có liều nào, và hạn đối chiếu [4 giờ] tính từ lúc Hoàn tất tiếp nhận (Q-57, BR-M07-09).
-- Nếu tới lúc Hoàn tất tiếp nhận mà kế hoạch chăm sóc vẫn ở Nháp hoặc Chờ duyệt: lệnh **không bị chặn**. Người cao tuổi mang dấu "chưa có kế hoạch chăm sóc hiệu lực", Trưởng tầng và Điều dưỡng phụ trách thấy dấu này. Người phụ trách ca vẫn lập công việc từ lịch đo, lịch bữa và hoạt động. Việc gấp dùng công việc phát sinh (spec 005 FR-009, Q-34).
+- Nếu tới lúc Hoàn tất tiếp nhận mà kế hoạch chăm sóc vẫn ở Nháp hoặc Chờ duyệt: lệnh **không bị chặn**. Người cao tuổi có đánh giá đầu vào có nhu cầu chăm sóc thì nằm trong hàng chờ của màn Kế hoạch chăm sóc (Q-457); không có nhu cầu nào thì theo lịch chung, không cần kế hoạch riêng. Người phụ trách ca vẫn lập công việc từ lịch đo, lịch bữa và hoạt động. Việc gấp dùng công việc phát sinh (spec 005 FR-009, Q-34).
 - Chưa có bản gán chế độ ăn cũng không chặn tiếp nhận: người cao tuổi dùng chế độ ăn mặc định và Bác sĩ được nhắc (12.1).
+- Với **bán trú**, khi lập hợp đồng (bước 9), gia đình thỏa thuận **lịch đến cố định theo tuần** (thứ trong tuần, giờ đến – giờ về trong ngày) và Hành chính nhập vào hợp đồng; khi ghi nhận đã ký (bước 10), hệ thống kiểm tra sức chứa từng buổi của khu nghỉ bán trú (`BR-M03-03`, `Q-323`).
 
 ---
 
@@ -83,9 +84,9 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
 | 0 | Quản lý viện | Lập, sửa mốc sinh hoạt cố định của toàn viện (thức dậy, ngủ trưa…); sửa áp dụng từ ngày hôm sau | Hiển thị trên "Lịch chăm sóc hằng ngày" | 8.2, Q-440 |
-| 1 | Trưởng tầng; Hệ thống | **(Sửa 2026-11-22, Q-439 gác lại)** Sau khi lịch ca tháng của tầng đã công bố, lập công việc cho cả tháng: bấm "Chép từ kế hoạch" để có bản Nháp theo mục của phiên bản kế hoạch Hiệu lực và phân công của lịch ca, xem, sửa rồi công bố trước ngày đầu tháng. Người cao tuổi vào tầng giữa tháng: thêm từ ngày muộn nhất trong ngày hợp đồng hiệu lực, Hoàn tất tiếp nhận, kế hoạch hiệu lực. Kế hoạch đổi giữa tháng: hệ thống hủy việc Chưa đến hạn của phiên bản cũ từ ngày hiệu lực, báo Trưởng tầng chép lại. Ngày [25] (CFG-M04-14) nhắc nếu chưa công bố; ngày đầu tháng chưa công bố thì báo Quản lý viện. Liều thuốc không thành công việc | Công việc: Nháp → Chưa đến hạn (khi công bố) | BR-M04-01, 03, 25, Q-439 gác lại |
+| 1 | Trưởng tầng; Hệ thống | **(Sửa 2026-11-22, Q-439, áp dụng từ 2026-11-26 theo Q-453)** Sau khi lịch ca tháng của tầng đã công bố, lập công việc cho cả tháng: bấm "Chép từ kế hoạch" để có bản Nháp theo mục của phiên bản kế hoạch Hiệu lực và phân công của lịch ca, xem, sửa rồi công bố trước ngày đầu tháng. Người cao tuổi vào tầng giữa tháng: thêm từ ngày muộn nhất trong ngày hợp đồng hiệu lực, Hoàn tất tiếp nhận, kế hoạch hiệu lực. Kế hoạch đổi giữa tháng: hệ thống hủy việc Chưa đến hạn của phiên bản cũ từ ngày hiệu lực, báo Trưởng tầng chép lại. Ngày [25] (CFG-M04-14) nhắc nếu chưa công bố; ngày đầu tháng chưa công bố thì báo Quản lý viện. Liều thuốc không thành công việc | Công việc: Nháp → Chưa đến hạn (khi công bố) | BR-M04-01, 03, 25, Q-439, áp dụng từ 2026-11-26 theo Q-453 |
 | 2 | Hệ thống | Với bán trú: ngày có lịch đến hiển thị trạng thái có mặt tính theo lịch đến | Có mặt: Chưa đến | 3.4, spec 005 FR-012 |
-| 3 | Hành chính, Nhân viên chăm sóc hoặc Điều dưỡng | Điểm danh bán trú đến; công việc đã công bố của người bán trú chỉ Đến hạn trong khoảng có mặt; Trưởng tầng được báo khi người đó có mặt ngoài lịch để thêm công việc phát sinh nếu cần (sửa 2026-11-22, Q-439 gác lại) | Có mặt: Chưa đến → Có mặt | UC-28, BR-M04-02, spec 005 FR-013 |
+| 3 | Hành chính, Nhân viên chăm sóc hoặc Điều dưỡng | Điểm danh bán trú đến; công việc đã công bố của người bán trú chỉ Đến hạn trong khoảng có mặt; Trưởng tầng được báo khi người đó có mặt ngoài lịch để thêm công việc phát sinh nếu cần (sửa 2026-11-22, Q-439, áp dụng từ 2026-11-26 theo Q-453) | Có mặt: Chưa đến → Có mặt | UC-28, BR-M04-02, spec 005 FR-013 |
 | 4 | Nhân viên chăm sóc, Điều dưỡng | Nhận checklist đầu ca (app và web); tick Hoàn thành, việc cần số liệu thì nhập kết quả theo loại công việc; thẻ người cao tuổi có cảnh báo đang mở mang nhãn "Đang theo dõi", ghi kết quả theo dõi vào cảnh báo (Q-443) | Công việc: Đến hạn → Hoàn thành / Không thực hiện (bắt buộc lý do) | UC-25, UC-26, 8.5, 8.6 |
 | 5 | Hệ thống | Hết khung thời gian: chuyển Quá hạn, nhắc người thực hiện. Việc Thường: báo Người phụ trách ca sau CFG-M04-12. Việc Quan trọng: gửi thông báo cho Trưởng tầng (không tạo bản ghi cảnh báo). Việc Bắt buộc: tạo cảnh báo mức Trung bình (BF-06) | Công việc: Quá hạn → Hoàn thành trễ / Không thực hiện | BR-M04-05, 06, Q-31 |
 | 6 | Trưởng tầng; Người phụ trách ca | Xử lý việc quá hạn, phân lại việc chung. Người phụ trách ca chỉ ghi thay việc đã Quá hạn | — | UC-27, Q-35 |
@@ -97,34 +98,40 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 
 **Điểm đã làm rõ**
 
-- "Lịch ăn" là **lịch bữa** do feature 011 cung cấp cho từng người (bữa, giờ dự kiến, có suất đặc biệt hay không). Giờ bữa là CFG-M08-04, do Quản lý viện cấu hình.
+- "Lịch ăn" là **lịch bữa** do feature 011 cung cấp cho từng người (bữa, giờ dự kiến; bỏ suất đặc biệt theo Q-454). Giờ bữa là CFG-M08-04, do Quản lý viện cấu hình.
 - "Lịch sinh hoạt" không phải căn cứ lập công việc. Thời khóa biểu cá nhân (8.2) chỉ để xem, tổng hợp từ công việc, liều thuốc, buổi hoạt động và lịch thăm (spec 005 US9).
 - **(Bổ sung 2026-11-22, Q-440)** "Lịch chăm sóc hằng ngày" cho người thân, người cao tuổi ghép giờ bữa, buổi hoạt động, mốc sinh hoạt cố định và công việc chăm sóc riêng đã công bố; chỉ xem. Người khỏe bình thường chỉ có lịch sinh hoạt chung.
 - Người bán trú quên điểm danh về: cuối ngày Người phụ trách ca được báo mức Trung bình, Trưởng tầng mức Nhẹ; trạng thái có mặt không tự chuyển (spec 005 FR-019).
 - Bán trú không qua đêm: đến và về trong cùng ngày. Người bán trú cần ở lại qua đêm phải thuê giường bằng nội trú ngắn ngày (hợp đồng hoặc phụ lục riêng, phân bổ giường theo BF-01 bước 8 → 10); khoảng đó không ghi là bán trú. Giá bán trú theo dịch vụ đăng ký trong hợp đồng.
+- **Vận hành ngày của bán trú (lịch cố định + báo vắng / buổi phát sinh):**
+  - **Báo vắng bán trú (`FR-060`):** gia đình báo nghỉ vào ngày có lịch đến, Hành chính ghi nhận kèm thời điểm gia đình báo; hệ thống kiểm đủ hạn trước `[24 giờ]` (`CFG-M02-06`) để tính `Vắng có báo` (nếu quá giờ đến `[2 giờ]` chưa điểm danh và không có báo vắng thì thành `Vắng không báo`), làm căn cứ tính tỷ lệ phí vắng (`CFG-M02-05`).
+  - **Buổi phát sinh (`3.4`, `Q-140`, `Q-324`):** người bán trú đến vào ngày không có trong lịch cố định vẫn được Hành chính, Nhân viên chăm sóc hoặc Điều dưỡng điểm danh đến trực tiếp ở màn Điểm danh bán trú; buổi này tự đánh dấu là **buổi phát sinh** (không kiểm sức chứa khu nghỉ, tính 100% đơn giá buổi bán trú ngoài giá tháng).
+  - **Ngày khu bán trú nghỉ (`FR-060a`):** Hành chính khai báo ngày nghỉ của khu bán trú; buổi có lịch trùng ngày nghỉ tự hủy (`Đã hủy do ngày nghỉ`), không chuyển Vắng không báo và không tính phí.
 
 ---
 
 ## BF-03 – Lập và công bố thực đơn tuần
 
-Bác sĩ xác định yêu cầu dinh dưỡng và duyệt; Nhân viên bếp lập món ăn, thực đơn và đổi món (2.3, Q-308).
+Nhân viên bếp lập món ăn, lập một thực đơn chung của cả viện và đổi món; Quản lý viện duyệt. Bác sĩ không xác nhận món, không duyệt thực đơn (Q-454).
 
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
-| 1 | Bác sĩ | Xác định yêu cầu dinh dưỡng của từng người cao tuổi (bản gán chế độ ăn: chế độ ăn, dị ứng, bệnh lý, thực phẩm cần tránh, kết cấu); quản lý danh mục chế độ ăn và chọn món an toàn | Bản gán (nhóm 2); danh mục chế độ ăn (nhóm 1) | 12.1, BR-M08-03, Q-308 |
-| 1a | Nhân viên bếp; Bác sĩ | Bếp tạo món ăn và khai thành phần gây dị ứng (từ danh mục dị nguyên), chế độ ăn phù hợp, kết cấu chế biến được; Bác sĩ xác nhận hoặc trả lại kèm lý do. Sửa thành phần của món đã xác nhận cần Bác sĩ xác nhận lại | Món: chờ xác nhận → dùng được trong thực đơn | 12.1, Q-308 |
-| 2 | Nhân viên bếp | Lập thực đơn tuần (thứ 2 → chủ nhật) từ các món đã xác nhận: mỗi ngày, bữa, chế độ ăn gồm các món và món thay thế theo thứ tự ưu tiên | Thực đơn: Nháp | 12.2, Q-308 |
-| 3 | Nhân viên bếp; Hệ thống | Gửi kiểm tra: Bếp xác nhận đã kiểm tra khả năng chế biến, nguyên liệu, suất ăn, kèm ghi chú (hệ thống hiển thị số người theo chế độ ăn, không đối chiếu định lượng; không có tồn kho, Q-392). Hệ thống kiểm tra độ phủ: thiếu món thì chặn. Hệ thống cảnh báo lặp món [3 ngày] và món có thành phần dị ứng chưa có món thay thế | Qua kiểm tra: Chờ công bố; Bác sĩ được báo | BR-M08-06, 07, Q-308, Q-392 |
+| 1 | Bác sĩ | Ghi dị ứng của người cao tuổi vào hồ sơ sức khỏe; gán chế độ ăn (chế độ ăn, kết cấu, thực phẩm cần tránh) làm ghi chú cho người chăm sóc | Dị ứng (5.2); bản gán (nhóm 2) | 5.2, 12.1, BR-M08-03, Q-454 |
+| 1a | Quản lý viện | Quản lý danh mục bữa: sáng, trưa, tối và bữa phụ | Danh mục bữa (nhóm 1) | 12.2, Q-401 |
+| 1b | Nhân viên bếp | Tạo món ăn: tên, mô tả, hình ảnh; Đưa vào dùng. Sửa món Hiệu lực áp dụng ngay | Món: Nháp → Hiệu lực | 12.1, Q-454 |
+| 2 | Nhân viên bếp; Hệ thống | Lập thực đơn tuần (thứ 2 → chủ nhật) từ các món Hiệu lực: mỗi ngày, mỗi bữa một danh sách món dùng chung cả viện. Hệ thống tự hiện số suất dự kiến mỗi bữa (người cao tuổi, người thân ở lại, Quản lý viện và nhân viên trong ca) và số người cao tuổi theo từng loại dị ứng, không kèm tên. Không kiểm tra độ phủ, lặp món, dị ứng | Thực đơn: Nháp | 12.2, Q-454 |
+| 3 | Nhân viên bếp | Gửi duyệt | Nháp → Chờ công bố; Quản lý viện được báo | 12.2, Q-454 |
 | 4 | Nhân viên bếp | Rút lại nếu cần sửa | Chờ công bố → Nháp | 12.2 |
-| 5 | Bác sĩ | Duyệt: Công bố, kiểm tra độ phủ chạy lại với dữ liệu tại thời điểm công bố; hoặc Trả lại kèm lý do, Bếp được báo | Chờ công bố → Công bố (nếu tuần đã bắt đầu: chuyển thẳng Đã áp dụng); hoặc Chờ công bố → Nháp | 12.2, Q-142, Q-308 |
+| 5 | Quản lý viện | Xem danh sách thực đơn tuần được gửi tới và duyệt: Công bố; hoặc Trả lại kèm lý do, Bếp được báo | Chờ công bố → Công bố (nếu tuần đã bắt đầu: chuyển thẳng Đã áp dụng); hoặc Chờ công bố → Nháp | 12.2, Q-454 |
 | 6 | Hệ thống | Tới ngày đầu tuần | Công bố → Đã áp dụng | 12.2 |
-| 7 | Nhân viên bếp | Đổi món bằng lệnh có lý do, chỉ dùng món đã xác nhận, hiệu lực ngay; hệ thống chặn nếu làm chế độ ăn mất món, chạy lại cảnh báo lặp món và dị ứng. Bác sĩ được báo; đổi sau thời điểm chốt suất thì thành phát sinh | Thực đơn không bị hủy | BR-M08-08, Q-308 |
-| 8 | Bộ lập lịch | Tới [2 ngày] trước ngày đầu tuần (CFG-M08-07) mà chưa có thực đơn Công bố: nhắc Nhân viên bếp (và Bác sĩ nếu thực đơn đang Chờ công bố), báo Quản lý viện | — | BR-M08-16 |
+| 7 | Nhân viên bếp | Đổi món bằng lệnh có lý do, chỉ dùng món Hiệu lực, hiệu lực ngay; không áp cho bữa đã qua giờ. Quản lý viện được báo; đổi sau thời điểm chốt suất thì thành phát sinh | Thực đơn không bị hủy | BR-M08-08, Q-454 |
+| 8 | Bộ lập lịch | Tới [2 ngày] trước ngày đầu tuần (CFG-M08-07) mà chưa có thực đơn Công bố: nhắc Nhân viên bếp, báo Quản lý viện | — | BR-M08-16 |
+| 9 | Mọi người dùng app | Xem thực đơn hôm nay và thực đơn tuần đã công bố, thấy tất cả các món | — | 12.2, Q-454 |
 
 **Điểm đã làm rõ**
 
-- Nhân viên bếp lập thực đơn; Bác sĩ duyệt bằng Công bố hoặc Trả lại (Chờ công bố → Nháp, có lý do). Bếp có Rút lại (Chờ công bố → Nháp) và Hủy (Nháp → Đã hủy) (Q-308).
-- Quản lý viện chỉ xem thực đơn và các cảnh báo đã được xác nhận (Q-142, 19.3).
+- Nhân viên bếp lập thực đơn; Quản lý viện duyệt bằng Công bố hoặc Trả lại (Chờ công bố → Nháp, có lý do). Bếp có Rút lại (Chờ công bố → Nháp) và Hủy (Nháp → Đã hủy) (Q-454).
+- Món nấu thế nào do Bếp quyết theo số người cao tuổi theo loại dị ứng; hệ thống không cảnh báo, không chặn (Q-454).
 
 ---
 
@@ -132,22 +139,22 @@ Bác sĩ xác định yêu cầu dinh dưỡng và duyệt; Nhân viên bếp l�
 
 | Bước | Vai trò | Hoạt động | Trạng thái phiếu / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------------- | ------ |
-| 1 | Nhân viên bếp; Hệ thống | Từ mốc [2 giờ] trước bữa (CFG-M08-01), thực hiện lệnh Chốt suất: hệ thống tính sẵn số suất theo chế độ ăn, chọn món thay thế theo thứ tự ưu tiên; không có món phù hợp thì dùng món an toàn hoặc báo Bác sĩ. Lệnh lập phiếu bữa ăn theo tầng/khu. Quá mốc mà chưa chốt thì hệ thống nhắc Nhân viên bếp | Đã chốt | BR-M08-01, 02, 09, Q-306 |
-| 2 | Nhân viên bếp | Chuẩn bị suất; dán nhãn suất đặc biệt (họ tên, phòng, chế độ ăn); đánh dấu từng suất đặc biệt đã chuẩn bị | Đã chốt → Đã chuẩn bị (có phát sinh làm thêm hoặc đổi suất đặc biệt thì quay về Đã chốt) | 12.5, BR-M08-10 |
-| 3 | Nhân viên bếp | Xác nhận đã nhận các phát sinh sau thời điểm chốt. Chưa xác nhận trước giờ bữa [30 phút] thì nhắc Bếp và Bác sĩ | — | BR-M08-13 |
+| 1 | Nhân viên bếp; Hệ thống | Từ mốc [2 giờ] trước bữa (CFG-M08-01), thực hiện lệnh Chốt suất: hệ thống tính sẵn tổng số suất của bữa (người cao tuổi có mặt, người thân ở lại, Quản lý viện và nhân viên có ca bao trùm giờ bữa). Lệnh lập phiếu bữa ăn theo tầng/khu và phiếu nhân viên, mỗi phiếu ghi các món của bữa và số suất. Quá mốc mà chưa chốt thì hệ thống nhắc Nhân viên bếp | Đã chốt | BR-M08-01, 09, Q-306, Q-454 |
+| 2 | Nhân viên bếp | Chuẩn bị suất | Đã chốt → Đã chuẩn bị (có phát sinh làm thêm suất thì quay về Đã chốt) | 12.5 |
+| 3 | Nhân viên bếp | Xác nhận đã nhận các phát sinh sau thời điểm chốt. Chưa xác nhận trước giờ bữa [30 phút] thì nhắc Bếp | — | BR-M08-13 |
 | 4 | Nhân viên bếp | Ghi bản ghi lưu mẫu của bữa: mọi món được nấu, mỗi món một mẫu; món không lưu được thì ghi lý do | Bắt buộc có bản ghi trước bước 5 | BR-M08-15, Q-39, Q-146 |
 | 5 | Nhân viên bếp | Giao phiếu và suất tới tầng/khu | Đã chuẩn bị → Đã giao | BR-M08-10 |
 | 6 | Người nhận tại tầng | Kiểm đếm, rồi xác nhận nhận hoặc báo sai lệch kèm nội dung | Đã giao → Đã nhận (trạng thái cuối) / Có sai lệch | BR-M08-11 |
 | 7 | Nhân viên bếp; Người nhận tại tầng | Bếp ghi cách xử lý (bổ sung, đổi suất, khác); tầng xác nhận lại | Có sai lệch → Đã giao → Đã nhận. Lịch sử sai lệch giữ nguyên | 12.5 |
 | 8 | Nhân viên bếp; Người nhận tại tầng | Phát sinh tới sau khi phiếu Đã giao được giao như phần bổ sung, nhận hoặc báo sai lệch riêng | Phiếu không quay lại trạng thái trước | 12.5 |
-| 9 | Nhân viên chăm sóc | Phục vụ. Với suất đặc biệt và người thuộc danh sách cần đối chiếu khi phục vụ: xác nhận đúng người, đúng suất trước khi ghi kết quả ăn uống. Suất có thành phần dị ứng với người nhận: hệ thống chặn và tạo cảnh báo mức Trung bình cho Điều dưỡng phụ trách; người đã ăn thì nhân viên ghi nhận sự cố | — | Q-307, BR-M08-14, spec 011 FR-036a, FR-050 |
+| 9 | Điều dưỡng; Nhân viên chăm sóc | Phục vụ: đối chiếu ghi chú dị ứng và chế độ ăn trong hồ sơ người cao tuổi trước khi phục vụ; hệ thống không xác nhận suất, không chặn ghi nhận. Người đã ăn món gây dị ứng thì nhân viên ghi nhận sự cố | — | Q-307, BR-M08-14, Q-454 |
 | 10 | Hệ thống | Quá giờ bữa [30 phút] (CFG-M08-04) mà phiếu chưa Đã giao: cảnh báo nhẹ cho Trưởng tầng và Bếp | — | BR-M08-12 |
 
 **Điểm đã làm rõ**
 
 - **Người nhận tại tầng** là Trưởng tầng, Điều dưỡng hoặc Nhân viên chăm sóc (kể cả Người phụ trách ca) có phân công tại tầng/khu của phiếu trong ca đang diễn ra. Với phiếu khu bán trú: người thuộc các vai trò đó được phân công tại tầng/khu vực mà khu nghỉ bán trú gắn vào (Q-143, 2.4).
-- **Kết cấu thức ăn** lưu trên bản gán chế độ ăn, do Bác sĩ nhập. Muốn đổi kết cấu phải tạo bản gán mới; bản gán do Bác sĩ lập nên không có bước duyệt riêng, các trường hợp của BR-M08-03 chỉ bắt buộc lý do chuyên môn.
-- **Suất thường và dị ứng**: theo định nghĩa, suất có món trùng dị ứng đang hiệu lực đã là suất đặc biệt, nên suất thường không có xung đột dị ứng đã biết. Người có dị ứng loại "khác" (không kiểm tra tự động) vẫn nhận suất thường nhưng nằm trong danh sách cần đối chiếu khi phục vụ, và phải được xác nhận như suất đặc biệt. Danh sách này bếp không thấy. Người có suất thường và không thuộc danh sách thì không cần xác nhận.
+- **Kết cấu thức ăn** lưu trên bản gán chế độ ăn, do Bác sĩ nhập, là ghi chú cho người chăm sóc; không ghi trên phiếu (Q-454).
+- **Bỏ suất đặc biệt, món thay thế, món an toàn** (Q-454): mọi suất trong bữa như nhau; dị ứng của từng người được đối chiếu tại tầng khi phục vụ.
 
 ---
 
@@ -282,8 +289,8 @@ Khởi phát: người đại diện đề nghị thay đổi, Bác sĩ đánh g
 | 3a | Người đại diện, Hành chính | Ký phụ lục: Hành chính in phụ lục (giá trị trước, giá trị sau, đơn giá, ngày hiệu lực), người đại diện ký; Hành chính ghi nhận đã ký (ngày ký, người đại diện ký, bản scan). Ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký; không tính lùi. Chưa ký thì Hành chính được nhắc mỗi [1 ngày] (CFG-M02-17) | Phụ lục: Chờ ký → Chờ hiệu lực | Bộ luật Dân sự 2015 Điều 403; 6.3; Q-420 |
 | 4 | Bộ lập lịch | Tới ngày hiệu lực của phụ lục Chờ hiệu lực: áp dụng trong cùng một lần: đổi mức chăm sóc của hợp đồng, đổi dịch vụ chăm sóc sang dịch vụ của mức mới, đổi đơn giá từ ngày hiệu lực, đổi loại phòng và chuyển sang giường đã giữ, đổi ngày kết thúc, đổi dịch vụ đăng ký. Bỏ lỡ ngày thì áp dụng bù ở lần chạy kế tiếp. Điều kiện không còn thỏa thì Áp dụng không thành. Phụ lục còn Chờ ký thì không áp dụng, chờ bước 3a | Yêu cầu: Đã áp dụng / Áp dụng không thành. Phụ lục: Đã áp dụng / Không áp dụng | BR-M02-04, Q-11 |
 | 4a | Hệ thống | Báo mọi người đại diện (mức Nhẹ; loại thay đổi, ngày hiệu lực, không kèm giá) khi phụ lục Đã áp dụng. Áp dụng không thành thì báo người duyệt, người lập và người đại diện kèm lý do | — | Q-11, Q-422 |
-| 5 | Hệ thống | Báo Điều dưỡng phụ trách và người có quyền Duyệt kế hoạch chăm sóc xem xét kế hoạch, trừ khi đã có phiên bản kế hoạch lập sau lần báo ở bước 0. Không tạo yêu cầu, không có hạn | — | BR-M04-20, Q-306, Q-423 |
-| 6 | Điều dưỡng; người có quyền Duyệt kế hoạch chăm sóc | Điều dưỡng quyết định lập phiên bản mới hay giữ kế hoạch hiện hành; phiên bản mới do người có quyền duyệt. Việc gấp trước khi phiên bản mới có hiệu lực thì dùng công việc phát sinh | Kế hoạch: Nháp → Chờ duyệt → Hiệu lực, từ ngày hôm sau ngày duyệt | BR-M04-19, Q-34 |
+| 5 | Hệ thống | Báo Điều dưỡng phụ trách và người có quyền Duyệt kế hoạch chăm sóc xem xét kế hoạch và lưu yêu cầu xem xét (hiện trong hàng chờ của màn Kế hoạch chăm sóc), trừ khi đã có phiên bản kế hoạch lập sau lần báo ở bước 0. Không có hạn | Yêu cầu xem xét: Đang mở | BR-M04-20, Q-423, Q-457 |
+| 6 | Điều dưỡng; người có quyền Duyệt kế hoạch chăm sóc | Điều dưỡng quyết định sửa kế hoạch hay giữ kế hoạch hiện hành (giữ thì chọn "Không cần thay đổi" kèm lý do, yêu cầu đóng; Q-457); sửa thì bấm "Sửa kế hoạch" (hệ thống chép nội dung hiện hành) rồi gửi Bác sĩ duyệt. Việc gấp trước khi bản sửa có hiệu lực thì dùng công việc phát sinh | Bản sửa: Nháp → Chờ duyệt → Chờ hiệu lực → Hiệu lực từ ngày hôm sau ngày duyệt | BR-M04-19, Q-34, Q-456 |
 | 7 | Người lập, Hành chính, Quản lý viện; Người đại diện | Hủy yêu cầu, bắt buộc lý do. Nháp, Chờ duyệt: người lập, Hành chính, Quản lý viện; người đại diện chỉ hủy yêu cầu do mình gửi. Đã duyệt (chờ hiệu lực): người duyệt. Phụ lục Chờ ký, Chờ hiệu lực chuyển Đã hủy, giữ giường (nếu có) bị hủy. Người đại diện được báo | Yêu cầu: Hủy. Phụ lục: Đã hủy | 6.6, Q-421 |
 
 **Nhánh ngoại lệ**
@@ -307,6 +314,7 @@ Khởi phát: người đại diện đề nghị thay đổi, Bác sĩ đánh g
 - Xác nhận ở 1a, 1b là xác nhận ý định để gửi duyệt; phụ lục đã ký ở 3a là căn cứ để áp dụng. Thay đổi nhỏ viện tự quyết, không cần xác nhận, không cần ký.
 - Người duyệt không sửa nội dung yêu cầu; muốn sửa thì Trả về nháp, để nội dung gia đình đã xác nhận và ký trùng nội dung được áp dụng.
 - Ý kiến người cao tuổi không chặn luồng, như BF-01; quyết định cuối thuộc người có thẩm quyền theo BR-M01-15.
+- **Bán trú và đổi lịch đến (`BR-M02-16`):** lịch đến trong hợp đồng bán trú là lịch cố định hằng tuần; nghỉ lẻ ngày hoặc đi thêm ngày lẻ xử lý qua **Báo vắng bán trú** hoặc **Buổi phát sinh** ở BF-02 mà không sửa hợp đồng. Chỉ khi đổi lịch đến cố định mới lập yêu cầu điều chỉnh loại **Lịch đến** (lịch mới không được trùng lịch hiện tại và không trùng thứ/ngày giữa các dòng). Yêu cầu đổi **Loại lưu trú** không được chọn trùng loại lưu trú hiện hành của hợp đồng.
 
 ---
 

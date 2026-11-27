@@ -152,6 +152,9 @@ Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_reques
 | `ly_do_ket_thuc` | `ENUM('NGUNG','THAY_THE','HET_HAN','PHIEU_DOI_CHIEU','TRANG_THAI_CUOI') NULL` | | FR-011 |
 | `phieu_doi_chieu_id` | `BIGINT NULL` | Đơn tạo từ phiếu | FR-036 |
 | `da_nhac_het_han_luc` | `DATETIME(6) NULL` | | FR-017 |
+| `prescription_group_id` | `VARCHAR(64) NULL` | Gom nhóm các dòng thuốc cùng một đơn (`V006_18`) | BF-07 M07-01 |
+| `chronic_disease` | `TINYINT(1) NOT NULL DEFAULT 0` | Đơn mạn tính cho phép kê tối đa 90 ngày (`V006_19`) | BF-07 M07-02 |
+| `measurement_conditions` | `JSON NULL` | Ngưỡng chỉ số & hướng dẫn tạm giữ 1 liều (`V006_19`) | BF-07 M07-11 |
 | `nguoi_lap_id`, `lap_luc`, `phien_ban` | | `phien_ban` chỉ cho lệnh sửa ghi chú | |
 
 `CHECK`: `loai_don='DINH_KY'` thì `kieu_tan_suat` không rỗng và hai cột PRN rỗng; ngược lại. `CHECK (co_so_ke_loai='NOI_BO' OR (co_so_ke_ten IS NOT NULL AND nguoi_ke_ten IS NOT NULL AND ngay_ke IS NOT NULL))`.
@@ -267,6 +270,7 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 | `han_luc`, `qua_han_luc` | `DATETIME(6) NULL` | `han_luc` rỗng khi lập trước tiếp nhận và luôn rỗng với `THEO_YEU_CAU_CHUYEN_MON` | FR-035, FR-034b |
 | `nguoi_lap_id`, `lap_luc`, `nguoi_gui_id`, `gui_luc`, `nguoi_xac_nhan_id`, `xac_nhan_luc` | | | FR-038 |
 | `ly_do_tra_lai`, `ly_do_huy` | `VARCHAR(2000) NULL` | `ly_do_huy`: chuyển viện lại, trạng thái cuối, Hủy tiếp nhận | FR-035 |
+| `facility_name`, `prescriber_name`, `prescribed_at`, `comparison_source`, `attachment_file_id`, `attachment_name`, `nurse_note`, `doctor_conclusion` | | Thông tin đơn đối chiếu, tài liệu, ghi chú điều dưỡng và kết luận bác sĩ (`V006_20`); từng dòng trong JSON `lines` có thêm `nurseFinding`, `comparisonSummary`, `lastHospitalDoseAt` | BF-07 M07-06, 07, 13 |
 | `mo_nct` | Cột sinh `IF(trang_thai IN ('MO','CHO_XAC_NHAN'), nct_id, NULL)` | `UNIQUE` | FR-035 |
 | `tiep_nhan_nct` | Cột sinh `IF(ly_do='TIEP_NHAN' AND trang_thai <> 'DA_HUY', nct_id, NULL)` | `UNIQUE` | FR-034a |
 | `phien_ban` | `INT` | `If-Match` cho lệnh thay dòng | |

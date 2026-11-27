@@ -19,11 +19,6 @@ import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
 import com.eldercare.backend.nutrition.api.events.AdjustmentsPending;
-import com.eldercare.backend.nutrition.internal.assignment.persistence.DietAssignmentStore;
-import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
-import com.eldercare.backend.nutrition.internal.catalog.domain.Dish;
-import com.eldercare.backend.nutrition.internal.catalog.domain.DishStatus;
-import com.eldercare.backend.nutrition.internal.catalog.persistence.NutritionCatalogStore;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.Adjustment;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.ExtraPortionRequest;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.MealSlip;
@@ -35,15 +30,10 @@ import com.eldercare.backend.nutrition.internal.closing.domain.PortionClosing;
 import com.eldercare.backend.nutrition.internal.closing.domain.PortionFlag;
 import com.eldercare.backend.nutrition.internal.closing.persistence.ClosingRecordStore;
 import com.eldercare.backend.nutrition.internal.closing.persistence.PortionClosingStore;
-import com.eldercare.backend.nutrition.internal.conflict.domain.ConflictCheck;
-import com.eldercare.backend.nutrition.internal.conflict.domain.ConflictCheck.AllergyItem;
-import com.eldercare.backend.resident.api.HealthItemApi;
 import com.eldercare.backend.resident.api.ResidentApi;
-import com.eldercare.backend.resident.api.dto.HealthItemType;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.time.Instant;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,7 +59,6 @@ public class AdjustmentService {
     private static final AuditAction EXTRA = new AuditAction("EXTRA_PORTION_REQUESTED", true);
     private static final AuditAction HELD_SERVED = new AuditAction("HELD_PORTION_SERVED", false);
     private static final AuditAction HELD_DISCARDED = new AuditAction("HELD_PORTION_DISCARDED", false);
-    private static final AuditAction DISH_ASSIGNED = new AuditAction("SPECIAL_PORTION_DISH_ASSIGNED", false);
 
     /** Phiếu đã giao: phát sinh cần giao thêm thành phần bổ sung, phiếu không quay lại (FR-048b). */
     private static final Set<String> AFTER_DELIVERY = Set.of(
@@ -79,10 +68,7 @@ public class AdjustmentService {
     private final PortionClosingStore closings;
     private final ClosingRecordStore records;
     private final DailyMeals dailyMeals;
-    private final NutritionCatalogStore catalog;
     private final ResidentApi residents;
-    private final HealthItemApi healthItems;
-    private final DietAssignmentStore assignments;
     private final TechnicalLocks locks;
     private final AuditLogApi audit;
     private final CurrentUser user;
@@ -94,10 +80,7 @@ public class AdjustmentService {
             PortionClosingStore closings,
             ClosingRecordStore records,
             DailyMeals dailyMeals,
-            NutritionCatalogStore catalog,
             ResidentApi residents,
-            HealthItemApi healthItems,
-            DietAssignmentStore assignments,
             TechnicalLocks locks,
             AuditLogApi audit,
             CurrentUser user,
@@ -107,10 +90,7 @@ public class AdjustmentService {
         this.closings = closings;
         this.records = records;
         this.dailyMeals = dailyMeals;
-        this.catalog = catalog;
         this.residents = residents;
-        this.healthItems = healthItems;
-        this.assignments = assignments;
         this.locks = locks;
         this.audit = audit;
         this.user = user;
@@ -299,75 +279,6 @@ public class AdjustmentService {
     }
 
     /**
-     * Bác sĩ chỉ định món thay thế riêng cho bữa chưa qua giờ (FR-037): món Hiệu lực, phù hợp chế độ ăn (FR-005), không xung
-     * đột với người; sau chốt tạo phát sinh đổi suất.
-     */
-    @RequiresPermission(function = Function.DIET, operation = Operation.UPDATE)
-    @BusinessCommand(requiresReason = false)
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void assignDish(Target target, long specialId, long dishId, String note) {
-        SimpleRecord<SpecialPortion> row = records.special(specialId);
-        if (!ClosingRecordStore.ACTIVE.equals(row.status())) {
-            throw stateChanged();
-        }
-        SpecialPortion s = row.content();
-        DailyMeal meal = dailyMeals.require(s.dailyMealId());
-        Instant now = time.now();
-        if (!now.isBefore(meal.mealTime().orElseThrow())) {
-            throw blocked("PAST_MEAL_TIME", "Bữa đã qua giờ bữa dự kiến (FR-037)");
-        }
-        Dish dish = catalog.dish(dishId);
-        if (dish.status() != DishStatus.ACTIVE) {
-            throw blocked("DISH_NOT_ACTIVE", "Món chưa Hiệu lực hoặc đã Ngừng");
-        }
-        Diet diet = catalog.diet(s.dietId());
-        Set<Long> ingredients = catalog.effectiveIngredients(dishId);
-        boolean suitable = Optional.ofNullable(dish.attributes().effectiveVersionId())
-                .map(v -> catalog.version(v).content().suitableDietIds().contains(diet.id()))
-                .orElse(false);
-        List<AllergyItem> allergies = healthItems.active(s.residentId(), HealthItemType.ALLERGY).stream()
-                .map(i -> new AllergyItem(i.allergenId().orElse(null), i.notAutoChecked()))
-                .toList();
-        if (!suitable
-                || ConflictCheck.hasConflict(
-                        ingredients,
-                        allergies,
-                        personalRestrictions(s),
-                        new HashSet<>(diet.attributes().restrictions()))) {
-            throw blocked("DISH_NOT_SUITABLE", "Món không phù hợp chế độ ăn hoặc xung đột với người cao tuổi (FR-037)");
-        }
-        records.changeSpecial(
-                row,
-                ClosingRecordStore.ACTIVE,
-                new SpecialPortion(
-                        s.dailyMealId(),
-                        s.residentId(),
-                        s.dietId(),
-                        s.texture(),
-                        s.dishes(),
-                        s.flags(),
-                        s.special(),
-                        dishId,
-                        note == null || note.isBlank() ? null : note.strip(),
-                        user.accountId(),
-                        now,
-                        s.heldServedAt(),
-                        s.heldDiscardedAt(),
-                        s.prepared()));
-        audit.write(AuditLogEntry.builder()
-                .action(DISH_ASSIGNED)
-                .entity(SPECIAL, specialId)
-                .resident(s.residentId())
-                .after(Map.of("dishId", dishId))
-                .build());
-        closingService.recompute(
-                Optional.of(Set.of(s.residentId())),
-                "M08.DISH_ASSIGNED:" + specialId + ":" + dishId,
-                "DISH_ASSIGNED",
-                false);
-    }
-
-    /**
      * Tại giờ bữa: suất "dự kiến trở về" của người chưa về thành suất giữ, phát sinh "−1" không cần giao (FR-040a; Q-333).
      * Người đã về (Đang lưu trú) thì bỏ qua. Chạy lại không trùng (khóa phát sinh theo suất).
      */
@@ -453,13 +364,6 @@ public class AdjustmentService {
     }
 
     /** Hạn chế riêng của bản gán Hiệu lực (FR-020 b). */
-    private Set<Long> personalRestrictions(SpecialPortion s) {
-        return assignments
-                .active(s.residentId())
-                .map(a -> (Set<Long>) new HashSet<>(a.personalRestrictions()))
-                .orElse(Set.of());
-    }
-
     private static Set<PortionFlag> flagsWithout(CountedPerson person, PortionFlag flag) {
         Set<PortionFlag> flags = EnumSet.noneOf(PortionFlag.class);
         flags.addAll(person.flags());

@@ -114,8 +114,7 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                 .isEqualTo(1);
         // V900_09: ca ngày Tầng 2 (9002) đã công bố 7 ngày với Điều dưỡng thứ hai (demo.dieuduong2, 9011, phụ trách ca,
         // giấy phép NURSING_LICENSE) và Nhân viên chăm sóc thứ hai (demo.chamsoc2, 9012); demo.truongtang là Trưởng
-        // tầng
-        // cả Tầng 2. Người ở Tầng 2 phân công được Điều dưỡng để lập kế hoạch chăm sóc (BF-01 bước 16)
+        // tầng Tầng 2 ở lần nạp này. V900_22 phân công lại Trưởng tầng.
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM work_shift s JOIN shift_schedule h ON h.id=s.schedule_id"
                                 + " AND h.status='PUBLISHED' WHERE s.scope_type='FLOOR' AND s.scope_id=9002"
@@ -140,11 +139,16 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND t.code='NURSING_LICENSE' WHERE c.staff_id=9011",
                         Integer.class))
                 .isEqualTo(1);
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staff_assignment WHERE kind='FLOOR_MANAGER' AND staff_id=9003"
-                                + " AND floor_area_id=9002 AND status='ACTIVE'",
-                        Integer.class))
-                .isEqualTo(1);
+        // V900_22 (Q-453): mỗi tài khoản Trưởng tầng được phân công đúng một tầng để lập công việc tháng.
+        assertThat(jdbc.queryForList(
+                        "SELECT CONCAT(s.staff_id,':',s.floor_area_id) FROM staff_assignment s"
+                                + " JOIN account a ON a.staff_id=s.staff_id AND a.status='ACTIVE'"
+                                + " JOIN permission_assignment r ON r.account_id=a.id"
+                                + " AND r.kind='ROLE_ASSIGNMENT' AND r.role='AC-02'"
+                                + " WHERE s.kind='FLOOR_MANAGER' AND s.status='ACTIVE'"
+                                + " AND s.staff_id IN (9003,9013,9023,9024,9025) ORDER BY s.staff_id",
+                        String.class))
+                .containsExactly("9003:9001", "9013:9002", "9023:9003", "9024:9004", "9025:9005");
         // V900_10: nghiệp vụ Phát thuốc có loại giấy phép NURSING_LICENSE để Trưởng tầng đặt được Điều dưỡng phụ trách
         // (008 AssignmentService, BF-01 bước 16; F17); Điều dưỡng demo 9005, 9011 có giấy phép đó
         assertThat(jdbc.queryForObject(
@@ -234,17 +238,19 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " WHERE a.license_plate IS NOT NULL",
                         Integer.class))
                 .isEqualTo(2);
-        // V900_17: mười người Đang lưu trú, mỗi người có giường, hợp đồng Hiệu lực, sổ số dư, người đại diện, phân công
-        // Điều dưỡng phụ trách trong mọi ca từ ngày nạp
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM resident r WHERE r.status='IN_RESIDENCE'"
+        // V900_17 và V900_19–21: hai mươi người Đang lưu trú có giường, hợp đồng Hiệu lực, sổ số dư, người đại diện.
+        assertThat(jdbc.queryForList(
+                        "SELECT r.id FROM resident r WHERE r.status='IN_RESIDENCE'"
                                 + " AND EXISTS (SELECT 1 FROM bed_allocation a WHERE a.resident_id=r.id AND a.status='ACTIVE')"
                                 + " AND EXISTS (SELECT 1 FROM contract c WHERE c.resident_id=r.id AND c.status='ACTIVE')"
                                 + " AND EXISTS (SELECT 1 FROM resident_balance b WHERE b.resident_id=r.id)"
                                 + " AND EXISTS (SELECT 1 FROM family_relationship f WHERE f.resident_id=r.id"
                                 + " AND f.representative)",
-                        Integer.class))
-                .isEqualTo(10);
+                        Long.class))
+                .containsExactlyInAnyOrder(
+                        9001L, 9002L, 9003L, 9004L, 9005L, 9006L, 9007L, 9008L, 9009L, 9010L, 9021L, 9022L, 9101L,
+                        9102L, 9103L, 9104L, 9105L, 9106L, 9107L, 9108L);
+        // V900_17: mười người có phân công Điều dưỡng phụ trách trong mọi ca từ ngày nạp.
         assertThat(jdbc.queryForList(
                         "SELECT COUNT(*) FROM staff_assignment a JOIN work_shift s ON s.id=a.shift_id"
                                 + " WHERE a.target_type='RESIDENT' AND a.assigned_nurse"

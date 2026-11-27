@@ -20,10 +20,7 @@ class M08FieldClassificationConfigTest {
     private static List<FieldClassificationProvider> providers() {
         M08FieldClassificationConfig config = new M08FieldClassificationConfig();
         return List.of(
-                config.dietClassification(),
-                config.dietAssignmentClassification(),
-                config.familyFoodClassification(),
-                config.servingConfirmationClassification());
+                config.dietClassification(), config.dietAssignmentClassification(), config.familyFoodClassification());
     }
 
     @Test

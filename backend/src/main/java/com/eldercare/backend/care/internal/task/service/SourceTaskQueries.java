@@ -34,7 +34,7 @@ public class SourceTaskQueries implements SourceTaskReadApi {
     public List<SourceTaskView> bySource(Set<SourceType> types, long sourceId) {
         return types.stream()
                 .flatMap(type -> tasks.forSource(type, sourceId).stream())
-                .filter(task -> task.status() != TaskStatus.CANCELLED)
+                .filter(task -> task.status() != TaskStatus.DRAFT && task.status() != TaskStatus.CANCELLED)
                 .sorted(Comparator.comparing(CareTask::plannedAt).thenComparing(CareTask::id))
                 .map(this::view)
                 .toList();

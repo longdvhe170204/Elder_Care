@@ -18,17 +18,19 @@ import com.eldercare.backend.nutrition.web.request.MealBody;
 import com.eldercare.backend.nutrition.web.request.NutritionReason;
 import com.eldercare.backend.nutrition.web.response.DietResponse;
 import com.eldercare.backend.nutrition.web.response.DishResponse;
-import com.eldercare.backend.nutrition.web.response.MenuCheckResultResponse;
 import com.eldercare.backend.nutrition.web.response.NutritionProblem;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Danh mục dinh dưỡng của api-011 (thẻ {@code catalog}; FR-001 → FR-004a): chế độ ăn, thành phần thực phẩm, món ăn.
@@ -165,10 +168,8 @@ public class NutritionCatalogController {
 
     @GetMapping("/dishes")
     @ApiResponse(responseCode = "200", description = "OK")
-    public List<DishResponse> dishes(
-            @RequestParam(name = "status", required = false) DishStatus status,
-            @RequestParam(name = "dietId", required = false) Long dietId) {
-        return dishes.list(status, dietId).stream().map(DishResponse::of).toList();
+    public List<DishResponse> dishes(@RequestParam(name = "status", required = false) DishStatus status) {
+        return dishes.list(status).stream().map(DishResponse::of).toList();
     }
 
     @PostMapping("/dishes")
@@ -200,8 +201,38 @@ public class NutritionCatalogController {
         return ResponseEntity.ok().eTag(VersionEtag.of(dish.version())).build();
     }
 
-    @PostMapping("/dishes/{id}/{command}")
+    @PutMapping(path = "/dishes/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            description = "Bị chặn",
+            content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
+    @ApiResponse(
+            responseCode = "422",
+            description = "Lỗi",
+            content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
+    public DishResponse setDishImage(
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @PathVariable long id,
+            @RequestParam("file") MultipartFile file)
+            throws IOException {
+        return DishResponse.of(dishes.setImage(id, file.getOriginalFilename(), file.getContentType(), file.getBytes()));
+    }
+
+    @DeleteMapping("/dishes/{id}/image")
+    @ApiResponse(responseCode = "204", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "409",
+            description = "Bị chặn",
+            content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
+    public ResponseEntity<Void> removeDishImage(
+            @RequestHeader("Idempotency-Key") String idempotencyKey, @PathVariable long id) {
+        dishes.removeImage(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/dishes/{id}/{command}")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     @ApiResponse(
             responseCode = "403",
             description = "Không có quyền",
@@ -210,34 +241,19 @@ public class NutritionCatalogController {
             responseCode = "409",
             description = "Bị chặn",
             content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
-    public MenuCheckResultResponse dishCommand(
+    public ResponseEntity<Void> dishCommand(
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @PathVariable long id,
             @Parameter(
                             schema =
                                     @Schema(
                                             type = "string",
-                                            allowableValues = {
-                                                "submit",
-                                                "withdraw",
-                                                "cancel",
-                                                "confirm",
-                                                "return",
-                                                "submit-revision",
-                                                "confirm-revision",
-                                                "return-revision",
-                                                "withdraw-revision",
-                                                "deactivate"
-                                            }))
+                                            allowableValues = {"activate", "cancel", "deactivate"}))
                     @PathVariable
                     String command,
             @RequestBody(required = false) DishCommandBody body) {
-        dishes.command(
-                id,
-                command,
-                body == null ? null : body.reason(),
-                body == null || body.content() == null ? null : input(body.content()));
-        return MenuCheckResultResponse.empty();
+        dishes.command(id, command, body == null ? null : body.reason());
+        return ResponseEntity.ok().build();
     }
 
     private static final String PROBLEM = "application/problem+json";
@@ -248,17 +264,10 @@ public class NutritionCatalogController {
                 body.description(),
                 Boolean.TRUE.equals(body.treatmentRelated()),
                 Boolean.TRUE.equals(body.isDefault()),
-                body.restrictions(),
-                body.safeDishId());
+                body.restrictions());
     }
 
     private static DishInput input(DishRequest body) {
-        return new DishInput(
-                body.name(),
-                body.note(),
-                body.ingredients(),
-                Boolean.TRUE.equals(body.noCatalogIngredient()),
-                body.suitableDietIds(),
-                body.texture());
+        return new DishInput(body.name(), body.description());
     }
 }

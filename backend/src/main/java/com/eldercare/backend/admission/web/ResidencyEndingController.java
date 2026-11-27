@@ -67,7 +67,7 @@ class ResidencyEndingController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "409",
-                description = "RESIDENT_NOT_IN_RESIDENCE, RESIDENCY_ENDING_ALREADY_OPEN",
+                description = "RESIDENT_NOT_IN_RESIDENCE, RESIDENCY_ENDING_ALREADY_OPEN, ENDING_REQUEST_NOT_PENDING",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "422",
@@ -85,7 +85,8 @@ class ResidencyEndingController {
                         Boolean.TRUE.equals(body.medicalReason()),
                         body.expectedEndDate(),
                         body.destination(),
-                        body.requestedBy()),
+                        body.requestedBy(),
+                        body.endingRequestId()),
                 body.reason());
         return ResponseEntity.status(HttpStatus.CREATED).body(ResidencyEndingBody.of(ending, names));
     }

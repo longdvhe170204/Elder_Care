@@ -29,7 +29,10 @@ public record ResidencyEndingInputBody(
         String requestedBy,
 
         @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        Reason reason) {
+        Reason reason,
+
+        // Bổ sung 2026-11-26 (demo BF-10, E): lập từ yêu cầu kết thúc lưu trú của người thân; xử lý ở bước cài yêu cầu
+        Long endingRequestId) {
 
     /** Bốn trường hợp kết thúc lưu trú (không có qua đời, FR-062). */
     public enum EndCaseInput {

@@ -41,74 +41,7 @@ public class CostSourceLookup {
 
     public List<CostSourceCandidate> find(long resident, String type, LocalDate from, LocalDate to) {
         if (from == null || to == null || from.isAfter(to)) throw new InvalidValueException("Khoảng ngày không hợp lệ");
-        if ("RESIDENCY_DAY".equals(type))
-            return residential.between(resident, from, to).stream()
-                    .map(s -> {
-                        var original = s.day();
-                        var d = original.outsideBillingPeriod() && window.overdueBillable(resident, original.date())
-                                ? new com.eldercare.backend.admission.api.dto.ResidencyDayView(
-                                        original.date(),
-                                        original.contractId(),
-                                        original.contentVersionId(),
-                                        original.presence(),
-                                        original.absenceId(),
-                                        original.bedReleased(),
-                                        original.notYetAdmitted(),
-                                        original.contractOverdue(),
-                                        false)
-                                : original;
-                        var contract = contracts.contentAtDate(resident, d.date());
-                        var service = contract.flatMap(
-                                c -> c.content().path("roomTypeId").isNumber()
-                                        ? prices.residencyFeeServiceOf(
-                                                c.content().path("roomTypeId").asLong())
-                                        : Optional.empty());
-                        var flags = new LinkedHashSet<String>();
-                        if (d.notYetAdmitted()) flags.add("NOT_YET_MOVED_IN");
-                        var facts = new LinkedHashMap<String, Object>();
-                        facts.put("day", d);
-                        contract.ifPresent(c -> {
-                            facts.put(
-                                    "billingPeriod",
-                                    c.content()
-                                            .path("residencyFeeBillingPeriod")
-                                            .asString());
-                            facts.put("contractId", c.contractId());
-                            facts.put("contentVersion", c.version());
-                            facts.put("recordedUnitPrices", c.recordedUnitPrices());
-                        });
-                        String code = window.afterDeath(resident, d.date(), null, true)
-                                ? "OUTSIDE_BILLING_PERIOD"
-                                : d.bedReleased()
-                                        ? "NOT_A_BILLABLE_EVENT"
-                                        : d.outsideBillingPeriod() ? "OUTSIDE_BILLING_PERIOD" : null;
-                        String reason = d.bedReleased()
-                                ? "Ngày từ khi giải phóng giường không tính phí"
-                                : "Ngày ngoài thời gian tính phí";
-                        if (code == null && service.isEmpty()) {
-                            code = "CONDITION_NOT_MET";
-                            reason = "Nguồn chưa cung cấp đủ dịch vụ tính phí lưu trú";
-                        }
-                        return new CostSourceCandidate(
-                                resident,
-                                type,
-                                s.key().sourceId(),
-                                "DAY",
-                                d.date(),
-                                d.date().atStartOfDay(BusinessTime.ZONE).toInstant(),
-                                service.map(v -> v.id()).orElse(null),
-                                CostType.RESIDENCY_FEE,
-                                "ngày",
-                                "Phí lưu trú",
-                                BigDecimal.ONE,
-                                new BigDecimal("100"),
-                                flags,
-                                s.existingItemId(),
-                                code,
-                                reason,
-                                facts);
-                    })
-                    .toList();
+        if ("RESIDENCY_DAY".equals(type)) return residencyFees(resident, from, to);
         if ("DAY_CARE_SESSION".equals(type)) return dayCare.between(resident, from, to);
         if (!Set.of(
                         "CARE_TASK_RESULT",
@@ -120,6 +53,98 @@ public class CostSourceLookup {
                         "ACTIVITY_ATTENDANCE")
                 .contains(type)) throw new InvalidValueException("Loại nguồn không hợp lệ");
         return index.find(resident, type, from, to).stream().map(this::indexed).toList();
+    }
+
+    /** Q-459: gộp nguồn ngày thành nguồn tháng cho nội trú dài hạn giá tháng; tra trọn tháng rồi mới chọn. */
+    private List<CostSourceCandidate> residencyFees(long resident, LocalDate from, LocalDate to) {
+        var result = new ArrayList<CostSourceCandidate>();
+        var inRange = residencyDays(resident, from, to);
+        for (var month :
+                inRange.stream().map(c -> YearMonth.from(c.date())).distinct().toList()) {
+            var whole = residencyDays(resident, month.atDay(1), month.atEndOfMonth());
+            String monthId = resident + ":" + month;
+            Long monthItem = index.effectiveItems(resident, "RESIDENCY_DAY", List.of(monthId))
+                    .get(new BillingSourceKey(monthId, ResidencyMonthFee.UNIT));
+            result.addAll(ResidencyMonthFee.select(
+                    month,
+                    whole,
+                    inRange.stream()
+                            .filter(c -> YearMonth.from(c.date()).equals(month))
+                            .toList(),
+                    monthItem));
+        }
+        return result;
+    }
+
+    private List<CostSourceCandidate> residencyDays(long resident, LocalDate from, LocalDate to) {
+        return residential.between(resident, from, to).stream()
+                .map(s -> {
+                    var original = s.day();
+                    var d = original.outsideBillingPeriod() && window.overdueBillable(resident, original.date())
+                            ? new com.eldercare.backend.admission.api.dto.ResidencyDayView(
+                                    original.date(),
+                                    original.contractId(),
+                                    original.contentVersionId(),
+                                    original.presence(),
+                                    original.absenceId(),
+                                    original.bedReleased(),
+                                    original.notYetAdmitted(),
+                                    original.contractOverdue(),
+                                    false)
+                            : original;
+                    var contract = contracts.contentAtDate(resident, d.date());
+                    var service =
+                            contract.flatMap(c -> c.content().path("roomTypeId").isNumber()
+                                    ? prices.residencyFeeServiceOf(
+                                            c.content().path("roomTypeId").asLong())
+                                    : Optional.empty());
+                    var flags = new LinkedHashSet<String>();
+                    if (d.notYetAdmitted()) flags.add("NOT_YET_MOVED_IN");
+                    var facts = new LinkedHashMap<String, Object>();
+                    facts.put("day", d);
+                    contract.ifPresent(c -> {
+                        facts.put(
+                                "residenceType",
+                                c.content().path("residenceType").asString());
+                        facts.put(
+                                "billingPeriod",
+                                c.content().path("residencyFeeBillingPeriod").asString());
+                        facts.put("contractId", c.contractId());
+                        facts.put("contentVersion", c.version());
+                        facts.put("recordedUnitPrices", c.recordedUnitPrices());
+                    });
+                    String code = window.afterDeath(resident, d.date(), null, true)
+                            ? "OUTSIDE_BILLING_PERIOD"
+                            : d.bedReleased()
+                                    ? "NOT_A_BILLABLE_EVENT"
+                                    : d.outsideBillingPeriod() ? "OUTSIDE_BILLING_PERIOD" : null;
+                    String reason = d.bedReleased()
+                            ? "Ngày từ khi giải phóng giường không tính phí"
+                            : "Ngày ngoài thời gian tính phí";
+                    if (code == null && service.isEmpty()) {
+                        code = "CONDITION_NOT_MET";
+                        reason = "Nguồn chưa cung cấp đủ dịch vụ tính phí lưu trú";
+                    }
+                    return new CostSourceCandidate(
+                            resident,
+                            "RESIDENCY_DAY",
+                            s.key().sourceId(),
+                            "DAY",
+                            d.date(),
+                            d.date().atStartOfDay(BusinessTime.ZONE).toInstant(),
+                            service.map(v -> v.id()).orElse(null),
+                            CostType.RESIDENCY_FEE,
+                            "ngày",
+                            "Phí lưu trú",
+                            BigDecimal.ONE,
+                            new BigDecimal("100"),
+                            flags,
+                            s.existingItemId(),
+                            code,
+                            reason,
+                            facts);
+                })
+                .toList();
     }
 
     /** Q3: dịch vụ duy nhất Hiệu lực của loại nguồn không mang mã dịch vụ. */

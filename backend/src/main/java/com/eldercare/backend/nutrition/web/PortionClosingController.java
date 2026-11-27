@@ -5,7 +5,6 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.nutrition.internal.closing.service.AdjustmentService;
 import com.eldercare.backend.nutrition.internal.closing.service.PortionClosingService;
 import com.eldercare.backend.nutrition.internal.closing.service.PortionClosingService.DailyMealRow;
-import com.eldercare.backend.nutrition.web.request.AssignDishRequest;
 import com.eldercare.backend.nutrition.web.request.ExtraPortionRequestBody;
 import com.eldercare.backend.nutrition.web.response.AdjustmentResponse;
 import com.eldercare.backend.nutrition.web.response.ClosingResultResponse;
@@ -120,7 +119,7 @@ public class PortionClosingController {
                 .build();
     }
 
-    @PostMapping("/special-portions/{id}/serve-held-portion")
+    @PostMapping("/held-portions/{id}/serve")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     @ApiResponse(
             responseCode = "409",
@@ -132,7 +131,7 @@ public class PortionClosingController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/special-portions/{id}/discard-held-portion")
+    @PostMapping("/held-portions/{id}/discard")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     @ApiResponse(
             responseCode = "409",
@@ -141,23 +140,6 @@ public class PortionClosingController {
     public ResponseEntity<Void> discardHeld(
             @RequestHeader("Idempotency-Key") String idempotencyKey, @PathVariable long id) {
         adjustments.discardHeld(adjustments.targetOfSpecial(id), id);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/special-portions/{id}/assign-dish")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
-    @ApiResponse(
-            responseCode = "409",
-            description = "Bị chặn",
-            content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
-    public ResponseEntity<Void> assignDish(
-            @RequestHeader("Idempotency-Key") String idempotencyKey,
-            @PathVariable long id,
-            @RequestBody AssignDishRequest body) {
-        if (body.dishId() == null) {
-            throw new InvalidValueException("Thiếu món chỉ định");
-        }
-        adjustments.assignDish(adjustments.targetOfSpecial(id), id, body.dishId(), body.note());
         return ResponseEntity.ok().build();
     }
 

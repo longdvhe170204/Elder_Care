@@ -120,23 +120,19 @@ abstract class SlipTestBase extends ClosingTestBase {
                 resident);
     }
 
-    /** Bếp chuẩn bị mọi suất đặc biệt, đánh dấu phiếu chuẩn bị xong, ghi lưu mẫu rồi giao. */
+    /** Bếp đánh dấu phiếu chuẩn bị xong, ghi lưu mẫu rồi giao (Q-445: không còn suất đặc biệt). */
     void prepareAndDeliver(long dailyMeal, long slip, List<Long> specialResidents) throws Exception {
         f.asKitchen();
-        for (long r : specialResidents) {
-            send(post("/api/v1/special-portions/" + specialOf(r) + "/mark-prepared"), "{}")
-                    .andExpect(status().isOk());
-        }
         slipCommand(slip, "mark-prepared", "{}").andExpect(status().isOk());
         sample(dailyMeal);
         slipCommand(slip, "deliver", "{}").andExpect(status().isOk());
     }
 
-    /** Tổng suất theo chế độ ăn trên mọi phiếu của bữa (bếp xem). */
+    /** Tổng suất trên mọi phiếu của bữa (bếp xem). */
     int slipTotal(long dailyMeal) throws Exception {
         f.asKitchen();
         String body = slipsOf(dailyMeal).andReturn().getResponse().getContentAsString();
-        List<Integer> counts = JsonPath.read(body, "$[*].portionsByDiet[*].portionCount");
+        List<Integer> counts = JsonPath.read(body, "$[*].portionCount");
         return counts.stream().mapToInt(Integer::intValue).sum();
     }
 
