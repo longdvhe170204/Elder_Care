@@ -372,8 +372,13 @@ public class ResidentProfileService {
             throw new InvalidValueException("Giới tính là bắt buộc");
         }
         String number = blankToNull(in.idDocumentNumber());
-        if ((in.idDocumentType() == null) != (number == null)) {
-            throw new InvalidValueException("Loại và số giấy tờ định danh phải đi cùng nhau");
+        // CCCD bắt buộc, chỉ nhận CCCD (chủ dự án chốt khi test BF-01 2026-11-26): số định danh cá nhân 12 chữ số
+        if (in.idDocumentType() != IdDocumentType.CITIZEN_ID || number == null) {
+            throw new InvalidValueException("CCCD là bắt buộc");
+        }
+        number = number.strip();
+        if (!number.matches("\\d{12}")) {
+            throw new InvalidValueException("Số CCCD gồm đúng 12 chữ số");
         }
         Contact contact = in.contact() == null
                 ? null

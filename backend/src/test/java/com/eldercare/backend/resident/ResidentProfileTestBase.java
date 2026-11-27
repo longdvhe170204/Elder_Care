@@ -16,6 +16,7 @@ import com.eldercare.backend.resident.internal.profile.service.ResidentProfileSe
 import com.eldercare.backend.support.FakePermissions;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.TestCitizenIds;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -120,7 +121,7 @@ public abstract class ResidentProfileTestBase extends MySqlIntegrationTestBase {
 
     /** CCCD 12 chữ số chưa dùng. */
     protected static String uniqueCitizenId() {
-        return String.format("%012d", SEQUENCE.incrementAndGet());
+        return TestCitizenIds.next();
     }
 
     /** Họ tên chưa dùng, vẫn là họ tên tiếng Việt có dấu. */
@@ -128,9 +129,9 @@ public abstract class ResidentProfileTestBase extends MySqlIntegrationTestBase {
         return "Nguyễn Văn Thử " + SEQUENCE.incrementAndGet();
     }
 
-    /** Thông tin tối thiểu (FR-001): họ tên, ngày sinh, giới tính, không giấy tờ. */
-    protected static PersonalInfo noDocument(String fullName) {
-        return personal(fullName, BORN, Gender.MALE, null, null);
+    /** Thông tin tối thiểu (FR-001): họ tên, ngày sinh, giới tính và CCCD (bắt buộc từ BF-01 2026-11-26). */
+    protected static PersonalInfo minimal(String fullName) {
+        return withCitizenId(fullName, uniqueCitizenId());
     }
 
     protected static PersonalInfo withCitizenId(String fullName, String citizenId) {

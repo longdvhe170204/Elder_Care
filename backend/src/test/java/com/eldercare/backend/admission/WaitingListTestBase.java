@@ -8,7 +8,9 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.resident.api.dto.Gender;
+import com.eldercare.backend.resident.internal.profile.domain.IdDocumentType;
 import com.eldercare.backend.resident.internal.profile.domain.PersonalInfo;
+import com.eldercare.backend.support.TestCitizenIds;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -68,7 +70,7 @@ abstract class WaitingListTestBase extends M02TestBase {
         }
     }
 
-    /** Hồ sơ Đang tiếp nhận có giới tính cho trước. */
+    /** Hồ sơ Đang tiếp nhận có giới tính cho trước (CCCD bắt buộc, BF-01 2026-11-26). */
     protected long admissionResident(Gender gender) {
         user.set(office.user());
         long id = profiles.create(
@@ -76,8 +78,8 @@ abstract class WaitingListTestBase extends M02TestBase {
                                 "Nguyễn Văn Chờ " + NAMES.incrementAndGet(),
                                 LocalDate.of(1944, 5, 3),
                                 gender,
-                                null,
-                                null,
+                                IdDocumentType.CITIZEN_ID,
+                                TestCitizenIds.next(),
                                 null,
                                 null,
                                 null,
