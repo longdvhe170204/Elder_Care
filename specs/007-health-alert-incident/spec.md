@@ -213,7 +213,7 @@ Ngày 2026-11-22 chủ dự án chốt lại cách đóng và theo dõi cảnh b
 8. Quy trình khẩn cấp: thẻ thông tin khẩn cấp, đối chiếu nguyện vọng cuối đời trước biện pháp hồi sức, thông báo đồng thời, chuyển viện kèm bản tóm tắt chuyển viện (9.5, UC-36, UC-16, BR-M05-06, 13, 14, DBR-19).
 9. Sự cố ngã: báo bác sĩ cần đánh giá lại, báo điều dưỡng xem xét kế hoạch chăm sóc, báo Người phụ trách ca lập công việc theo dõi sau ngã (BR-M05-07; sửa 2026-10-06, Q-306, Q-307).
 10. Sự cố lây nhiễm: danh sách tiếp xúc do Điều dưỡng hoặc Bác sĩ lập và xác nhận (không đề xuất, Q-307), theo dõi người tiếp xúc; khoanh vùng và gỡ khoanh vùng (9.6, UC-37, BR-M05-10 → 12).
-11. Phạm vi y tế: giấy phép hoạt động của cơ sở làm căn cứ cho BR-M06-05; ghi nhận khám và điều trị theo phạm vi được phép (10.2, 10.4).
+11. Khám và điều trị: *(sửa theo Q-461)* viện không khám chữa bệnh; chỉ ghi nhận kết quả khám, chẩn đoán, điều trị của cơ sở y tế bên ngoài (10.2, 10.4). Không còn lưu giấy phép hoạt động của cơ sở.
 12. Nguy kịch: dấu nguy kịch, cảnh báo "nguy kịch – thực hiện nguyện vọng cuối đời", xác nhận lại nguyện vọng với gia đình, thực hiện lựa chọn (9.5, UC-83, UC-84, BR-M05-15, 16, Q-213, Q-218; bổ sung 2026-09-28).
 13. *(Bổ sung 2026-10-18, Q-369)* Nút SOS của người cao tuổi: tạo cảnh báo Khẩn cấp từ thiết bị đã gắn, điều kiện gửi, người nhận, trạng thái hiển thị cho người cao tuổi (9.4, BR-M05-27, UC-98).
 14. *(Bổ sung 2026-10-22, Q-373 → Q-376)* Vị trí GPS kèm nút SOS; nút hỗ trợ khẩn cấp của nhân viên; mốc "Đã tới nơi"; nút "Gọi 115" ghi mốc gọi cấp cứu (9.4, 9.5, BR-M05-28 → 31, UC-99).
@@ -222,7 +222,7 @@ Ngày 2026-11-22 chủ dự án chốt lại cách đóng và theo dõi cảnh b
 
 - Quy tắc dùng chung (nhóm dữ liệu, lý do bắt buộc, đính chính, nhật ký, tham số, "hoặc toàn bộ, hoặc không", yêu cầu phê duyệt): feature 000 — spec này kế thừa, không lặp lại.
 - Nguyện vọng chăm sóc cuối đời, dị ứng, bệnh nền, lưu ý chăm sóc của lần đánh giá Đã xác nhận gần nhất (sửa, 2026-10-06, Q-281), nhắc đánh giá lại, tập trạng thái người cao tuổi và lệnh Chuyển viện (điều kiện ở 5.6): feature 001. Nội dung lệnh Chuyển viện và lượt vắng loại Bệnh viện: feature 004.
-- Kiểm tra quyền, phạm vi dữ liệu, ngoại lệ ghi nhận sự cố ngoài phạm vi (feature 002 FR-044a), danh mục nghiệp vụ chuyên môn, kiểm tra giấy phép khi thực hiện (feature 002 FR-036 → 038) và cảnh báo giấy phép sắp hết hạn (feature 002 FR-039): feature 002. Spec này sở hữu **dữ liệu** giấy phép hoạt động của cơ sở.
+- Kiểm tra quyền, phạm vi dữ liệu, ngoại lệ ghi nhận sự cố ngoài phạm vi (feature 002 FR-044a), danh mục nghiệp vụ chuyên môn, kiểm tra giấy phép khi thực hiện (feature 002 FR-036 → 038) và cảnh báo giấy phép sắp hết hạn (feature 002 FR-039): feature 002. *(Q-461: spec này không còn sở hữu giấy phép hoạt động của cơ sở.)*
 - Giấy phép hành nghề, đào tạo của nhân viên: feature 008 (UC-49).
 - Lịch sử vị trí, trạng thái cách ly phòng, chặn phân bổ giường trong vùng khoanh, xác nhận đã khử khuẩn khi Xác nhận giường sẵn sàng: feature 003 (FR-008, FR-009, FR-036, FR-045). *(Sửa 2026-10-06, Q-282: không còn công việc khử khuẩn.)*
 - Lập công việc đo chỉ số (căn cứ lịch đo, theo dõi sau ngã, theo dõi tiếp xúc), ghi kết quả công việc, phát hiện uống nước thiếu, ăn kém kéo dài, tâm trạng tiêu cực, công việc Bắt buộc quá hạn, báo xem xét kế hoạch chăm sóc: feature 005. Spec này nhận yêu cầu tạo và đóng cảnh báo.
@@ -416,21 +416,19 @@ Khi phát hiện dấu hiệu nghi ngờ lây nhiễm, nhân viên ghi sự cố
 
 ---
 
-### User Story 9 - Phạm vi y tế theo giấy phép và ghi nhận khám, điều trị (Priority: P3)
+### User Story 9 - Ghi nhận kết quả khám, điều trị của cơ sở bên ngoài (Priority: P3) *(sửa theo Q-461, 2026-11-27)*
 
-Quản lý viện lưu giấy phép hoạt động của cơ sở (số, cơ quan cấp, ngày cấp, ngày hết hạn, phạm vi). Việc cơ sở có hay không có phạm vi khám bệnh, chữa bệnh được suy ra từ giấy phép đang hiệu lực, không phải một công tắc riêng. Bác sĩ ghi nhận khám, đánh giá, chẩn đoán, chỉ định, điều trị, kết quả; chẩn đoán, chỉ định và điều trị tại viện chỉ được ghi khi cơ sở và bác sĩ đều có giấy phép đúng phạm vi còn hiệu lực. Khám và điều trị ở cơ sở bên ngoài được ghi kèm thông tin cơ sở thực hiện.
+Viện không khám bệnh, chữa bệnh (Q-461). Bác sĩ, Điều dưỡng ghi nhận kết quả khám, chẩn đoán, chỉ định, điều trị do cơ sở y tế bên ngoài thực hiện (bệnh viện, phòng khám, khám ngoại trú), kèm cơ sở thực hiện, người thực hiện, ngày và tài liệu đính kèm. Hệ thống không lưu giấy phép hoạt động của cơ sở và không có bản ghi chẩn đoán, chỉ định, điều trị của chính viện.
 
-**Why this priority**: Nguyên tắc "có bác sĩ không có nghĩa là cơ sở được khám chữa bệnh" (10.4) là yêu cầu pháp lý; phần kiểm tra quyền đã có ở feature 002, spec này cung cấp dữ liệu giấy phép và áp vào ghi nhận khám, điều trị.
+**Why this priority**: Kết quả khám ở ngoài là căn cứ cho đánh giá, ngưỡng và đơn thuốc; "có bác sĩ không có nghĩa là viện được khám chữa bệnh" (10.4).
 
-**Independent Test**: Lưu giấy phép cơ sở không có phạm vi khám chữa bệnh; bác sĩ có giấy phép hợp lệ thử ghi chẩn đoán tại viện (bị chặn) và ghi kết quả khám tại Bệnh viện X (được phép); thêm giấy phép có phạm vi khám chữa bệnh và thử lại.
+**Independent Test**: Bác sĩ thử ghi chẩn đoán với cơ sở thực hiện là viện (bị chặn) và ghi kết quả khám tại Bệnh viện X (được phép); sửa bản ghi đã lưu (chỉ đính chính được).
 
 **Acceptance Scenarios**:
 
-1. **Given** Quản lý viện Q, **When** Q lưu giấy phép số 123/GP, cơ quan cấp Sở Y tế, ngày cấp 01/01/2025, hết hạn 31/12/2027, phạm vi "chăm sóc người cao tuổi; khám bệnh, chữa bệnh chuyên khoa nội", kèm bản scan, **Then** giấy phép Hiệu lực và cơ sở được coi là có phạm vi khám chữa bệnh chuyên khoa nội tới hết ngày 31/12/2027 (10.4, feature 002 FR-038).
-2. **Given** giấy phép cơ sở không có phạm vi khám chữa bệnh, **When** bác sĩ B ghi chẩn đoán "viêm phổi" với cơ sở thực hiện là viện, **Then** hệ thống chặn (BR-M06-05, feature 002 FR-037); **When** B ghi chẩn đoán của Bệnh viện X kèm tên cơ sở, người thực hiện, ngày, **Then** được phép.
-3. **Given** giấy phép cơ sở còn 59 ngày tới hạn, **When** Bộ lập lịch kiểm tra, **Then** Quản lý viện nhận cảnh báo theo feature 002 FR-039 (CFG-M06-02, mặc định \[60 ngày\]).
-4. **Given** giấy phép cũ hết hạn và Q lưu giấy phép gia hạn, **When** lưu, **Then** giấy phép cũ giữ nguyên trong lịch sử, giấy phép mới Hiệu lực; quyền chuyên môn tự bật lại (feature 002 FR-038).
-5. **Given** bản ghi khám đã lưu, **When** người ghi phát hiện sai, **Then** chỉ tạo được bản đính chính có lý do; bản gốc giữ nguyên (1.5 nhóm 3).
+1. **Given** bác sĩ B, **When** B ghi chẩn đoán "viêm phổi" với cơ sở thực hiện là viện, **Then** hệ thống chặn: viện không khám chữa bệnh (FR-073, Q-461).
+2. **Given** A vừa khám tại Bệnh viện X, **When** B hoặc điều dưỡng D ghi chẩn đoán "viêm phổi" của Bệnh viện X kèm tên cơ sở, người thực hiện, ngày và ảnh giấy khám, **Then** bản ghi được lưu (FR-072).
+3. **Given** bản ghi khám đã lưu, **When** người ghi phát hiện sai, **Then** chỉ tạo được bản đính chính có lý do; bản gốc giữ nguyên (1.5 nhóm 3).
 
 ---
 
@@ -540,7 +538,6 @@ Nhân viên đang trong ca cần người tới giúp ngay (người cao tuổi 
 - **Người tiếp xúc thuộc nhiều sự cố lây nhiễm**: mỗi lần xác nhận gắn khoảng theo dõi với sự cố đó; các khoảng trùng thời gian của cùng người cao tuổi được tính gộp thành một khoảng kéo tới thời điểm kết thúc muộn nhất.
 - **Hai vùng khoanh vùng chồng nhau**: chặn còn hiệu lực khi còn ít nhất một vùng đang khoanh vùng bao phòng đó; gỡ một vùng không bỏ chặn của vùng kia.
 - **Lượt thăm đã được duyệt trước khi khoanh vùng**: feature 012 tự chuyển Hủy với lý do "khu đang khoanh vùng" và báo người đăng ký; gỡ vùng không khôi phục lượt; Hành chính và Trưởng tầng nhận danh sách các lượt bị hủy (feature 012 FR-037, Q-120).
-- **Giấy phép cơ sở hết hạn giữa chừng khi bác sĩ đang ghi chẩn đoán tại viện**: kiểm tra tại thời điểm lưu; sau 23:59 ngày hết hạn thì bị chặn (feature 002 FR-038).
 - **Người cao tuổi vừa là người nghi nhiễm của một sự cố vừa là người tiếp xúc của sự cố khác** (CHK038): người đó mang cả hai dấu; khoảng theo dõi tiếp xúc vẫn tính theo FR-062; feature 003 bắt buộc ghi đã khử khuẩn khi Xác nhận giường sẵn sàng nếu có ít nhất một trong hai dấu (sửa, Q-282).
 - **Đổi khoảng hợp lệ vật lý hoặc ngưỡng khi một bản ghi đang "chờ đo lại"** (CHK041): lần đo lại được kiểm theo khoảng hợp lệ vật lý hiện hành lúc ghi (FR-002) và so theo ngưỡng Hiệu lực tại thời điểm đo của chính nó (FR-024); bản ghi đầu giữ kết quả so đã lưu.
 - **Cân nặng đầu tiên sau tiếp nhận hoặc sau thời gian không có lần đo nào trong khoảng của CFG-M05-03** (CHK042): không có cân nặng nào để so nên quy tắc sụt cân không chạy cho lần đo đó (FR-039a).
@@ -557,7 +554,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | --- | --- | --- |
 | Danh mục chỉ số (loại, đơn vị, thành phần, khoảng hợp lệ vật lý, nhóm "sinh hiệu") | 1 – Danh mục | Tạo, sửa, Ngừng hiệu lực (Quản lý viện); không xóa khi đã được tham chiếu |
 | Danh mục loại sự cố, danh mục quy tắc xu hướng | 1 – Danh mục | Tạo, sửa, Ngừng hiệu lực (Quản lý viện) |
-| Giấy phép hoạt động của cơ sở | 1 – Danh mục có lịch sử | Tạo bản mới; không sửa bản đã lưu, không xóa (FR-075) |
+| Giấy phép hoạt động của cơ sở | *(Bỏ theo Q-461)* | — |
 | Lịch đo | 2 | Chỉ qua lệnh ở bảng FR-006 |
 | Phiên bản ngưỡng (mặc định, cá nhân) | 2 | Chỉ qua lệnh ở bảng FR-022 |
 | Bản ghi chỉ số | 3 | Chỉ ghi thêm; sai sót xử lý bằng đính chính (BR-M06-06) |
@@ -786,12 +783,12 @@ Thuật ngữ (CHK015): "người phụ trách" của một cảnh báo hay sự
 
 #### J. Phạm vi y tế và khám, điều trị
 
-- **FR-070**: Quản lý viện MUST lưu được giấy phép hoạt động của cơ sở gồm: số, cơ quan cấp, ngày cấp, ngày hết hạn, phạm vi hoạt động (có hay không có phạm vi khám bệnh, chữa bệnh; danh sách phạm vi chuyên môn được phép), bản scan. Cùng nơi này, Quản lý viện MUST cấu hình được "số liên hệ của viện" dùng trong thông báo khẩn cấp và thông báo tiếp xúc (FR-047, FR-062, feature 009); mỗi lần đổi được ghi nhật ký (CHK057). *(Nguồn: 10.4 "(Bổ sung)", 4.4 dòng "Tài khoản, phân quyền, tham số": QL C)*
-- **FR-071**: Cơ sở MUST được coi là có phạm vi khám bệnh, chữa bệnh cho một phạm vi chuyên môn khi và chỉ khi có giấy phép còn hiệu lực (tới hết ngày hết hạn, feature 002 FR-038) bao gồm phạm vi đó. Hệ thống MUST NOT có công tắc riêng khác với giấy phép; MUST NOT coi "có bác sĩ" là có phạm vi khám chữa bệnh. Dữ liệu này MUST sẵn có cho feature 002 FR-037 (c). *(Nguồn: 10.4, BR-M06-05)*
-- **FR-072**: Bác sĩ MUST ghi nhận được khám, đánh giá, chẩn đoán, chỉ định, điều trị, kết quả cho người cao tuổi, mỗi bản ghi gồm: loại, nội dung, cơ sở thực hiện (viện hoặc cơ sở bên ngoài), người thực hiện, thời điểm, đính kèm. Điều dưỡng MUST ghi được bản ghi có cơ sở thực hiện bên ngoài (bắt buộc tên cơ sở, người thực hiện, ngày) và bản ghi loại khám, kết quả tại viện. Điều dưỡng ghi bản ghi tại viện với tư cách người ghi lại: bản ghi loại "khám" tại viện do Điều dưỡng ghi MUST có người thực hiện là một Bác sĩ, và Điều dưỡng MUST NOT được ghi mình là người thực hiện khám; bản ghi loại "kết quả" là kết quả nhận về (ví dụ xét nghiệm). Điều dưỡng không tự khám, chẩn đoán hay chỉ định (10.2) (CHK019). *(Nguồn: 10.2; quyền là giả định, xem Điểm cần báo lại 9)*
-- **FR-073**: Bản ghi chẩn đoán, chỉ định, điều trị với cơ sở thực hiện là viện MUST chỉ được lưu khi, tại thời điểm lưu, thao tác thỏa kiểm tra nghiệp vụ chuyên môn "chẩn đoán và kê đơn nội bộ" (feature 002 FR-036, FR-037): cơ sở có phạm vi khám chữa bệnh phù hợp còn hiệu lực và bác sĩ có giấy phép còn hiệu lực đúng phạm vi. *(Nguồn: BR-M06-05, 10.2 "phạm vi thực hiện tại viện phụ thuộc...")*
+- **FR-070**: *(Sửa theo Q-461: bỏ lưu giấy phép hoạt động của cơ sở)* Quản lý viện MUST cấu hình được "số liên hệ của viện" dùng trong thông báo khẩn cấp và thông báo tiếp xúc (FR-047, FR-062, feature 009); mỗi lần đổi được ghi nhật ký (CHK057). *(Nguồn: 10.4 "(Bổ sung)", 4.4 dòng "Tài khoản, phân quyền, tham số": QL C)*
+- **FR-071**: *(Bỏ theo Q-461)* Viện không có phạm vi khám bệnh, chữa bệnh; hệ thống MUST NOT coi "có bác sĩ" là được khám chữa bệnh. *(Nguồn: 10.4, Q-461)*
+- **FR-072**: *(Sửa theo Q-461)* Bác sĩ, Điều dưỡng MUST ghi nhận được kết quả khám, chẩn đoán, chỉ định, điều trị do cơ sở y tế bên ngoài thực hiện, mỗi bản ghi gồm: loại, nội dung, cơ sở thực hiện (bắt buộc, là cơ sở bên ngoài), người thực hiện, ngày, đính kèm. *(Nguồn: 10.2, Q-461; quyền là giả định, xem Điểm cần báo lại 9)*
+- **FR-073**: *(Sửa theo Q-461)* Hệ thống MUST NOT lưu bản ghi khám, chẩn đoán, chỉ định, điều trị có cơ sở thực hiện là viện. *(Nguồn: 10.2, BR-M06-05 đã bỏ, Q-461)*
 - **FR-074**: Bản ghi khám và điều trị MUST NOT sửa hay xóa; đính chính theo feature 000. *(Nguồn: 1.5 nhóm 3)*
-- **FR-075**: Giấy phép cơ sở đã lưu MUST NOT sửa hay xóa; gia hạn hoặc thay đổi phạm vi MUST tạo bản giấy phép mới; sai sót nhập liệu MUST xử lý bằng bản mới có lý do, bản cũ đánh dấu "được thay thế do sai sót" và không còn được dùng để xét hiệu lực. Mọi thao tác MUST được ghi nhật ký. Cảnh báo giấy phép sắp hết hạn theo feature 002 FR-039 (CFG-M06-02, mặc định \[60 ngày\]). *(Nguồn: 10.4, BR-M06-05, 19.4 "đặc biệt quan trọng với sức khỏe")*
+- **FR-075**: *(Bỏ theo Q-461: không còn giấy phép hoạt động của cơ sở.)*
 
 #### K. Quyền xem, dữ liệu cung cấp và giao tiếp
 
@@ -805,8 +802,7 @@ Thuật ngữ (CHK015): "người phụ trách" của một cảnh báo hay sự
 | Sự cố, khẩn cấp (UC-35, UC-36) | Xem, ghi, kích hoạt khẩn cấp, giao người xử lý (Q-339) | Ghi (¹⁰), xử lý, giao người xử lý trong phạm vi | Ghi, xử lý, giao người xử lý | Ghi, xử lý trong phạm vi | Ghi (¹⁰) | Ghi (¹⁰) | Ghi (¹⁰), chỉ thông tin nhận dạng | Xem khi có bản đồng ý (¹) | — |
 | Khoanh vùng (UC-37) | Thực hiện | Xem | Thực hiện | Xem | — | — | Xem | — | — |
 | Danh sách tiếp xúc | Xem | Xem trong phạm vi | Xác nhận | Xác nhận trong phạm vi | — | — | Chỉ danh sách người thân cần liên hệ (FR-062) | — | — |
-| Giấy phép cơ sở | Cấu hình | — | Xem | — | — | — | — | — | — |
-| Khám và điều trị | Xem | Xem trong phạm vi | Ghi (FR-073) | Ghi (FR-072), xem trong phạm vi | — | — | — | Xem khi có bản đồng ý (¹) | — |
+| Khám và điều trị | Xem | Xem trong phạm vi | Ghi (FR-072) | Ghi (FR-072), xem trong phạm vi | — | — | — | Xem khi có bản đồng ý (¹) | — |
 | Dấu nguy kịch, xác nhận lại nguyện vọng (UC-83, UC-84; bổ sung 2026-09-28) | Xem | Xem trong phạm vi | Ghi, gỡ dấu; xác nhận lại; thực hiện lựa chọn | Dấu tạm khi không có Bác sĩ trực (Q-218); xác nhận lại, thực hiện lựa chọn trong phạm vi | — | — | — | Nhận thông báo; xem khi có bản đồng ý (¹) | — |
 | Nút SOS (UC-98; bổ sung 2026-10-18, Q-369) | — | — | — | — | — | — | — | — | Bấm, trên thiết bị đã gắn (FR-047d); cảnh báo tạo ra xử lý theo dòng "Cảnh báo" |
 | Nút hỗ trợ khẩn cấp (UC-99; bổ sung 2026-10-22, Q-375; Kế toán cũng bấm được theo Phụ lục 27) | Bấm (⁴⁹) | Bấm (⁴⁹) | Bấm (⁴⁹) | Bấm (⁴⁹) | Bấm (⁴⁹) | Bấm (⁴⁹) | Bấm (⁴⁹) | — | — |
@@ -828,7 +824,6 @@ Thuật ngữ (CHK015): "người phụ trách" của một cảnh báo hay sự
 | Cung cấp | 009 | *(bổ sung 2026-09-28)* Thông báo nguy kịch và thông báo gọi xác nhận lại nguyện vọng theo thứ tự gọi của BR-M13-02, không tạo yêu cầu gọi điện (FR-050b, Q-307) |
 | Cung cấp | 001 | Căn cứ báo bác sĩ cần đánh giá lại sau sự cố ngã hoặc Trung bình trở lên (FR-043, FR-051; không tạo yêu cầu, Q-307); căn cứ sự cố cho lệnh Chuyển viện (FR-049) |
 | Nhận | 002 | Quyền, phạm vi, ngoại lệ FR-044a, kiểm tra nghiệp vụ chuyên môn |
-| Cung cấp | 002 | Giấy phép cơ sở và phạm vi (FR-071) |
 | Nhận | 003 | Người cùng phòng và khoảng thời gian; khoảng vắng mặt (FR-060) |
 | Cung cấp | 003 | Vùng khoanh vùng và gỡ; dấu nghi nhiễm, tiếp xúc (FR-062, FR-065) |
 | Nhận | 004 | Chuyển viện, trở về, trạng thái cuối |
