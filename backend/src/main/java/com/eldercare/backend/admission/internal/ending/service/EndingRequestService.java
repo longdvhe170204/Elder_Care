@@ -1,6 +1,10 @@
 package com.eldercare.backend.admission.internal.ending.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.account.api.RequiresPermission;
+import com.eldercare.backend.administration.account.api.dto.Function;
+import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
@@ -15,6 +19,9 @@ import com.eldercare.backend.admission.internal.absence.service.AbsenceNames;
 import com.eldercare.backend.admission.internal.ending.domain.EndingRequestContent;
 import com.eldercare.backend.admission.internal.ending.persistence.ResidencyEndingStore;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
+import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
@@ -32,6 +39,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -44,6 +52,8 @@ public class EndingRequestService {
 
     static final AuditAction SUBMITTED = new AuditAction("M02_ENDING_REQUEST_SUBMITTED", false);
     static final AuditAction CANCELLED = new AuditAction("M02_ENDING_REQUEST_CANCELLED", false);
+    static final AuditAction REJECTED = new AuditAction("M02_ENDING_REQUEST_REJECTED", true);
+    static final AuditAction HANDLED = new AuditAction("M02_ENDING_REQUEST_HANDLED", false);
 
     private static final Set<ResidentStatus> CAN_END =
             Set.of(ResidentStatus.IN_RESIDENCE, ResidentStatus.TEMPORARILY_ABSENT, ResidentStatus.HOSPITALIZED);
@@ -191,11 +201,114 @@ public class EndingRequestService {
         return view;
     }
 
+    /** Danh sách cho Hành chính, mới nhất trước; {@code statuses} trống là mọi trạng thái. */
+    @RequiresPermission(function = Function.RESIDENCY_END_DEATH, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<View> list(Target target, Set<String> statuses) {
+        Set<String> wanted = statuses.isEmpty() ? EndingRequestContent.ALL : statuses;
+        return records.listByStatus(EndingRequestContent.KIND, wanted).stream()
+                .sorted(Comparator.comparingLong(SimpleRecord<EndingRequestContent>::id)
+                        .reversed())
+                .map(this::view)
+                .toList();
+    }
+
+    @RequiresPermission(function = Function.RESIDENCY_END_DEATH, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public View get(Target target, long id) {
+        return view(records.require(EndingRequestContent.KIND, id));
+    }
+
+    /** Đối tượng kiểm quyền của một yêu cầu; không có thì 404. */
+    @Transactional(readOnly = true)
+    public Target targetOf(long id) {
+        return ResidencyEndingService.targetForResident(
+                records.require(EndingRequestContent.KIND, id).residentId());
+    }
+
+    /** Hành chính từ chối kèm lý do; người đại diện được báo. */
+    @BusinessCommand
+    @RequiresPermission(function = Function.RESIDENCY_END_DEATH, operation = Operation.UPDATE)
+    @Transactional
+    public View reject(Target target, long id, Reason reason) {
+        CurrentUser user = currentUser.getObject();
+        if (!user.roles().contains(Role.OFFICE_STAFF)) {
+            throw new PermissionDeniedException("Chỉ Hành chính từ chối yêu cầu kết thúc lưu trú");
+        }
+        SimpleRecord<EndingRequestContent> record = records.lockForUpdate(EndingRequestContent.KIND, id);
+        requirePending(record);
+        Instant now = time.now();
+        SimpleRecord<EndingRequestContent> after = change(
+                record,
+                EndingRequestContent.REJECTED,
+                record.content().decided(user.accountId(), now, reason.value(), null));
+        auditLog.write(AuditLogEntry.builder()
+                .action(REJECTED)
+                .entity(EndingRequestContent.KIND.code(), id)
+                .resident(record.residentId())
+                .reason(reason)
+                .build());
+        View view = view(after);
+        events.publishEvent(new ResidencyEndingRequestChanged(
+                id,
+                record.residentId(),
+                "REJECTED",
+                "Viện từ chối yêu cầu kết thúc lưu trú của " + view.residentName() + ". Lý do: " + reason.value(),
+                now));
+        return view;
+    }
+
+    /** Yêu cầu nêu ở lệnh lập hồ sơ phải còn Chờ xử lý và đúng người cao tuổi; khóa tới hết lệnh. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void requireUsable(long requestId, long residentId) {
+        SimpleRecord<EndingRequestContent> record = records.lockForUpdate(EndingRequestContent.KIND, requestId);
+        requirePending(record);
+        if (record.residentId() == null || record.residentId() != residentId) {
+            throw notPending();
+        }
+    }
+
+    /**
+     * Tác động kèm lệnh lập hồ sơ kết thúc (Q-306): yêu cầu đang chờ của người cao tuổi chuyển Đã xử lý, người đại diện được
+     * báo, kể cả khi Hành chính lập hồ sơ trực tiếp (chủ dự án chọn 2026-11-27).
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void handledBy(long endingId, long residentId, LocalDate expectedEndDate) {
+        for (var pending :
+                records.listByResident(EndingRequestContent.KIND, residentId, Set.of(EndingRequestContent.PENDING))) {
+            SimpleRecord<EndingRequestContent> record = records.lockForUpdate(EndingRequestContent.KIND, pending.id());
+            if (!EndingRequestContent.PENDING.equals(record.status())) {
+                continue;
+            }
+            Instant now = time.now();
+            SimpleRecord<EndingRequestContent> after = change(
+                    record,
+                    EndingRequestContent.HANDLED,
+                    record.content().decided(currentUser.getObject().accountId(), now, null, endingId));
+            auditLog.write(AuditLogEntry.builder()
+                    .action(HANDLED)
+                    .entity(EndingRequestContent.KIND.code(), record.id())
+                    .resident(residentId)
+                    .details(Map.of("residencyEndingId", endingId))
+                    .build());
+            events.publishEvent(new ResidencyEndingRequestChanged(
+                    record.id(),
+                    residentId,
+                    "HANDLED",
+                    "Viện đã lập hồ sơ kết thúc lưu trú cho " + view(after).residentName() + ", ngày kết thúc dự kiến "
+                            + expectedEndDate.format(DATE) + ".",
+                    now));
+        }
+    }
+
     static void requirePending(SimpleRecord<EndingRequestContent> record) {
         if (!EndingRequestContent.PENDING.equals(record.status())) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT, "ENDING_REQUEST_NOT_PENDING", "Yêu cầu không còn chờ xử lý");
+            throw notPending();
         }
+    }
+
+    private static BusinessException notPending() {
+        return new BusinessException(HttpStatus.CONFLICT, "ENDING_REQUEST_NOT_PENDING", "Yêu cầu không còn chờ xử lý");
     }
 
     SimpleRecord<EndingRequestContent> change(

@@ -1,5 +1,6 @@
 package com.eldercare.backend.billing.balance.internal.ledger.service;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
@@ -15,6 +16,7 @@ import com.eldercare.backend.billing.balance.internal.transaction.domain.Transac
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -38,8 +40,15 @@ class StatementPayments {
     private final BalanceTransactionStore transactions;
     private final AuditLogApi audit;
 
+    private final ObjectProvider<CurrentUser> currentUser;
+
     StatementPayments(
-            LedgerPosting posting, LedgerStore ledgers, BalanceTransactionStore transactions, AuditLogApi audit) {
+            LedgerPosting posting,
+            LedgerStore ledgers,
+            BalanceTransactionStore transactions,
+            AuditLogApi audit,
+            ObjectProvider<CurrentUser> currentUser) {
+        this.currentUser = currentUser;
         this.posting = posting;
         this.ledgers = ledgers;
         this.transactions = transactions;
@@ -67,7 +76,8 @@ class StatementPayments {
                 null,
                 null,
                 false,
-                null));
+                // Góp ý demo BF-10 (2026-11-27): người lập là người chốt bảng, thay cho "Hệ thống"
+                currentUser.getObject().accountId()));
         audit.write(AuditLogEntry.builder()
                 .action(PAID)
                 .entity(BalanceTypes.TRANSACTION, row.id())

@@ -42,6 +42,7 @@ paths:
       tags: [source]
       summary: Lập khoản theo sự kiện, một hoặc hàng loạt (Hành chính)
       description: |
+        Phí lưu trú của nội trú dài hạn giá tháng (Q-459): nguồn cả tháng, sourceId residentId:yyyy-MM, billingUnit MONTH.
         Kiểm FR-006 (đã có khoản: COST_ITEM_ALREADY_EXISTS), FR-007 (ngày chưa kết thúc; ngoại lệ lập trước kỳ cuối), FR-011 (OUTSIDE_BILLING_PERIOD),
         FR-005b (buổi chưa có trạng thái, ngày khu nghỉ), nguồn gia đình gửi / thuốc mua hộ (NOT_A_BILLABLE_EVENT).
         Nguồn không đạt bị bỏ qua kèm lý do; nguồn đạt được lập trong cùng lệnh. Bảng chưa có thì lập cùng lệnh.

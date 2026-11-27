@@ -21,12 +21,25 @@ public class FinalPeriodStore {
                 id);
     }
 
+    /** Ngày đã có phí lưu trú trong bảng đã chốt; khoản cả tháng (Q-459) phủ mọi ngày của tháng. */
     public Set<LocalDate> covered(long resident) {
-        return new HashSet<>(jdbc.queryForList("""
-                SELECT DISTINCT i.incurred_on FROM cost_item i JOIN cost_statement s ON s.id=i.statement_id
+        var days = new HashSet<LocalDate>();
+        jdbc.query(
+                """
+                SELECT i.incurred_on, i.billing_unit FROM cost_item i JOIN cost_statement s ON s.id=i.statement_id
                 WHERE i.resident_id=? AND i.source_type='RESIDENCY_DAY' AND i.status='FINALIZED'
                   AND s.status='FINALIZED' AND (i.origin='EVENT_BASED' OR i.adjustment_type='LATE_ADDITION')
-                """, LocalDate.class, resident));
+                """,
+                row -> {
+                    var date = row.getObject(1, LocalDate.class);
+                    if ("MONTH".equals(row.getString(2)))
+                        date.withDayOfMonth(1)
+                                .datesUntil(date.withDayOfMonth(1).plusMonths(1))
+                                .forEach(days::add);
+                    else days.add(date);
+                },
+                resident);
+        return days;
     }
 
     public boolean pendingAdjustment(long resident) {

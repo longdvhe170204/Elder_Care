@@ -133,6 +133,24 @@ class FinalPeriodIT extends MySqlIntegrationTestBase {
         assertThat(daily.run(time.now().plusSeconds(86400))).isZero();
     }
 
+    @Test
+    void Q_459_monthlyResidencyFeeCoversEveryDayOfItsMonth() {
+        end = time.today().withDayOfMonth(time.today().lengthOfMonth());
+        long statement = port.createDraft(resident, end);
+        var required = List.of(
+                new com.eldercare.backend.admission.api.dto.ResidencyDayView(
+                        end.minusDays(1), 1L, 1L, "PRESENT", null, false, false, false, false),
+                new com.eldercare.backend.admission.api.dto.ResidencyDayView(
+                        end, 1L, 1L, "ABSENT", null, false, false, false, false));
+        doReturn(required).when(days).daysBetween(eq(resident), any(), any());
+        var month = java.time.YearMonth.from(end);
+        // một khoản cả tháng ghi ngày đầu tháng phủ cả hai ngày cuối tháng
+        fee(statement, end.withDayOfMonth(1), "FINALIZED", "", resident + ":" + month, "MONTH");
+        finalizeTable(statement);
+
+        assertThat(conditions.finalPeriodCondition(resident).satisfied()).isTrue();
+    }
+
     String status(String table, long id) {
         return jdbc.queryForObject("SELECT status FROM " + table + " WHERE id=?", String.class, id);
     }
@@ -142,22 +160,27 @@ class FinalPeriodIT extends MySqlIntegrationTestBase {
     }
 
     long fee(long statement, LocalDate day, String status, String flags) {
+        return fee(statement, day, status, flags, resident + ":" + day, "DAY");
+    }
+
+    long fee(long statement, LocalDate day, String status, String flags, String sourceId, String unit) {
         long id = TestUsers.nextId();
         long period = statements.statement(statement).periodId();
         jdbc.update(
                 """
                 INSERT INTO cost_item(id,resident_id,statement_id,period_id,cost_type,origin,source_type,source_id,
                   billing_unit,description,incurred_on,quantity,unit,unit_price,amount,source_values,flags,unique_key,status,locked_at,created_at,created_by)
-                VALUES (?,?,?,?,'RESIDENCY_FEE','EVENT_BASED','RESIDENCY_DAY',?,'DAY','Phí lưu trú',?,1,'ngày',100,100,'{}',?,?,?, ?,?,?)
+                VALUES (?,?,?,?,'RESIDENCY_FEE','EVENT_BASED','RESIDENCY_DAY',?,?,'Phí lưu trú',?,1,'ngày',100,100,'{}',?,?,?, ?,?,?)
                 """,
                 id,
                 resident,
                 statement,
                 period,
-                resident + ":" + day,
+                sourceId,
+                unit,
                 day,
                 flags,
-                "RESIDENCY_DAY:" + resident + ":" + day + ":DAY",
+                "RESIDENCY_DAY:" + sourceId + ":" + unit,
                 status,
                 status.equals("FINALIZED") ? Timestamp.from(time.now()) : null,
                 Timestamp.from(time.now()),
