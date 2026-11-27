@@ -63,7 +63,7 @@ abstract class MenuTestBase extends MySqlIntegrationTestBase {
     long breakfast;
     long lunch;
     long dinner;
-    /** Chế độ ăn mặc định của viện trong test; món an toàn {@link #safe}. */
+    /** Chế độ ăn mặc định của viện trong test; {@link #safe} là một món Hiệu lực thêm (Q-445 bỏ món an toàn). */
     long defaultDiet;
 
     long safe;
@@ -77,9 +77,7 @@ abstract class MenuTestBase extends MySqlIntegrationTestBase {
         breakfast = meal("Sáng", true, false);
         lunch = meal("Trưa", true, true);
         dinner = meal("Tối", true, false);
-        long base = f.baseDiet();
-        safe = f.activeDish(List.of(), List.of(base));
-        defaultDiet = f.diet(true, List.of(), safe);
+        defaultDiet = f.diet(true, List.of(), 0);
         plain = f.activeDish(List.of(), List.of(defaultDiet));
     }
 
@@ -146,9 +144,9 @@ abstract class MenuTestBase extends MySqlIntegrationTestBase {
                 .content("{\"dishes\":" + rows.stream().collect(Collectors.joining(",", "[", "]")) + "}"));
     }
 
+    /** Một món của thực đơn chung (Q-445); {@code diet} và món thay thế của test cũ không còn gửi. */
     static String row(LocalDate date, long meal, long diet, long dish, Long... substitutes) {
-        return "{\"date\":\"" + date + "\",\"mealId\":" + meal + ",\"dietId\":" + diet + ",\"dishId\":" + dish
-                + ",\"substituteDishIds\":" + NutritionCatalogFixture.ids(List.of(substitutes)) + "}";
+        return "{\"date\":\"" + date + "\",\"mealId\":" + meal + ",\"dishId\":" + dish + "}";
     }
 
     /** Mọi bữa của mọi ngày trong tuần với một món. */
@@ -168,26 +166,17 @@ abstract class MenuTestBase extends MySqlIntegrationTestBase {
 
     ResultActions submit(long menu, List<String> confirmedWarnings) throws Exception {
         f.asKitchen();
-        return command(
-                menu,
-                "submit",
-                "{\"processingCheckConfirmed\":true,\"processingNote\":\"Đủ nguyên liệu\",\"confirmedWarnings\":"
-                        + strings(confirmedWarnings) + "}");
+        return command(menu, "submit", "{}");
     }
 
-    /** Mã cảnh báo hiện có của thực đơn (lặp món, dị ứng), để xác nhận khi test không xét cảnh báo. */
-    List<String> codes(long menu) throws Exception {
-        f.asKitchen();
-        String body = send(post(MENUS + "/" + menu + "/check"), "{}")
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        return com.jayway.jsonpath.JsonPath.read(body, "$.warningCodes");
+    /** Q-445 bỏ cảnh báo thực đơn: luôn rỗng. */
+    List<String> codes(long menu) {
+        return List.of();
     }
 
     ResultActions publish(long menu, List<String> confirmedWarnings) throws Exception {
-        f.asDoctor();
-        return command(menu, "publish", "{\"confirmedWarnings\":" + strings(confirmedWarnings) + "}");
+        f.asManager();
+        return command(menu, "publish", "{}");
     }
 
     /** Thực đơn Công bố đủ độ phủ cho chế độ mặc định với món {@code dish}, trả id. */
@@ -212,6 +201,10 @@ abstract class MenuTestBase extends MySqlIntegrationTestBase {
                         + " NOW(6), FALSE)",
                 resident,
                 allergen);
+    }
+
+    String dishName(long dish) {
+        return jdbc.queryForObject("SELECT name FROM catalog_item WHERE id = ?", String.class, dish);
     }
 
     String residentName(long resident) {

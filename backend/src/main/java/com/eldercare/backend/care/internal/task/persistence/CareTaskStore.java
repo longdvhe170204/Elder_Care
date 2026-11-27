@@ -74,7 +74,7 @@ public class CareTaskStore {
 
     public List<CareTask> checklist(long shiftId, long floor, long staffId, Instant from) {
         return jdbc.query(
-                "SELECT * FROM care_task WHERE floor_area_id=? AND ((planned_at>=? AND shift_id=?) OR carryover IS NOT NULL) AND (performer_id=? OR (performer_id IS NULL AND status IN('NOT_YET_DUE','DUE','OVERDUE'))) ORDER BY (status='OVERDUE') DESC,planned_at,id",
+                "SELECT * FROM care_task WHERE status<>'DRAFT' AND floor_area_id=? AND ((planned_at>=? AND shift_id=?) OR carryover IS NOT NULL) AND (performer_id=? OR (performer_id IS NULL AND status IN('NOT_YET_DUE','DUE','OVERDUE'))) ORDER BY (status='OVERDUE') DESC,planned_at,id",
                 this::row,
                 floor,
                 local(from),
@@ -115,7 +115,7 @@ public class CareTaskStore {
     public List<CareTask> inRange(
             com.eldercare.backend.administration.account.api.dto.ScopeFilter scope, Instant from, Instant to) {
         var args = new ArrayList<Object>(List.of(local(from), local(to)));
-        String sql = "SELECT * FROM care_task WHERE planned_at>=? AND planned_at<?";
+        String sql = "SELECT * FROM care_task WHERE status<>'DRAFT' AND planned_at>=? AND planned_at<?";
         if (!scope.facilityWide()) {
             var terms = new ArrayList<String>();
             if (!scope.floorAreaIds().isEmpty()) {
@@ -282,7 +282,7 @@ public class CareTaskStore {
     /** FR-048: công việc của người cao tuổi có thời điểm dự kiến trong [from, to). */
     public List<CareTask> ofResidentBetween(long residentId, Instant from, Instant to) {
         return jdbc.query(
-                "SELECT * FROM care_task WHERE resident_id=? AND planned_at>=? AND planned_at<? ORDER BY planned_at,id",
+                "SELECT * FROM care_task WHERE status<>'DRAFT' AND resident_id=? AND planned_at>=? AND planned_at<? ORDER BY planned_at,id",
                 this::row,
                 residentId,
                 local(from),
@@ -332,6 +332,36 @@ public class CareTaskStore {
                 t.planId(),
                 local(t.plannedAt()),
                 local(t.plannedAt())));
+    }
+
+    /** Q-453: việc Nháp của tầng có thời điểm dự kiến trong [from, to). */
+    public List<CareTask> drafts(long floor, Instant from, Instant to) {
+        return jdbc.query(
+                "SELECT * FROM care_task WHERE status='DRAFT' AND floor_area_id=? AND planned_at>=? AND planned_at<?"
+                        + " ORDER BY planned_at,resident_id,id",
+                this::row,
+                floor,
+                local(from),
+                local(to));
+    }
+
+    /** Q-453: Công bố công việc tháng, Nháp → Chưa đến hạn; bộ chạy theo giờ chuyển tiếp như mọi công việc. */
+    public int publishDrafts(long floor, Instant from, Instant to) {
+        return jdbc.update(
+                "UPDATE care_task SET status='NOT_YET_DUE', version=version+1 WHERE status='DRAFT' AND floor_area_id=?"
+                        + " AND planned_at>=? AND planned_at<?",
+                floor,
+                local(from),
+                local(to));
+    }
+
+    /** Q-453: bỏ một việc Nháp; bảng không cho xóa dòng nên chuyển Hủy với quy tắc đóng riêng. */
+    public int discardDraft(long id) {
+        return jdbc.update(
+                "UPDATE care_task SET status='CANCELLED', closure_rule='DRAFT_DISCARDED',"
+                        + " closure_reason='Trưởng tầng bỏ khỏi công việc tháng', version=version+1"
+                        + " WHERE id=? AND status='DRAFT'",
+                id);
     }
 
     public CareTask insert(CareTask t) {

@@ -14,7 +14,6 @@ public record DietResponse(
         boolean treatmentRelated,
         boolean isDefault,
         @Schema(description = "Id dị nguyên") List<Long> restrictions,
-        Long safeDishId,
         CatalogStatus status,
         int version) {
 
@@ -27,7 +26,6 @@ public record DietResponse(
                 a.treatmentRelated(),
                 a.isDefault(),
                 a.restrictions(),
-                a.safeDishId(),
                 diet.status(),
                 diet.version());
     }

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Q-451 (góp ý demo BF-10): biên nhận PDF của khoản nộp tiền đã xác nhận; Kế toán, Quản lý viện và người thân có quyền
+ * Q-460 (góp ý demo BF-10): biên nhận PDF của khoản nộp tiền đã xác nhận; Kế toán, Quản lý viện và người thân có quyền
  * xem chi phí tải được; giao dịch khác không có biên nhận.
  */
 class PaymentReceiptIT extends BalanceTestBase {
@@ -76,7 +76,7 @@ class PaymentReceiptIT extends BalanceTestBase {
                 .andExpect(jsonPath("$.errorCode").value("RECEIPT_NOT_AVAILABLE"));
         getAs(accountant, "/api/v1/balance-transactions/999999999/receipt").andExpect(status().isNotFound());
 
-        // Q-451 mở rộng: bảng kê các khoản đã chọn, chia nhóm; khoản chưa xác nhận hoặc của người khác thì từ chối
+        // Q-460 mở rộng: bảng kê các khoản đã chọn, chia nhóm; khoản chưa xác nhận hoặc của người khác thì từ chối
         String summary = "/api/v1/residents/" + resident + "/balance-transactions/summary?id=" + transaction;
         byte[] list = getAs(accountant, summary)
                 .andExpect(status().isOk())

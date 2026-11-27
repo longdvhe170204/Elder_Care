@@ -55,7 +55,7 @@ public class CostSourceLookup {
         return index.find(resident, type, from, to).stream().map(this::indexed).toList();
     }
 
-    /** Q-450: gộp nguồn ngày thành nguồn tháng cho nội trú dài hạn giá tháng; tra trọn tháng rồi mới chọn. */
+    /** Q-459: gộp nguồn ngày thành nguồn tháng cho nội trú dài hạn giá tháng; tra trọn tháng rồi mới chọn. */
     private List<CostSourceCandidate> residencyFees(long resident, LocalDate from, LocalDate to) {
         var result = new ArrayList<CostSourceCandidate>();
         var inRange = residencyDays(resident, from, to);

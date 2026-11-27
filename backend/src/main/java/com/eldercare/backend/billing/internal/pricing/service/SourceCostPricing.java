@@ -35,7 +35,7 @@ public class SourceCostPricing {
             String period = (String) source.facts().get("billingPeriod");
             if (!"MONTH".equals(period) && !"DAY".equals(period))
                 throw new IllegalStateException("Chưa có kỳ tính phí lưu trú hợp lệ từ hợp đồng");
-            // Q-450: khoản cả tháng (đơn vị MONTH) thu đúng giá tháng; khoản ngày của giá tháng chia theo số ngày
+            // Q-459: khoản cả tháng (đơn vị MONTH) thu đúng giá tháng; khoản ngày của giá tháng chia theo số ngày
             amount = period.equals("MONTH") && !"MONTH".equals(source.billingUnit())
                     ? ResidencyDayFee.monthly(quote.unitPrice(), source.date())
                     : ResidencyDayFee.direct(quote.unitPrice());

@@ -18,4 +18,10 @@ public record CarePlanChanged(
     public Optional<Long> notificationResidentId() {
         return Optional.of(residentId);
     }
+
+    @Override
+    public List<NotificationRequest> notificationRequests() {
+        return List.of(CareEventNotifications.titled(
+                this, level(), context.recipients(), eventKey(), "Kế hoạch chăm sóc đã có hiệu lực"));
+    }
 }

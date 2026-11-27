@@ -3,7 +3,7 @@ package com.eldercare.backend.billing.balance.internal.document.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Số tiền đồng đọc bằng chữ tiếng Việt cho chứng từ (Q-451); chỉ nhận số dương. */
+/** Số tiền đồng đọc bằng chữ tiếng Việt cho chứng từ (Q-460); chỉ nhận số dương. */
 public final class AmountInWords {
 
     private static final String[] DIGITS = {"không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"};

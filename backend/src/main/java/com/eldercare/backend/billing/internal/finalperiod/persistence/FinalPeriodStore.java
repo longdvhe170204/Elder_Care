@@ -21,7 +21,7 @@ public class FinalPeriodStore {
                 id);
     }
 
-    /** Ngày đã có phí lưu trú trong bảng đã chốt; khoản cả tháng (Q-450) phủ mọi ngày của tháng. */
+    /** Ngày đã có phí lưu trú trong bảng đã chốt; khoản cả tháng (Q-459) phủ mọi ngày của tháng. */
     public Set<LocalDate> covered(long resident) {
         var days = new HashSet<LocalDate>();
         jdbc.query(

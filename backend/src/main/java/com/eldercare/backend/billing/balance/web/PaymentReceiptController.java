@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Biên nhận nộp tiền PDF (Q-451; api-017 tag {@code payments}). Quyền kiểm ở service. */
+/** Biên nhận nộp tiền PDF (Q-460; api-017 tag {@code payments}). Quyền kiểm ở service. */
 @RestController
 @RequestMapping("/api/v1")
 @Tag(name = "payments")

@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.eldercare.backend.billing.balance.internal.document.domain.AmountInWords;
 import org.junit.jupiter.api.Test;
 
-/** Q-451: số tiền bằng chữ trên biên nhận nộp tiền. */
+/** Q-460: số tiền bằng chữ trên biên nhận nộp tiền. */
 class AmountInWordsTest {
 
     private static void reads(long amount, String words) {

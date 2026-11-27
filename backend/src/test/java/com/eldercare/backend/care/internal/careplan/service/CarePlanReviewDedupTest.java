@@ -12,6 +12,7 @@ import com.eldercare.backend.admission.api.events.AddendumApplied;
 import com.eldercare.backend.care.api.dto.CarePlanStatus;
 import com.eldercare.backend.care.api.events.CarePlanReviewNeeded;
 import com.eldercare.backend.care.internal.careplan.domain.CarePlan;
+import com.eldercare.backend.care.internal.careplan.persistence.CarePlanReviewStore;
 import com.eldercare.backend.care.internal.careplan.persistence.CarePlanStore;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -50,7 +51,14 @@ class CarePlanReviewDedupTest {
         when(assessments.latestConfirmed(RESIDENT))
                 .thenReturn(Optional.of(new AssessmentSummary(5L, RESIDENT, CareLevel.SPECIAL, Set.of(), ASSESSED)));
         listener = new CarePlanReviewListener(
-                approvers, allocations, time, published::add, mock(ReminderMarkers.class), assessments, plans);
+                approvers,
+                allocations,
+                time,
+                published::add,
+                mock(ReminderMarkers.class),
+                assessments,
+                plans,
+                mock(CarePlanReviewStore.class));
     }
 
     private static CarePlan plan(CarePlanStatus status, Instant createdAt) {

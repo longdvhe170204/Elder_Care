@@ -37,12 +37,6 @@ public class M08FieldClassificationConfig {
                 "M08.FAMILY_FOOD", Map.of("ingredients", InfoGroup.HEALTH, "systemReasons", InfoGroup.HEALTH));
     }
 
-    @Bean
-    public FieldClassificationProvider servingConfirmationClassification() {
-        return classification(
-                "M08.SERVING_CONFIRMATION", Map.of("hasEaten", InfoGroup.HEALTH, "incident", InfoGroup.HEALTH));
-    }
-
     private static FieldClassificationProvider classification(String entityType, Map<String, InfoGroup> groups) {
         return new FieldClassificationProvider() {
             @Override

@@ -1,24 +1,15 @@
 package com.eldercare.backend.nutrition.internal.catalog.persistence;
 
 import com.eldercare.backend.administration.shared.api.CatalogApi;
-import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
 import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
-import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
-import com.eldercare.backend.administration.shared.api.dto.NewSimpleRecord;
-import com.eldercare.backend.administration.shared.api.dto.RecordChange;
-import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DietAttributes;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Dish;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DishAttributes;
-import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersion;
-import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersionContent;
-import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersionStatus;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Meal;
 import com.eldercare.backend.nutrition.internal.catalog.domain.MealAttributes;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -28,14 +19,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class NutritionCatalogStore {
 
-    private static final String DISH_ENTITY = "M08.DISH";
-
     private final CatalogApi catalogs;
-    private final SimpleRecordApi records;
 
-    public NutritionCatalogStore(CatalogApi catalogs, SimpleRecordApi records) {
+    public NutritionCatalogStore(CatalogApi catalogs) {
         this.catalogs = catalogs;
-        this.records = records;
     }
 
     public List<Diet> diets() {
@@ -72,14 +59,6 @@ public class NutritionCatalogStore {
 
     public Meal meal(long id) {
         return meal(catalogs.require(MealAttributes.KIND, id));
-    }
-
-    /** Thành phần của phiên bản nội dung đang hiệu lực của món (rỗng khi món chưa từng Hiệu lực). */
-    public java.util.Set<Long> effectiveIngredients(long dishId) {
-        Long version = dish(dishId).attributes().effectiveVersionId();
-        return version == null
-                ? java.util.Set.of()
-                : java.util.Set.copyOf(version(version).content().ingredients());
     }
 
     /** Mọi bữa của danh mục (cả Ngừng hiệu lực), theo thứ tự trong ngày (FR-006). */
@@ -147,49 +126,6 @@ public class NutritionCatalogStore {
                 .after());
     }
 
-    public DishVersion createVersion(
-            long dishId, DishVersionStatus status, DishVersionContent content, long createdBy) {
-        return version(records.create(
-                DishVersionContent.KIND,
-                new NewSimpleRecord<>(
-                        null,
-                        new EntityRef(DISH_ENTITY, dishId),
-                        status.name(),
-                        content,
-                        null,
-                        null,
-                        openKey(dishId, status),
-                        createdBy,
-                        false)));
-    }
-
-    public DishVersion version(long id) {
-        return version(records.require(DishVersionContent.KIND, id));
-    }
-
-    /** Đổi phiên bản; phiên bản không còn mở thì nhả khóa duy nhất và khóa dòng (nhóm 3). */
-    public DishVersion changeVersion(DishVersion version, DishVersionStatus status, DishVersionContent content) {
-        boolean closed = !status.open();
-        return version(records.change(
-                        DishVersionContent.KIND,
-                        version.id(),
-                        version.version(),
-                        new RecordChange<>(status.name(), content, null, openKey(version.dishId(), status), closed))
-                .after());
-    }
-
-    /** Phiên bản đang soạn hoặc chờ xác nhận của món (tối đa một). */
-    public Optional<DishVersion> openVersion(long dishId) {
-        return records.listByParent(DishVersionContent.KIND, new EntityRef(DISH_ENTITY, dishId)).stream()
-                .map(NutritionCatalogStore::version)
-                .filter(v -> v.status().open())
-                .findFirst();
-    }
-
-    private static String openKey(long dishId, DishVersionStatus status) {
-        return status.open() ? "M08.DISH_VERSION.OPEN:" + dishId : null;
-    }
-
     private static Diet diet(CatalogItem<DietAttributes> item) {
         return new Diet(item.id(), item.name(), item.status(), item.attributes(), item.version());
     }
@@ -200,14 +136,5 @@ public class NutritionCatalogStore {
 
     private static Dish dish(CatalogItem<DishAttributes> item) {
         return new Dish(item.id(), item.name(), item.status(), item.attributes(), item.version());
-    }
-
-    private static DishVersion version(SimpleRecord<DishVersionContent> row) {
-        return new DishVersion(
-                row.id(),
-                row.parent().entityId(),
-                DishVersionStatus.valueOf(row.status()),
-                row.content(),
-                row.version());
     }
 }

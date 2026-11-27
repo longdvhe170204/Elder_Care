@@ -18,6 +18,7 @@ public record CareShiftSourceResponse(Shift shift, List<Resident> residents) {
             String attendance,
             List<CareAssignmentView> assignments,
             List<CarePlanItemResponse> planItems,
+            List<CareShiftSources.PlanOccurrence> planOccurrences,
             List<OtherSource> otherSources) {}
 
     @Schema(name = "CareOtherSource")
@@ -39,6 +40,7 @@ public record CareShiftSourceResponse(Shift shift, List<Resident> residents) {
                                 r.planItems().stream()
                                         .map(CareShiftSourceResponse::item)
                                         .toList(),
+                                r.planOccurrences(),
                                 r.otherSources().stream()
                                         .map(v -> new OtherSource(v.type(), v.id(), v.at(), v.description()))
                                         .toList()))

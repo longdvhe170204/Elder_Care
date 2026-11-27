@@ -9,25 +9,28 @@ import java.time.LocalDate;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Bảng chuyển FR-003: kiểm đủ cặp trạng thái/lệnh, gồm mốc ngày nghiệp vụ. */
+/** Bảng chuyển FR-003 (sửa Q-447): kiểm đủ cặp trạng thái/lệnh và ngày hiệu lực khi duyệt. */
 class FR_003_CarePlanTransitionsTest {
-    private CarePlanStatus next(CarePlanStatus before, String command, LocalDate from, LocalDate today)
-            throws Exception {
+    private static final String TRANSITIONS = "com.eldercare.backend.care.internal.careplan.domain.CarePlanTransitions";
+
+    private static Object call(String method, Class<?>[] types, Object... args) throws Exception {
         try {
-            return (CarePlanStatus)
-                    Class.forName("com.eldercare.backend.care.internal.careplan.domain.CarePlanTransitions")
-                            .getMethod("next", CarePlanStatus.class, String.class, LocalDate.class, LocalDate.class)
-                            .invoke(null, before, command, from, today);
+            return Class.forName(TRANSITIONS).getMethod(method, types).invoke(null, args);
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof RuntimeException cause) throw cause;
             throw e;
         }
     }
 
+    private CarePlanStatus next(CarePlanStatus before, String command) throws Exception {
+        return (CarePlanStatus) call("next", new Class<?>[] {CarePlanStatus.class, String.class}, before, command);
+    }
+
     @Test
     void FR_003_allCommandStatePairsFollowTheApprovedTable() throws Exception {
         var allowed = Map.of(
                 "SUBMIT", Map.of(CarePlanStatus.DRAFT, CarePlanStatus.PENDING_APPROVAL),
+                "RETRACT", Map.of(CarePlanStatus.PENDING_APPROVAL, CarePlanStatus.DRAFT),
                 "APPROVE", Map.of(CarePlanStatus.PENDING_APPROVAL, CarePlanStatus.PENDING_EFFECT),
                 "RETURN", Map.of(CarePlanStatus.PENDING_APPROVAL, CarePlanStatus.DRAFT),
                 "CANCEL",
@@ -36,16 +39,15 @@ class FR_003_CarePlanTransitionsTest {
                                 CarePlanStatus.CANCELLED,
                                 CarePlanStatus.PENDING_APPROVAL,
                                 CarePlanStatus.CANCELLED),
-                "WITHDRAW", Map.of(CarePlanStatus.PENDING_EFFECT, CarePlanStatus.CANCELLED));
-        var today = LocalDate.of(2026, 10, 31);
+                "WITHDRAW", Map.<CarePlanStatus, CarePlanStatus>of());
         for (var command : allowed.entrySet()) {
             for (var status : CarePlanStatus.values()) {
                 if (command.getValue().containsKey(status)) {
-                    assertThat(next(status, command.getKey(), today.plusDays(1), today))
+                    assertThat(next(status, command.getKey()))
                             .as("%s từ %s", command.getKey(), status)
                             .isEqualTo(command.getValue().get(status));
                 } else {
-                    assertThatThrownBy(() -> next(status, command.getKey(), today.plusDays(1), today))
+                    assertThatThrownBy(() -> next(status, command.getKey()))
                             .as("%s từ %s", command.getKey(), status)
                             .isInstanceOf(BusinessException.class)
                             .extracting("errorCode")
@@ -56,14 +58,16 @@ class FR_003_CarePlanTransitionsTest {
     }
 
     @Test
-    void FR_004_approvalCannotChangeOrAcceptAnExpiredProposedDate() {
-        var today = LocalDate.of(2026, 11, 1);
-        for (var date : new LocalDate[] {null, today, today.minusDays(1)}) {
-            assertThatThrownBy(() -> next(CarePlanStatus.PENDING_APPROVAL, "APPROVE", date, today))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo("INVALID_EFFECTIVE_DATE");
-        }
+    void Q447_approvalDateFollowsWhetherAnEffectivePlanExists() throws Exception {
+        var today = LocalDate.of(2026, 11, 25);
+        assertThat(call("approvedStatus", new Class<?>[] {boolean.class}, false))
+                .isEqualTo(CarePlanStatus.EFFECTIVE);
+        assertThat(call("approvedStatus", new Class<?>[] {boolean.class}, true))
+                .isEqualTo(CarePlanStatus.PENDING_EFFECT);
+        assertThat(call("effectiveFromOnApproval", new Class<?>[] {boolean.class, LocalDate.class}, false, today))
+                .isEqualTo(today);
+        assertThat(call("effectiveFromOnApproval", new Class<?>[] {boolean.class, LocalDate.class}, true, today))
+                .isEqualTo(LocalDate.of(2026, 11, 26));
     }
 
     @Test

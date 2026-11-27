@@ -7,14 +7,12 @@ import com.eldercare.backend.admission.api.events.DayCareAbsenceNoticeRecorded;
 import com.eldercare.backend.admission.api.events.DayCareClosureDayChanged;
 import com.eldercare.backend.care.api.events.AttendanceChanged;
 import com.eldercare.backend.care.api.events.AttendanceDetermined;
-import com.eldercare.backend.nutrition.api.events.DietAssignmentTookEffect;
 import com.eldercare.backend.nutrition.api.events.StayMealChanged;
 import com.eldercare.backend.nutrition.api.events.TripMealChanged;
-import com.eldercare.backend.resident.api.events.AllergyExcluded;
-import com.eldercare.backend.resident.api.events.AllergyRecorded;
-import com.eldercare.backend.resident.api.events.OtherAllergyRecorded;
 import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
 import com.eldercare.backend.roombedallocation.api.events.BedTransferred;
+import com.eldercare.backend.staffing.api.events.AssignmentChanged;
+import com.eldercare.backend.staffing.api.events.ShiftChanged;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,26 +88,14 @@ class ClosingEventListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void on(DietAssignmentTookEffect e) {
-        handlers.onDietAssignmentTookEffect(e);
+    public void on(ShiftChanged e) {
+        handlers.onShiftChanged(e);
     }
 
     @TransactionalEventListener(fallbackExecution = true)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void on(AllergyRecorded e) {
-        handlers.onAllergyRecorded(e);
-    }
-
-    @TransactionalEventListener(fallbackExecution = true)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void on(OtherAllergyRecorded e) {
-        handlers.onOtherAllergyRecorded(e);
-    }
-
-    @TransactionalEventListener(fallbackExecution = true)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void on(AllergyExcluded e) {
-        handlers.onAllergyExcluded(e);
+    public void on(AssignmentChanged e) {
+        handlers.onAssignmentChanged(e);
     }
 
     @TransactionalEventListener(fallbackExecution = true)

@@ -58,10 +58,10 @@ class RoleAssignmentIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$[?(@.function == 'CARE_PLAN' && @.operation == 'CREATE')]")
                         .isEmpty());
 
-        command(account, "assign-role", "\"0\"", "{\"role\":\"AC-04\",\"reason\":\"Có chứng chỉ điều dưỡng\"}")
+        command(account, "assign-role", "\"0\"", "{\"role\":\"AC-03\",\"reason\":\"Có chứng chỉ hành nghề bác sĩ\"}")
                 .andExpect(status().isOk())
                 .andExpect(header().string("ETag", "\"1\""))
-                .andExpect(jsonPath("$.roles", containsInAnyOrder("AC-04", "AC-05")));
+                .andExpect(jsonPath("$.roles", containsInAnyOrder("AC-03", "AC-05")));
 
         mvc.perform(get("/api/v1/me/permissions").header("Authorization", bearer(token)))
                 .andExpect(jsonPath("$[?(@.function == 'CARE_PLAN' && @.operation == 'CREATE')]")
@@ -70,7 +70,7 @@ class RoleAssignmentIT extends MySqlIntegrationTestBase {
                         "SELECT data_after FROM audit_log WHERE action = 'ROLE_ASSIGNED' AND entity_id = ?",
                         String.class,
                         String.valueOf(account)))
-                .contains("AC-04");
+                .contains("AC-03");
     }
 
     private ResultActions command(long account, String command, String ifMatch, String body) throws Exception {

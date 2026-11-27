@@ -74,6 +74,10 @@ public enum ParameterCode {
     CFG_M04_12,
     /** Thời gian sớm nhất được điểm danh rời viện trước giờ rời dự kiến của chuyến đi (mặc định: 1 giờ) */
     CFG_M04_13,
+    /** Ngày trong tháng nhắc Trưởng tầng công bố công việc tháng sau (mặc định: ngày 25). */
+    CFG_M04_14,
+    /** Khoảng thời gian hiển thị kế hoạch chăm sóc đã duyệt (mặc định: 7 ngày). */
+    CFG_M04_15,
     /** Thời hạn tiếp nhận cảnh báo mức trung bình (mặc định: 15 phút) */
     CFG_M05_01,
     /** Số lần lặp cảnh báo trung bình để báo lặp lại (mặc định: 3 lần / 24 giờ) */
@@ -118,8 +122,6 @@ public enum ParameterCode {
     CFG_M07_11,
     /** Mốc Nhân viên bếp được chốt suất ăn (mặc định: 2 giờ trước bữa) */
     CFG_M08_01,
-    /** Số ngày lặp món liên tiếp để cảnh báo (mặc định: 3 ngày) */
-    CFG_M08_03,
     /** Giờ bữa dự kiến / ngưỡng giao trễ (mặc định: Theo cơ sở / 30 phút) */
     CFG_M08_04,
     /** Nhắc xác nhận phát sinh trước bữa (mặc định: 30 phút) */

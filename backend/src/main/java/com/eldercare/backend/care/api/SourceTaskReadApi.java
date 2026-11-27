@@ -8,7 +8,7 @@ import java.util.Set;
 
 /** Đọc công việc theo căn cứ (005 mục 1.6a); quyền xem do module giữ căn cứ kiểm trước khi gọi. */
 public interface SourceTaskReadApi {
-    /** Công việc chưa hủy của một căn cứ, theo thời điểm dự kiến. */
+    /** Công việc đã công bố và chưa hủy của một căn cứ, theo thời điểm dự kiến. */
     List<SourceTaskView> bySource(Set<SourceType> types, long sourceId);
 
     /** Các căn cứ còn ít nhất một công việc chưa đóng (Chưa đến hạn, Đến hạn, Quá hạn). */

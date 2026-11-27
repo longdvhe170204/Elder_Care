@@ -1,5 +1,6 @@
 package com.eldercare.backend.nutrition.api.events;
 
+import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.HasNotificationRequests;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.NotificationRequest;
@@ -9,10 +10,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Bác sĩ trả lại thực đơn (FR-065 dòng "Thực đơn bị trả lại (kèm lý do)"; FR-029): báo nhân viên bếp đã gửi mức Trung
+ * Quản lý viện trả lại thực đơn (FR-065 dòng "Thực đơn bị trả lại (kèm lý do)"; FR-029): báo nhân viên bếp đã gửi mức Trung
  * bình, kèm lý do. {@code submitterStaffId} là hồ sơ nhân viên của người gửi.
  */
-public record MenuReturned(long menuId, LocalDate weekStart, String reason, long submitterStaffId, long by, Instant at)
+public record MenuReturned(long menuId, LocalDate weekStart, String reason, Long submitterStaffId, long by, Instant at)
         implements HasNotificationRequests {
 
     @Override
@@ -22,7 +23,10 @@ public record MenuReturned(long menuId, LocalDate weekStart, String reason, long
                 menuId,
                 "M08.MENU_RETURNED:" + menuId + ":" + at.toEpochMilli(),
                 NotificationLevel.MEDIUM,
-                List.of(new RecipientGroup.Staff(submitterStaffId, "MENU_SUBMITTER")),
+                List.of(
+                        submitterStaffId == null
+                                ? new RecipientGroup.FacilityRole(Role.KITCHEN_STAFF)
+                                : new RecipientGroup.Staff(submitterStaffId, "MENU_SUBMITTER")),
                 "Thực đơn tuần " + weekStart + " bị trả lại: " + reason,
                 "Thực đơn bị trả lại",
                 by,

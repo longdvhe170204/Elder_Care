@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** Q-450: nội trú dài hạn giá tháng thu một khoản mỗi tháng; ngắn ngày, giá ngày và tháng có ngày ngắn ngày theo ngày. */
+/** Q-459: nội trú dài hạn giá tháng thu một khoản mỗi tháng; ngắn ngày, giá ngày và tháng có ngày ngắn ngày theo ngày. */
 class ResidencyMonthFeeTest {
     private static final YearMonth MONTH = YearMonth.of(2026, 11);
 

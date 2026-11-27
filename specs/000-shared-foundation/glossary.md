@@ -3412,6 +3412,31 @@ Chưa nghiệm thu; phần thiếu nguồn và phương án tại specs/010-incu
 | *(bổ sung 2026-11-07, Phase 10)* thông báo FR-065 dòng "Ăn kém kéo dài hoặc sụt cân: xem lại chế độ ăn" tới Bác sĩ | sự kiện `ReviewDietNotice(noticeId, residentId, source, currentDiet, at)` (`DIET_REVIEW`, Nhẹ, `FacilityRole(DOCTOR)`) |
 | *(bổ sung 2026-11-07, Phase 10)* test `BR_M08_05_XemLaiIT` | `BR_22_ReviewIT` |
 
+### 17.7. Sửa theo Q-454 (2026-11-24, thực đơn chung, Quản lý viện duyệt)
+
+Thêm hoặc đổi so với 17.1 → 17.6; tên bỏ ở cột phải giữ trong lịch sử git.
+
+| Tên logic | Tên trong mã |
+| --- | --- |
+| Đưa vào dùng (lệnh món) | `activate` (`POST /nutrition/dishes/{id}/activate`, `DishCommand.ACTIVATE`) |
+| Ảnh món | `PUT`, `DELETE /nutrition/dishes/{id}/image`; `Dish.imageUrl`; thuộc tính `imageFileId` |
+| Mô tả món | `description` (`DishCommand`, `Dish`, thuộc tính `DishAttributes.description`) |
+| Lý do ngừng món | `inactiveReason` |
+| Thực đơn chung đã công bố | `GET /menus/shared` (`from`, `to`), `SharedMenuDay` (`date`, `meals` {`mealId`, `name`, `expectedTime`, `dishes` {`id`, `name`, `description`, `imageUrl`}}) |
+| Thông tin lập thực đơn (số suất dự kiến, số người theo dị ứng) | `MealPlanningInfo` (`date`, `mealId`, `residentPortions`, `familyPortions`, `staffPortions`, `allergyCounts` {`allergenId`, `name`, `residentCount`}) |
+| Kết quả lập đề xuất bản gán | `DietAssignmentCheck` (`professionalReasonRequired`) |
+| Người gửi, thời điểm gửi duyệt thực đơn | `submittedBy`, `submittedAt` (`Menu`) |
+| Nhóm phiếu: tầng/khu, nhân viên | `group` (`FLOOR`, `STAFF`) ở `ClosingResult.portionsByGroup`, `Adjustment`, `KitchenMealSlip` |
+| Phiếu nhân viên; suất nhân viên | `KitchenMealSlip` với `group = STAFF`; `staffPortions` |
+| Các món của bữa trên phiếu; tổng suất | `dishes`, `portionCount` (`KitchenMealSlip`) |
+| Suất giữ trên phiếu | `heldPortionCount` (`KitchenMealSlip`), `heldPortions` {`id`, `residentId`, `fullName`, `status` `HELD`, `SERVED`, `DISCARDED`} (`FloorMealSlip`) |
+| Phục vụ, hủy bỏ suất giữ | `POST /held-portions/{id}/serve`, `/held-portions/{id}/discard` (thay `/special-portions/{id}/serve-held-portion`, `discard-held-portion`) |
+| Thiếu dữ liệu ca | `missingData` `SHIFT` |
+| Nguồn phát sinh đổi ca | `SHIFT_CHANGED` |
+| Nhân viên có ca bao trùm thời điểm | `staffing.api.ShiftApi.staffOnShiftAt(Instant)` |
+
+Bỏ: `PENDING_CONFIRMATION` của `DishStatus`; `submit`, `withdraw`, `confirm`, `return`, `submit-revision`, `confirm-revision`, `return-revision`, `withdraw-revision` của món; `safeDishId`; `dietId`, `substituteDishIds` của `MenuContent`, `DishSwap`; `MenuCheckResult`, `Conflict`, `ServingConfirmation`; `POST /menus/{id}/check`, `GET /residents/{residentId}/dish-conflict-check`, `/special-portions/{id}/assign-dish`, `mark-prepared`, `confirm-serving`; `processingCheckConfirmed`, `processingNote`, `confirmedWarnings`; `portionsByDiet`, `labels`, `needsCrossCheck`, `allergies` của phiếu; dấu `MISSING_SUBSTITUTE_DISH`, `NO_DIET_ASSIGNED`; lệnh thực đơn `submit` nay nghĩa là "Gửi duyệt".
+
 ## 18. Feature 012 (`012-family-portal`, A) *(bổ sung 2026-11-03, khi dịch `contracts/api-012.yaml`; chủ feature chuyển từ E sang A cùng ngày)*
 
 Dùng lại bản dịch đã có: người thân `familyMember` (002), loại quan hệ `FamilyRelationshipType` (7.5), quyền riêng `FamilyRight` (`common.notification`), nguồn ý kiến `OpinionSource` (001, 8.2), loại vắng `FAMILY_OUTING` (004, 10.3), kiểu về `SELF_RETURN`, `INSTITUTE_RETURN` (005), khoanh vùng `isolation` (007), `STATE_CHANGED` (008). Tiền tố `/family-portal/…` và `/resident-channel/…` dùng chung cho cổng người thân và kênh người cao tuổi: 013, 014, 017 dịch `/cong/…`, `/kenh-nguoi-cao-tuoi/…` của mình theo cùng tiền tố.

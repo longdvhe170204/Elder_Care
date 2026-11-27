@@ -45,7 +45,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Biên nhận nộp tiền (Q-451, góp ý demo BF-10): dựng PDF khi tải từ giao dịch nộp đã xác nhận (giao dịch không sửa được);
+ * Biên nhận nộp tiền (Q-460, góp ý demo BF-10): dựng PDF khi tải từ giao dịch nộp đã xác nhận (giao dịch không sửa được);
  * số biên nhận theo mã giao dịch; ghi rõ không thay hóa đơn. Nhân viên: Kế toán, Quản lý viện; người thân: quyền xem chi
  * phí đang bật.
  */
@@ -121,7 +121,7 @@ public class PaymentReceiptService {
     }
 
     /**
-     * Bảng kê các giao dịch đã chọn của một người cao tuổi (Q-451 mở rộng): chia nhóm gia đình nộp, hoàn lại, trừ chi
+     * Bảng kê các giao dịch đã chọn của một người cao tuổi (Q-460 mở rộng): chia nhóm gia đình nộp, hoàn lại, trừ chi
      * phí, khác; tổng từng nhóm và số dư hiện tại. Chỉ Kế toán, Quản lý viện.
      */
     @RequiresPermission(function = Function.BALANCE_LEDGER, operation = Operation.VIEW)

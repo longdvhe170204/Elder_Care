@@ -6,7 +6,6 @@ import com.eldercare.backend.nutrition.internal.closing.domain.DailyMeal;
 import com.eldercare.backend.nutrition.internal.closing.persistence.PortionClosingStore;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
@@ -63,7 +62,7 @@ class MealScheduleQueries implements MealScheduleApi {
                     .map(c -> closing.current(c).containsKey("RESIDENT:" + residentId))
                     .orElse(false);
         }
-        return counter.count(meal, Optional.of(Set.of(residentId)), Map.of(), false).persons().stream()
+        return counter.count(meal, Optional.<java.util.Collection<Long>>of(Set.of(residentId))).persons().stream()
                 .anyMatch(p -> p.residentId() == residentId && p.familyMemberId() == null);
     }
 }

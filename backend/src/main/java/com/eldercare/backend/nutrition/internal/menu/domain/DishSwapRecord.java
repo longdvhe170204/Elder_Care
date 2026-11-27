@@ -1,29 +1,17 @@
 package com.eldercare.backend.nutrition.internal.menu.domain;
 
 import com.eldercare.backend.administration.shared.api.dto.SharedKind;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
-import java.util.List;
 
 /**
- * Một lần Đổi món ở {@code record_event} loại {@code M08.DISH_SWAP}, cha {@code M08.MENU} (thay {@code doi_mon}, nhóm 3;
- * data-model mục 5): món và món thay thế trước/sau ({@code oldDishId} rỗng là thêm, {@code newDishId} rỗng là bớt), lý do; người và lúc ở cột của bảng chung. {@code afterClosing} luôn {@code false} tới phase
- * chốt suất (FR-039).
+ * Một lần Đổi món ở {@code record_event} loại {@code M08.DISH_SWAP}, cha {@code M08.MENU} (nhóm 3; data-model mục 13.3):
+ * món trước, món sau ({@code oldDishId} rỗng là thêm, {@code newDishId} rỗng là bớt), lý do; người và lúc ở cột của bảng
+ * chung. Bỏ qua {@code dietId}, món thay thế của bản ghi có trước Q-445.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record DishSwapRecord(
-        LocalDate date,
-        long mealId,
-        long dietId,
-        Long oldDishId,
-        Long newDishId,
-        List<Long> oldSubstituteDishIds,
-        List<Long> substituteDishIds,
-        String reason,
-        boolean afterClosing) {
+        LocalDate date, long mealId, Long oldDishId, Long newDishId, String reason, boolean afterClosing) {
 
     public static final SharedKind<DishSwapRecord> KIND = SharedKind.of("M08.DISH_SWAP", DishSwapRecord.class);
-
-    public DishSwapRecord {
-        oldSubstituteDishIds = oldSubstituteDishIds == null ? List.of() : List.copyOf(oldSubstituteDishIds);
-        substituteDishIds = substituteDishIds == null ? List.of() : List.copyOf(substituteDishIds);
-    }
 }
