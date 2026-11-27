@@ -129,7 +129,7 @@ Khi mở dashboard, Quản lý viện thấy tình hình toàn viện trong ngà
 3. **Given** Quản lý viện đang xem dashboard, **When** một công việc ở tầng 1 chuyển Quá hạn lúc 10:05, **Then** con số "Công việc quá hạn" tăng lên 4 trong thời hạn ở SC-002 mà không cần thao tác gì khác, và dashboard ghi thời điểm cập nhật số liệu.
 4. **Given** ca ngày tầng 1 có tỷ lệ phục vụ tính theo feature 008 không đạt ngưỡng CFG-M09-01, **When** Quản lý viện mở dashboard, **Then** chỉ tiêu "Tỷ lệ phục vụ ca hiện tại" của tầng 1 hiện giá trị do feature 008 tính và nhãn "không đạt"; spec này không tính lại (BR-M09-02, Q-79).
 5. **Given** con số "Công việc quá hạn" là 3, **When** trưởng tầng T chọn con số đó, **Then** T thấy danh sách đúng 3 công việc (người cao tuổi, công việc, mức quan trọng, người được giao, thời điểm dự kiến) và mở được từng công việc ở chế độ chỉ xem của feature 005.
-6. **Given** giấy phép hoạt động của cơ sở hết hạn sau 45 ngày và CFG-M06-02 là \[60 ngày\], **When** Quản lý viện mở dashboard, **Then** mục "Giấy phép sắp hết hạn" nêu giấy phép đó và số ngày còn lại; **When** trưởng tầng mở dashboard, **Then** không thấy giấy phép của cơ sở, chỉ thấy giấy phép hành nghề, chứng chỉ đào tạo sắp hết hạn của nhân viên có phân công tại tầng mình (CFG-M06-02, CFG-M09-03).
+6. **Given** giấy phép hành nghề của một điều dưỡng hết hạn sau 45 ngày và CFG-M06-02 là \[60 ngày\], **When** Quản lý viện mở dashboard, **Then** mục "Giấy phép sắp hết hạn" nêu giấy phép đó và số ngày còn lại; **When** trưởng tầng mở dashboard, **Then** chỉ thấy giấy phép hành nghề, chứng chỉ đào tạo sắp hết hạn của nhân viên có phân công tại tầng mình (CFG-M06-02, CFG-M09-03). *(Sửa theo Q-461: bỏ giấy phép hoạt động của cơ sở.)*
 
 ---
 
@@ -353,7 +353,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 | Khu đang khoanh vùng | Toàn viện | Tầng được giao | Toàn viện | Tầng/khu của phân công | Toàn viện | **Khoanh vùng lây nhiễm** |
 | Bàn giao chưa xác nhận | Toàn viện | Tầng được giao | Toàn viện | Tầng/khu của phân công | — | **Bàn giao ca** |
 | Tỷ lệ phục vụ ca hiện tại | Toàn viện | Tầng được giao | — | — | — | **Lịch ca, phân công** (BS, ĐD, HC "P" là lịch của chính mình, quy tắc 3) |
-| Giấy phép cơ sở sắp hết hạn | Toàn viện | — | — | — | — | Không có dòng ở 4.4; giấy phép hoạt động của cơ sở (10.4), cảnh báo chỉ tới Quản lý viện (feature 002 FR-039) |
+| Giấy phép cơ sở sắp hết hạn | *(Bỏ theo Q-461: không còn giấy phép hoạt động của cơ sở)* | — | — | — | — | — |
 | Giấy phép hành nghề, chứng chỉ đào tạo nhân viên sắp hết hạn | Toàn viện | Nhân viên có phân công tại tầng | — | — | — | **Hồ sơ nhân viên, chứng chỉ** |
 | Chi phí phát sinh | Toàn viện | — | — | — | Toàn viện | **Chi phí, khoản điều chỉnh**; Chốt kỳ, xuất kế toán |
 | Tổng chi mua sắm theo bộ phận, theo trạng thái (bổ sung 2026-10-06, Q-284, BR-M11-20) | Toàn viện | — | — | — | — | **Yêu cầu mua sắm** (QL "D"); không phải chi phí của người cao tuổi |

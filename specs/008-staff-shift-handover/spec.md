@@ -240,7 +240,7 @@ Trưởng tầng phân công nhân viên trong ca: nhân viên chính và nhân 
 
 Quản lý viện lập hồ sơ nhân viên (họ tên, chức danh, chuyên môn, trạng thái làm việc) và ghi giấy phép hành nghề, phạm vi hành nghề, các đào tạo (kể cả đào tạo sơ cứu) cùng ngày hết hạn. Hệ thống cảnh báo trước khi giấy phép hoặc đào tạo bắt buộc hết hạn; gia hạn bằng cách ghi bản mới, lịch sử được giữ. Khi nhân viên nghỉ việc, tài khoản bị khóa ngay và công việc, ca, phân công tương lai của họ được giải phóng.
 
-**Why this priority**: Hồ sơ và chứng chỉ là dữ liệu đầu vào của BR-M09-01 và BR-M06-05; nhưng có thể nhập ban đầu một lần trước khi vận hành, nên xếp sau ba luồng vận hành hằng ngày.
+**Why this priority**: Hồ sơ và chứng chỉ là dữ liệu đầu vào của BR-M09-01 và feature 002 FR-037 (BR-M06-05 bỏ theo Q-461); nhưng có thể nhập ban đầu một lần trước khi vận hành, nên xếp sau ba luồng vận hành hằng ngày.
 
 **Independent Test**: Tạo hồ sơ điều dưỡng D với giấy phép hết hạn sau 59 ngày và đào tạo sơ cứu hết hạn sau 61 ngày; kiểm tra cảnh báo giấy phép (feature 002) có mặt và cảnh báo đào tạo xuất hiện sau một ngày; gia hạn đào tạo và kiểm tra bản cũ vẫn xem được; cho D nghỉ việc và kiểm tra tài khoản, ca, phân công.
 
@@ -564,7 +564,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - Người cao tuổi có tối đa một nhân viên chính cho mỗi vai trò tại mỗi thời điểm (2.4 dùng số ít cho "Điều dưỡng phụ trách"; 8.4 cho phép nhiều nhân viên cùng chăm sóc qua vai trò hỗ trợ).
 - Giờ làm liên tục chỉ nối các ca tiếp giáp, không có khoảng nghỉ; không có tham số khoảng nghỉ tối thiểu.
 - Cảnh báo đào tạo sắp hết hạn gửi Quản lý viện, chính nhân viên và Trưởng tầng liên quan; nội dung gửi nhân viên chỉ gồm loại và ngày hết hạn (không cần quyền xem hồ sơ).
-- Lệnh "Ghi nhận thu hồi" giấy phép được thêm vì giấy phép có thể bị đình chỉ trước ngày hết hạn; nếu không có lệnh này, BR-M09-01 và BR-M06-05 sẽ coi giấy phép bị đình chỉ là còn hiệu lực.
+- Lệnh "Ghi nhận thu hồi" giấy phép được thêm vì giấy phép có thể bị đình chỉ trước ngày hết hạn; nếu không có lệnh này, BR-M09-01 và feature 002 FR-037 sẽ coi giấy phép bị đình chỉ là còn hiệu lực.
 - Bàn giao là bản ghi nhóm 3 từ khi Đã lập; ở Bản nháp người bàn giao thêm, sửa, bỏ được mục, ghi chú và nhận định (feature 000 cho phép module quy định bản nháp; Q-307).
 
 ## Điểm cần báo lại về tài liệu nguồn

@@ -140,14 +140,14 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 2. Đăng nhập và bảo vệ tài khoản (UC-70, BR-M15-05).
 3. Vai trò hệ thống (bảng 2.3) và quyền theo loại thao tác (mục 19.2), giới hạn bởi Permission Matrix 4.4 và mục 19.3.
 4. Phạm vi dữ liệu theo khu vực, tầng, phòng, người cao tuổi (Q-92), suy ra từ phân công (BR-M15-02).
-5. Điều kiện pháp lý cho nghiệp vụ chuyên môn (BR-M06-05, mục 10.4, 13.4).
+5. Điều kiện pháp lý cho nghiệp vụ chuyên môn (mục 13.4; BR-M06-05 bỏ theo Q-461).
 6. Quy tắc tính quyền hiệu lực áp dụng cho mọi lần xem và mọi thao tác (BR-M15-01).
 
 **Ngoài phạm vi**:
 
 - Hồ sơ nhân viên, giấy phép hành nghề, đào tạo và trạng thái làm việc (feature 008, UC-49). Spec này chỉ **dùng** trạng thái làm việc và hiệu lực giấy phép.
 - Lập lịch ca và phân công (feature 008, UC-50, UC-51). Spec này chỉ **dùng** kết quả phân công để xác định phạm vi dữ liệu.
-- Giấy phép hoạt động của cơ sở (mục 10.4, Module 06). Spec này chỉ **dùng** hiệu lực và phạm vi của giấy phép cơ sở.
+- *(Bỏ theo Q-461)* Giấy phép hoạt động của cơ sở: viện không khám chữa bệnh nên không còn dữ liệu này.
 - Hồ sơ người thân, quan hệ, quyền theo từng người thân và danh sách được phép đón (feature 012, UC-55, BR-M10-07); bản đồng ý chia sẻ dữ liệu (feature 001, UC-03). Spec này chỉ **dùng** các quyền đó và bản đồng ý khi tính quyền hiệu lực của người thân.
 - Nhật ký lượt xem hồ sơ sức khỏe của người thân (NFR-08, feature 012).
 - Nội dung, kênh gửi thông báo và cảnh báo (feature 009).
@@ -169,7 +169,7 @@ Mỗi khi một người dùng xem dữ liệu hoặc thực hiện một thao t
 1. **Given** vai trò của người dùng không có quyền một thao tác theo Permission Matrix 4.4 (ô "—"), **When** người dùng thực hiện thao tác đó trên bất kỳ đối tượng nào, **Then** hệ thống từ chối, và thao tác không có trong danh sách thao tác mà người dùng nhìn thấy.
 2. **Given** vai trò có quyền "P" với một chức năng và người dùng được phân công tầng 1, **When** xem dữ liệu của người cao tuổi ở tầng 1, **Then** được xem; **When** xem dữ liệu của người cao tuổi ở tầng 2, **Then** hệ thống từ chối và không tiết lộ nội dung.
 3. **Given** vai trò có quyền "X" với một chức năng (ví dụ Quản lý viện với hồ sơ người cao tuổi), **When** xem dữ liệu ở bất kỳ tầng nào, **Then** được xem, không phụ thuộc phân công.
-4. **Given** bác sĩ có vai trò và phạm vi hợp lệ nhưng giấy phép hành nghề đã hết hạn, **When** thực hiện nghiệp vụ chuyên môn cần giấy phép (ví dụ kê đơn nội bộ), **Then** hệ thống từ chối và nêu lý do là điều kiện pháp lý không còn hiệu lực; bác sĩ vẫn xem được dữ liệu theo quyền "X" của vai trò.
+4. **Given** bác sĩ có vai trò và phạm vi hợp lệ nhưng giấy phép hành nghề đã hết hạn, **When** thực hiện nghiệp vụ chuyên môn cần giấy phép, **Then** hệ thống từ chối và nêu lý do là điều kiện pháp lý không còn hiệu lực; bác sĩ vẫn xem được dữ liệu theo quyền "X" của vai trò.
 5. *(Bỏ 2026-10-06, Q-283: không còn vai trò Dinh dưỡng viên.)*
 6. **Given** nhân viên bếp, **When** tìm cách xem hồ sơ sức khỏe của bất kỳ người cao tuổi nào, **Then** hệ thống từ chối; nhân viên bếp chỉ thấy số suất và yêu cầu đặc biệt theo chế độ ăn, và với suất đặc biệt trên phiếu bữa ăn thì thấy họ tên, phòng, chế độ ăn, món thay thế, kết cấu thức ăn, không thấy dị ứng hay bệnh lý (mục 19.3, 12.5).
 7. **Given** danh sách người cao tuổi hoặc báo cáo tổng hợp, **When** người dùng có quyền "P" mở danh sách, **Then** danh sách chỉ gồm người cao tuổi trong phạm vi của họ, và số liệu tổng không tính người ngoài phạm vi.
@@ -263,21 +263,21 @@ Phạm vi dữ liệu của nhân viên không được cấp tay mà suy ra t�
 
 ### User Story 5 - Nghiệp vụ chuyên môn chỉ bật khi giấy phép còn hiệu lực (Priority: P2)
 
-Một số thao tác là nghiệp vụ chuyên môn (chẩn đoán, kê đơn, phát thuốc…) và chỉ được thực hiện khi điều kiện pháp lý thỏa: cơ sở có phạm vi hoạt động phù hợp còn hiệu lực và người thực hiện có giấy phép/đào tạo còn hiệu lực đúng phạm vi. Khi một điều kiện hết hạn, quyền tự tắt; khi được gia hạn, quyền tự bật lại.
+Một số thao tác là nghiệp vụ chuyên môn (phát thuốc, xác nhận liều…) và chỉ được thực hiện khi người thực hiện có giấy phép/đào tạo còn hiệu lực đúng phạm vi. *(Sửa theo Q-461, 2026-11-27: viện không khám chữa bệnh, không kê đơn; bỏ điều kiện phạm vi hoạt động của cơ sở và mục "chẩn đoán và kê đơn nội bộ".)* Khi một điều kiện hết hạn, quyền tự tắt; khi được gia hạn, quyền tự bật lại.
 
-**Why this priority**: BR-M06-05 và mục 10.4 cấm mặc định "có bác sĩ = được khám chữa bệnh". Rủi ro pháp lý cao, nhưng chỉ áp dụng cho một tập thao tác hẹp nên xếp P2.
+**Why this priority**: Mục 13.4 yêu cầu người hành nghề còn giấy phép khi làm nghiệp vụ chuyên môn. Rủi ro pháp lý cao, nhưng chỉ áp dụng cho một tập thao tác hẹp nên xếp P2.
 
-**Independent Test**: Cho một bác sĩ có giấy phép hết hạn vào ngày D; giả lập đồng hồ ngày D và D+1, thử kê đơn nội bộ; lặp lại với giấy phép cơ sở hết hạn trong khi giấy phép bác sĩ còn hạn; gia hạn và thử lại.
+**Independent Test**: Cho một điều dưỡng có giấy phép hết hạn vào ngày D; giả lập đồng hồ ngày D và D+1, thử xác nhận liều; gia hạn và thử lại.
 
 **Acceptance Scenarios**:
 
-1. **Given** cơ sở có phạm vi khám chữa bệnh còn hiệu lực và bác sĩ có giấy phép còn hiệu lực đúng phạm vi, **When** bác sĩ kê đơn nội bộ, **Then** thao tác được chấp nhận.
-2. **Given** giấy phép hành nghề của bác sĩ hết hạn vào ngày D, **When** bác sĩ kê đơn nội bộ trong ngày D, **Then** được chấp nhận; **When** kê đơn vào ngày D+1, **Then** hệ thống từ chối, nêu giấy phép đã hết hạn, và chỉ còn cho phép nhập đơn từ cơ sở bên ngoài nếu vai trò có quyền đó (Permission Matrix 4.4, chú thích ³).
-3. **Given** giấy phép bác sĩ còn hiệu lực nhưng phạm vi hoạt động khám chữa bệnh của cơ sở đã hết hạn hoặc không có, **When** bác sĩ chẩn đoán hoặc kê đơn nội bộ, **Then** hệ thống từ chối (BR-M06-05).
+1. **Given** điều dưỡng có giấy phép còn hiệu lực đúng phạm vi, **When** xác nhận liều thuốc, **Then** thao tác được chấp nhận.
+2. **Given** giấy phép hành nghề của điều dưỡng hết hạn vào ngày D, **When** xác nhận liều trong ngày D, **Then** được chấp nhận; **When** xác nhận liều vào ngày D+1, **Then** hệ thống từ chối, nêu giấy phép đã hết hạn.
+3. *(Bỏ theo Q-461: không còn kê đơn nội bộ và phạm vi khám chữa bệnh của cơ sở.)*
 4. **Given** giấy phép có phạm vi hành nghề không bao gồm một nghiệp vụ chuyên môn, **When** người hành nghề thực hiện nghiệp vụ đó, **Then** hệ thống từ chối dù giấy phép còn hạn.
 5. **Given** điều dưỡng có giấy phép hết hạn, **When** xác nhận liều thuốc, **Then** hệ thống từ chối (mục 13.4); điều dưỡng vẫn thực hiện được các thao tác không yêu cầu giấy phép.
 6. **Given** giấy phép hết hạn đã được cập nhật gia hạn ở hồ sơ nhân viên (feature 008), **When** người hành nghề thực hiện lại nghiệp vụ chuyên môn, **Then** được chấp nhận mà quản lý viện không cần cấp lại quyền.
-7. **Given** giấy phép cơ sở hoặc giấy phép người hành nghề sẽ hết hạn trong vòng CFG-M06-02 (mặc định \[60 ngày\]), **When** Bộ lập lịch kiểm tra hằng ngày, **Then** quản lý viện nhận cảnh báo nêu giấy phép, người liên quan, ngày hết hạn và các nghiệp vụ chuyên môn sẽ bị tắt.
+7. **Given** giấy phép người hành nghề sẽ hết hạn trong vòng CFG-M06-02 (mặc định \[60 ngày\]), **When** Bộ lập lịch kiểm tra hằng ngày, **Then** quản lý viện nhận cảnh báo nêu giấy phép, người liên quan, ngày hết hạn và các nghiệp vụ chuyên môn sẽ bị tắt.
 8. **Given** một bản ghi chuyên môn được xác nhận khi giấy phép còn hiệu lực, **When** giấy phép sau đó hết hạn, **Then** bản ghi đó vẫn hợp lệ và không bị ảnh hưởng.
 
 ---
@@ -483,11 +483,11 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 
 #### E. Điều kiện pháp lý
 
-- **FR-036**: Hệ thống MUST có danh mục nghiệp vụ chuyên môn; mỗi mục MUST khai báo: loại giấy phép/đào tạo cá nhân yêu cầu, phạm vi hành nghề yêu cầu, và có yêu cầu phạm vi hoạt động của cơ sở hay không. Danh mục mặc định MUST gồm ít nhất: chẩn đoán và kê đơn nội bộ (bác sĩ có giấy phép đúng phạm vi và cơ sở có phạm vi khám chữa bệnh); phát thuốc và xác nhận liều (điều dưỡng có giấy phép còn hiệu lực). Chỉ Quản lý viện MUST được thêm, sửa, ngừng hiệu lực mục của danh mục, kèm lý do và ghi nhật ký; các mục mặc định trên MUST NOT bị ngừng hiệu lực. Thêm một mục làm thao tác đó cần thêm điều kiện, tức là thu hẹp quyền, nên không trái FR-025 (CHK004). *(Nguồn: 10.4, 13.4, BR-M06-05)*
-- **FR-037**: Một thao tác thuộc danh mục nghiệp vụ chuyên môn MUST chỉ được chấp nhận khi, tại thời điểm thực hiện: (a) người thực hiện có giấy phép/đào tạo yêu cầu còn hiệu lực; (b) phạm vi hành nghề trên giấy phép bao gồm nghiệp vụ đó; (c) nếu mục yêu cầu, cơ sở có phạm vi hoạt động phù hợp còn hiệu lực. Điều kiện (b) được đối chiếu theo mục chọn, không theo văn bản tự do: "phạm vi hành nghề yêu cầu" của danh mục nghiệp vụ chuyên môn (FR-036) và "phạm vi hành nghề" trên giấy phép của nhân viên (feature 008 FR-006) dùng chung một danh mục phạm vi hành nghề; (b) thỏa khi giấy phép có mục mà nghiệp vụ yêu cầu (CHK011). *(Nguồn: BR-M06-05, BR-M09-01, 10.4)*
-- **FR-038**: Giấy phép MUST được coi là còn hiệu lực đến hết ngày hết hạn ghi trên giấy phép, theo múi giờ Asia/Ho_Chi_Minh. Khi hết hạn, quyền chuyên môn tương ứng MUST tự tắt; khi hồ sơ giấy phép được cập nhật gia hạn, quyền MUST tự bật lại, không cần Quản lý viện cấp lại. *(Nguồn: BR-M06-05, NFR-09)*
-- **FR-039**: Hệ thống MUST cảnh báo Quản lý viện khi giấy phép hoạt động của cơ sở hoặc giấy phép của người hành nghề sẽ hết hạn trong vòng CFG-M06-02 (mặc định \[60 ngày\]); cảnh báo MUST nêu các nghiệp vụ chuyên môn sẽ bị tắt và người bị ảnh hưởng. Cảnh báo đào tạo bắt buộc (CFG-M09-03) thuộc feature 008. *(Nguồn: BR-M06-05, BR-M09-05)*
-- **FR-040**: Điều kiện pháp lý MUST chỉ giới hạn thao tác chuyên môn; MUST NOT giới hạn quyền xem hoặc thao tác không thuộc danh mục nghiệp vụ chuyên môn của cùng người dùng. Bản ghi đã xác nhận khi điều kiện còn hiệu lực MUST giữ nguyên giá trị sau khi điều kiện hết hiệu lực. *(Nguồn: BR-M06-05 chỉ nêu "quyền chẩn đoán và kê đơn")*
+- **FR-036**: Hệ thống MUST có danh mục nghiệp vụ chuyên môn; mỗi mục MUST khai báo: loại giấy phép/đào tạo cá nhân yêu cầu, phạm vi hành nghề yêu cầu. Danh mục mặc định MUST gồm ít nhất: phát thuốc và xác nhận liều (điều dưỡng có giấy phép còn hiệu lực). *(Sửa theo Q-461: bỏ mục "chẩn đoán và kê đơn nội bộ" và điều kiện phạm vi hoạt động của cơ sở.)* Chỉ Quản lý viện MUST được thêm, sửa, ngừng hiệu lực mục của danh mục, kèm lý do và ghi nhật ký; các mục mặc định trên MUST NOT bị ngừng hiệu lực. Thêm một mục làm thao tác đó cần thêm điều kiện, tức là thu hẹp quyền, nên không trái FR-025 (CHK004). *(Nguồn: 10.4, 13.4, BR-M06-05)*
+- **FR-037**: Một thao tác thuộc danh mục nghiệp vụ chuyên môn MUST chỉ được chấp nhận khi, tại thời điểm thực hiện: (a) người thực hiện có giấy phép/đào tạo yêu cầu còn hiệu lực; (b) phạm vi hành nghề trên giấy phép bao gồm nghiệp vụ đó. *(Q-461: bỏ điều kiện (c) phạm vi hoạt động của cơ sở.)* Điều kiện (b) được đối chiếu theo mục chọn, không theo văn bản tự do: "phạm vi hành nghề yêu cầu" của danh mục nghiệp vụ chuyên môn (FR-036) và "phạm vi hành nghề" trên giấy phép của nhân viên (feature 008 FR-006) dùng chung một danh mục phạm vi hành nghề; (b) thỏa khi giấy phép có mục mà nghiệp vụ yêu cầu (CHK011). *(Nguồn: BR-M09-01, 13.4, Q-461)*
+- **FR-038**: Giấy phép MUST được coi là còn hiệu lực đến hết ngày hết hạn ghi trên giấy phép, theo múi giờ Asia/Ho_Chi_Minh. Khi hết hạn, quyền chuyên môn tương ứng MUST tự tắt; khi hồ sơ giấy phép được cập nhật gia hạn, quyền MUST tự bật lại, không cần Quản lý viện cấp lại. *(Nguồn: 13.4, NFR-09)*
+- **FR-039**: Hệ thống MUST cảnh báo Quản lý viện khi giấy phép của người hành nghề sẽ hết hạn trong vòng CFG-M06-02 (mặc định \[60 ngày\]); cảnh báo MUST nêu các nghiệp vụ chuyên môn sẽ bị tắt và người bị ảnh hưởng. Cảnh báo đào tạo bắt buộc (CFG-M09-03) thuộc feature 008. *(Nguồn: CFG-M06-02, BR-M09-05, Q-461)*
+- **FR-040**: Điều kiện pháp lý MUST chỉ giới hạn thao tác chuyên môn; MUST NOT giới hạn quyền xem hoặc thao tác không thuộc danh mục nghiệp vụ chuyên môn của cùng người dùng. Bản ghi đã xác nhận khi điều kiện còn hiệu lực MUST giữ nguyên giá trị sau khi điều kiện hết hiệu lực. *(Nguồn: 13.4; BR-M06-05 bỏ theo Q-461)*
 
 #### F. Kiểm tra quyền hiệu lực
 
@@ -545,7 +545,7 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 - **Gán vai trò**: tài khoản, vai trò, người gán, thời điểm, lý do; lịch sử gán/gỡ được giữ.
 - **Phạm vi dữ liệu** (khái niệm, không lưu tay): suy ra từ Phân công (PHAN_CONG, feature 008) và phân bổ giường (PHAN_BO_GIUONG, feature 003) tại thời điểm kiểm tra.
 - **Danh mục nghiệp vụ chuyên môn** – nhóm 1: nghiệp vụ, loại giấy phép/đào tạo cá nhân yêu cầu, phạm vi hành nghề yêu cầu, có yêu cầu phạm vi hoạt động của cơ sở.
-- **Giấy phép** (dùng, không sở hữu): CHUNG_CHI của nhân viên (feature 008) và giấy phép hoạt động của cơ sở (mục 10.4): loại, số, phạm vi, ngày cấp, ngày hết hạn.
+- **Giấy phép** (dùng, không sở hữu): CHUNG_CHI của nhân viên (feature 008): loại, số, phạm vi, ngày cấp, ngày hết hạn. *(Q-461: bỏ giấy phép hoạt động của cơ sở.)*
 - **Quan hệ người thân, quyền theo người thân, bản đồng ý** (dùng, không sở hữu): QUAN_HE_NGUOI_THAN, BAN_DONG_Y (feature 012, 001).
 
 ## Success Criteria *(mandatory)*
@@ -573,7 +573,7 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 - Một tài khoản chỉ phục vụ một loại người dùng; người vừa là nhân viên vừa là người thân có hai tài khoản riêng, để quyền nhân viên không lọt sang cổng người thân và ngược lại (FR-003).
 - Đăng nhập bằng tên đăng nhập và mật khẩu; buộc đổi mật khẩu lần đầu và cấp lại mật khẩu là thực hành chuẩn, tài liệu nguồn không nêu (FR-006). Độ mạnh mật khẩu và thời gian tự đăng xuất theo CFG-M15-09, CFG-M15-10 (**sửa, 2026-10-07, Q-309**).
 - Tài khoản người thân Không hoạt động không tự trở lại Hoạt động khi đăng nhập đúng, mà phải được kích hoạt lại (bảng mục B); nếu không, BR-M15-05 không có tác dụng.
-- Danh mục nghiệp vụ chuyên môn mặc định chỉ gồm những thao tác mà tài liệu nêu rõ cần giấy phép (chẩn đoán, kê đơn nội bộ, phát thuốc/xác nhận liều); các thao tác khác (đánh giá đầu vào, thiết lập ngưỡng, duyệt kế hoạch chăm sóc) không bị giới hạn bởi giấy phép trừ khi Quản lý viện bổ sung vào danh mục.
+- Danh mục nghiệp vụ chuyên môn mặc định chỉ gồm những thao tác mà tài liệu nêu rõ cần giấy phép (phát thuốc/xác nhận liều; chẩn đoán, kê đơn nội bộ bỏ theo Q-461); các thao tác khác (đánh giá đầu vào, thiết lập ngưỡng, duyệt kế hoạch chăm sóc) không bị giới hạn bởi giấy phép trừ khi Quản lý viện bổ sung vào danh mục.
 - Giấy phép còn hiệu lực đến hết ngày hết hạn (FR-038).
 - Nhật ký đăng nhập (thành công và thất bại) được ghi để phục vụ điều tra an ninh (FR-015), dù mục 19.4 chỉ liệt kê "phân quyền".
 - Trạng thái làm việc của nhân viên ngoài Nghỉ việc (nghỉ phép, tạm nghỉ) không khóa tài khoản; nhân viên không có phân công thì phạm vi "P" rỗng (US4 kịch bản 7).
