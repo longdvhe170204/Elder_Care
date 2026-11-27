@@ -15,9 +15,11 @@ import com.eldercare.backend.admission.internal.application.domain.AdmissionOpin
 import com.eldercare.backend.admission.internal.application.domain.OpinionChoice;
 import com.eldercare.backend.admission.internal.application.persistence.AdmissionApplicationStore;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
+import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.OpinionSourceApi;
 import com.eldercare.backend.resident.api.dto.OpinionSource;
@@ -65,6 +67,7 @@ public class AdmissionOpinionService {
     @Transactional
     public AdmissionOpinion record(
             Target target, long applicationId, OpinionChoice opinion, OpinionSource source, String note) {
+        requireOffice();
         AdmissionApplication found = store.find(applicationId).orElseThrow(NotFoundException::new);
         residencyLock.lock(found.residentId());
         AdmissionApplication application = store.lock(applicationId).orElseThrow(NotFoundException::new);
@@ -95,5 +98,16 @@ public class AdmissionOpinionService {
                 .after(after)
                 .build());
         return saved;
+    }
+
+    /**
+     * Chỉ Hành chính ghi ý kiến về việc vào ở (FR-001); Kế toán có ô T ở dòng "Tiếp nhận, hợp đồng, đặt cọc" chỉ để thu cọc ở 017 (Phụ lục 27 chú
+     * thích 26), như {@code ContractService}.
+     */
+    private void requireOffice() {
+        if (!currentUser.getObject().roles().contains(Role.OFFICE_STAFF)) {
+            throw new PermissionDeniedException(
+                    "Chỉ Hành chính ghi ý kiến về việc vào ở (FR-001) (Phụ lục 27 chú thích 26)");
+        }
     }
 }

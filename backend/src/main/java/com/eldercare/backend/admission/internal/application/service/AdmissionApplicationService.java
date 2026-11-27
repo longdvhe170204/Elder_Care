@@ -14,9 +14,11 @@ import com.eldercare.backend.admission.internal.application.domain.ApplicationSt
 import com.eldercare.backend.admission.internal.application.persistence.AdmissionApplicationStore;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.VersionMismatchException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
@@ -92,6 +94,7 @@ public class AdmissionApplicationService {
     @RequiresPermission(function = Function.ADMISSION_CONTRACT_DEPOSIT, operation = Operation.CREATE)
     @Transactional
     public AdmissionApplication create(Target target, AdmissionApplication.Content content) {
+        requireOffice();
         long residentId = target.residentId();
         residencyLock.lock(residentId);
         ResidentStatus status = residents.status(residentId);
@@ -147,6 +150,7 @@ public class AdmissionApplicationService {
     @Transactional
     public AdmissionApplication update(
             Target target, long applicationId, String ifMatch, AdmissionApplication.Content content, Reason reason) {
+        requireOffice();
         AdmissionApplication found = store.find(applicationId).orElseThrow(NotFoundException::new);
         residencyLock.lock(found.residentId());
         AdmissionApplication current = store.lock(applicationId).orElseThrow(NotFoundException::new);
@@ -212,6 +216,17 @@ public class AdmissionApplicationService {
             return Long.parseLong(cursor);
         } catch (NumberFormatException e) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "INVALID_CURSOR", "Con trỏ trang không hợp lệ");
+        }
+    }
+
+    /**
+     * Chỉ Hành chính lập, cập nhật lượt đăng ký tiếp nhận (FR-006); Kế toán có ô T ở dòng "Tiếp nhận, hợp đồng, đặt cọc" chỉ để thu cọc ở 017 (Phụ lục 27 chú
+     * thích 26), như {@code ContractService}.
+     */
+    private void requireOffice() {
+        if (!currentUser.getObject().roles().contains(Role.OFFICE_STAFF)) {
+            throw new PermissionDeniedException(
+                    "Chỉ Hành chính lập, cập nhật lượt đăng ký tiếp nhận (FR-006) (Phụ lục 27 chú thích 26)");
         }
     }
 }
