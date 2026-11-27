@@ -87,6 +87,7 @@ public class ResidencyEndingService {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
     private final EndingRequestService requests;
+    private final ContractEndCases endCases;
 
     ResidencyEndingService(
             ResidencyEndingStore store,
@@ -100,7 +101,9 @@ public class ResidencyEndingService {
             ApplicationEventPublisher events,
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
-            EndingRequestService requests) {
+            EndingRequestService requests,
+            ContractEndCases endCases) {
+        this.endCases = endCases;
         this.store = store;
         this.residencyLock = residencyLock;
         this.residents = residents;
@@ -234,9 +237,10 @@ public class ResidencyEndingService {
             requests.requireUsable(input.endingRequestId(), residentId);
         }
         Instant now = time.now();
+        EndCase endCase = endCases.resolve(residentId, input.endCase(), input.expectedEndDate());
         long id = store.insert(new NewEnding(
                 residentId,
-                input.endCase(),
+                endCase,
                 input.medicalReason(),
                 blankToNull(input.destination()),
                 input.expectedEndDate(),
@@ -251,7 +255,7 @@ public class ResidencyEndingService {
                 .entity(ENTITY_TYPE, id)
                 .resident(residentId)
                 .after(Map.of(
-                        "endCase", input.endCase().name(),
+                        "endCase", endCase.name(),
                         "expectedEndDate", input.expectedEndDate().toString(),
                         "medicalReason", input.medicalReason()))
                 .reason(reason)
@@ -273,6 +277,8 @@ public class ResidencyEndingService {
         ResidencyEnding ending = lockedPreparing(id);
         LocalDate overdue = newDate.isBefore(time.today()) ? newDate.plusDays(1) : null;
         store.updateExpectedEndDate(id, newDate, overdue);
+        // Đổi ngày thì hết hạn hay chấm dứt xét lại theo ngày mới
+        store.updateEndCase(id, endCases.resolve(ending.residentId(), ending.endCase(), newDate));
         finalPeriods.getObject().recalculate(ending.residentId(), newDate);
         auditLog.write(AuditLogEntry.builder()
                 .action(DATE_CHANGED)

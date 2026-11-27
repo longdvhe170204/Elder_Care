@@ -152,6 +152,10 @@ public class ResidencyEndingStore {
                 id);
     }
 
+    public void updateEndCase(long id, EndCase endCase) {
+        jdbc.update("UPDATE residency_ending SET end_case = ? WHERE id = ?", endCase.name(), id);
+    }
+
     public void setOverdueSince(long id, LocalDate overdueSince) {
         jdbc.update(
                 "UPDATE residency_ending SET overdue_since = ?, version = version + 1 WHERE id = ?",

@@ -75,6 +75,7 @@ public class EndingRequestService {
     private final AuditLogApi auditLog;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
+    private final ContractEndCases endCases;
 
     EndingRequestService(
             SimpleRecordApi records,
@@ -86,7 +87,9 @@ public class EndingRequestService {
             ObjectProvider<CurrentUser> currentUser,
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
-            BusinessTime time) {
+            BusinessTime time,
+            ContractEndCases endCases) {
+        this.endCases = endCases;
         this.records = records;
         this.endings = endings;
         this.residencyLock = residencyLock;
@@ -100,9 +103,9 @@ public class EndingRequestService {
     }
 
     @Transactional
-    public View submit(long residentId, EndCase endCase, LocalDate expectedEndDate, String reason) {
+    public View submit(long residentId, EndCase requested, LocalDate expectedEndDate, String reason) {
         long familyMemberId = representativeOf(residentId);
-        if (endCase == null || !FAMILY_CASES.contains(endCase)) {
+        if (requested == null || !FAMILY_CASES.contains(requested)) {
             throw new InvalidValueException("Chọn hết hạn hoặc chấm dứt hợp đồng");
         }
         if (expectedEndDate == null || expectedEndDate.isBefore(time.today())) {
@@ -111,6 +114,7 @@ public class EndingRequestService {
         if (reason == null || reason.isBlank()) {
             throw new InvalidValueException("Nhập lý do");
         }
+        EndCase endCase = endCases.resolve(residentId, requested, expectedEndDate);
         if (!CAN_END.contains(residents.status(residentId))) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,

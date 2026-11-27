@@ -84,7 +84,8 @@ class EndingRequestIT extends EndingTestBase {
                 .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.residentId").value(residentId))
                 .andExpect(jsonPath("$.familyMemberId").value(representative))
-                .andExpect(jsonPath("$.endCase").value("CONTRACT_EXPIRED"))
+                // ngày trước hạn hợp đồng: hệ thống ghi chấm dứt dù gửi hết hạn (demo BF-10, 2026-11-27)
+                .andExpect(jsonPath("$.endCase").value("CONTRACT_TERMINATION"))
                 .andExpect(jsonPath("$.expectedEndDate").value(date.toString())));
 
         assertThat(notices(residentId, "M02_ENDING_REQUEST_SUBMITTED"))
