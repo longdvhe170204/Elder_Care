@@ -4,6 +4,7 @@ import com.eldercare.backend.admission.api.ContractReadApi;
 import com.eldercare.backend.admission.api.DayCareCalendarApi;
 import com.eldercare.backend.admission.api.ResidencyDayApi;
 import com.eldercare.backend.admission.api.UnitPriceApi;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ContractContentView;
 import com.eldercare.backend.admission.api.dto.DayCareSessionView;
 import com.eldercare.backend.admission.api.dto.ServiceType;
@@ -137,9 +138,15 @@ public class DayCareBillingSources {
         Long service = s.serviceId();
         if (service == null) {
             var contract = contracts.contentAtDate(s.residentId(), s.incurredOn());
-            service = contract.flatMap(this::dayCareService)
+            // Q-462: buổi phát sinh luôn theo giá buổi; dòng giá tháng của hợp đồng không dùng cho buổi phát sinh
+            service = contract.flatMap(c -> dayCareService(c)
+                            .filter(id -> prices.service(id)
+                                    .map(v -> v.billingPeriod() == BillingPeriod.SESSION)
+                                    .orElse(false)))
                     .or(() -> {
-                        var active = prices.activeServicesOf(ServiceType.DAY_CARE_SESSION);
+                        var active = prices.activeServicesOf(ServiceType.DAY_CARE_SESSION).stream()
+                                .filter(v -> v.billingPeriod() == BillingPeriod.SESSION)
+                                .toList();
                         return active.size() == 1
                                 ? Optional.of(active.getFirst().id())
                                 : Optional.empty();

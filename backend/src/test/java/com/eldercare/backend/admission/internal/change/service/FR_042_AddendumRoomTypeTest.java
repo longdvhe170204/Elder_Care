@@ -77,6 +77,22 @@ class FR_042_AddendumRoomTypeTest {
     }
 
     @Test
+    void Q_462_residenceTypeChange_writesTheNewBillingPeriod() {
+        var built = AddendumContent.build(
+                JSON.readTree("""
+                        {"residenceType": "DAY_CARE", "roomTypeId": null, "bedId": null, "residencyFeeBillingPeriod": "SESSION",
+                         "services": [], "arrivalSchedule": []}"""),
+                change(
+                        "[\"RESIDENCE_TYPE\"]",
+                        "{\"residenceType\": \"LONG_TERM_RESIDENTIAL\", \"newBedId\": 7, \"residencyFeeBillingPeriod\": \"MONTH\"}"),
+                PRICING);
+
+        assertThat(built.content().get("residencyFeeBillingPeriod").asString()).isEqualTo("MONTH");
+        assertThat(built.before().get("residencyFeeBillingPeriod").asString()).isEqualTo("SESSION");
+        assertThat(built.after().get("residencyFeeBillingPeriod").asString()).isEqualTo("MONTH");
+    }
+
+    @Test
     void bedOfTheSameRoomType_leavesRoomTypeOutOfTheDiff() {
         var built = AddendumContent.build(
                 base("LONG_TERM_RESIDENTIAL", "30", "5"), change("[\"BED\"]", "{\"newBedId\": 7}"), PRICING);

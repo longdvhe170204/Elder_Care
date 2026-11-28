@@ -1,5 +1,6 @@
 package com.eldercare.backend.admission.internal.change.domain;
 
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
@@ -26,6 +27,7 @@ public record ResidencyChangeContent(
         long contractId,
         Set<ChangeType> changeTypes,
         ResidenceType residenceType,
+        BillingPeriod residencyFeeBillingPeriod,
         CareLevel careLevel,
         List<ServiceChange> services,
         LocalDate endDate,
@@ -107,10 +109,15 @@ public record ResidencyChangeContent(
             throw new InvalidValueException("Nội dung cần newValue là object");
         }
         ResidenceType residenceType = null;
+        BillingPeriod billingPeriod = null;
         CareLevel careLevel = null;
         List<ServiceChange> services = List.of();
         if (types.contains(ChangeType.RESIDENCE_TYPE)) {
             residenceType = enumOf(ResidenceType.class, value, "residenceType");
+            // Q-462: kỳ tính phí mới đi kèm đổi loại lưu trú; bắt buộc hay không do handler xét theo kỳ hiện hành
+            if (value.hasNonNull("residencyFeeBillingPeriod")) {
+                billingPeriod = enumOf(BillingPeriod.class, value, "residencyFeeBillingPeriod");
+            }
         }
         if (types.contains(ChangeType.CARE_LEVEL)) {
             careLevel = enumOf(CareLevel.class, value, "careLevel");
@@ -158,6 +165,7 @@ public record ResidencyChangeContent(
                 contractNode.asLong(),
                 types,
                 residenceType,
+                billingPeriod,
                 careLevel,
                 services,
                 endDate,

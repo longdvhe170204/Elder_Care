@@ -534,8 +534,16 @@ public class ContractService {
         if (inpatient && content.roomTypeId() != null && hasResidencyFeeOfOtherRoomType(content)) {
             unmet.add(condition(
                     "CONTRACT_RESIDENCY_FEE_MISMATCH",
-                    "Phí lưu trú phải theo đúng loại phòng của hợp đồng",
-                    "FR-019, FR-034"));
+                    "Phí lưu trú phải theo đúng loại phòng và kỳ tính phí " + content.residencyFeeBillingPeriod()
+                            + " của hợp đồng",
+                    "FR-019, FR-034, Q-462"));
+        }
+        if (!inpatient && hasDayCareFeeOfOtherPeriod(content)) {
+            unmet.add(condition(
+                    "CONTRACT_DAY_CARE_FEE_MISMATCH",
+                    "Dịch vụ buổi bán trú phải có kỳ tính trùng kỳ tính phí " + content.residencyFeeBillingPeriod()
+                            + " của hợp đồng",
+                    "FR-019, Q-462"));
         }
         if (!nonStandardTerms(contract).isEmpty() && !termsApproved(contract)) {
             unmet.add(condition(
@@ -558,13 +566,24 @@ public class ContractService {
         return care.size() == 1 && care.get(0).careLevel() == content.careLevel();
     }
 
-    /** Dòng phí lưu trú gắn loại phòng khác loại phòng của hợp đồng (chủ dự án duyệt 2026-11-21). */
+    /**
+     * Dòng phí lưu trú gắn loại phòng khác loại phòng của hợp đồng (chủ dự án duyệt 2026-11-21), hoặc có kỳ tính khác kỳ
+     * tính phí của hợp đồng (Q-462: loại phòng có thể có phí giá tháng và phí giá ngày).
+     */
     private boolean hasResidencyFeeOfOtherRoomType(ContractContent content) {
         return content.services().stream()
                 .map(line -> store.serviceKind(line.serviceId()).orElseThrow())
                 .anyMatch(kind -> "RESIDENCY_FEE".equals(kind.type())
-                        && kind.roomTypeId() != null
-                        && !kind.roomTypeId().equals(content.roomTypeId()));
+                        && ((kind.roomTypeId() != null && !kind.roomTypeId().equals(content.roomTypeId()))
+                                || kind.billingPeriod() != content.residencyFeeBillingPeriod()));
+    }
+
+    /** Q-462: dòng buổi bán trú có kỳ tính khác kỳ tính phí của hợp đồng (giá buổi cho hợp đồng giá tháng, hoặc ngược lại). */
+    private boolean hasDayCareFeeOfOtherPeriod(ContractContent content) {
+        return content.services().stream()
+                .map(line -> store.serviceKind(line.serviceId()).orElseThrow())
+                .anyMatch(kind -> "DAY_CARE_SESSION".equals(kind.type())
+                        && kind.billingPeriod() != content.residencyFeeBillingPeriod());
     }
 
     private boolean termsApproved(Contract contract) {

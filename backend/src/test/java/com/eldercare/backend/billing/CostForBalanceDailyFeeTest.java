@@ -55,10 +55,14 @@ class CostForBalanceDailyFeeTest {
                         Map.of(service, new BigDecimal(price)))));
     }
 
+    /** Q-462: loại phòng 3 có phí lưu trú giá tháng (dịch vụ 9) và giá ngày (dịch vụ 10). */
     private void residencyService() {
-        when(prices.residencyFeeServiceOf(3))
+        when(prices.residencyFeeServiceOf(3, BillingPeriod.MONTH))
                 .thenReturn(Optional.of(new ServiceView(
                         9, ServiceType.RESIDENCY_FEE, "Phí lưu trú", "tháng", BillingPeriod.MONTH, true, null)));
+        when(prices.residencyFeeServiceOf(3, BillingPeriod.DAY))
+                .thenReturn(Optional.of(new ServiceView(
+                        10, ServiceType.RESIDENCY_FEE, "Phí lưu trú ngày", "ngày", BillingPeriod.DAY, true, null)));
     }
 
     private void dayCareService() {
@@ -77,7 +81,7 @@ class CostForBalanceDailyFeeTest {
     @Test
     void FR_016_dailyContract_usesDailyPrice() {
         residencyService();
-        contract("{\"residencyFeeBillingPeriod\":\"DAY\",\"roomTypeId\":3}", 9, "320000");
+        contract("{\"residencyFeeBillingPeriod\":\"DAY\",\"roomTypeId\":3}", 10, "320000");
         assertThat(port.baseDailyFee(42, DAY)).contains(320_000L);
     }
 

@@ -1,6 +1,8 @@
 package com.eldercare.backend.billing.internal.source.service;
 
 import com.eldercare.backend.admission.api.*;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
+import com.eldercare.backend.admission.api.dto.ContractContentView;
 import com.eldercare.backend.billing.api.dto.CostType;
 import com.eldercare.backend.billing.internal.source.domain.*;
 import com.eldercare.backend.billing.internal.source.persistence.BillingSourceIndexStore;
@@ -96,7 +98,7 @@ public class CostSourceLookup {
                     var service =
                             contract.flatMap(c -> c.content().path("roomTypeId").isNumber()
                                     ? prices.residencyFeeServiceOf(
-                                            c.content().path("roomTypeId").asLong())
+                                            c.content().path("roomTypeId").asLong(), periodOf(c))
                                     : Optional.empty());
                     var flags = new LinkedHashSet<String>();
                     if (d.notYetAdmitted()) flags.add("NOT_YET_MOVED_IN");
@@ -186,5 +188,11 @@ public class CostSourceLookup {
                 code,
                 reason,
                 Map.of("source", s, "sourceVersion", match.version(), "cancelled", match.cancelled()));
+    }
+
+    /** Q-462: kỳ tính phí của nội dung hợp đồng; nội dung cũ thiếu kỳ thì giá tháng. */
+    private static BillingPeriod periodOf(ContractContentView c) {
+        return BillingPeriod.valueOf(
+                c.content().path("residencyFeeBillingPeriod").asString("MONTH"));
     }
 }

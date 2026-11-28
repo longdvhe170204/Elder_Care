@@ -1,6 +1,7 @@
 package com.eldercare.backend.admission.internal.transition.service;
 
 import com.eldercare.backend.admission.api.UnitPriceApi;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
@@ -113,8 +114,9 @@ class M02AllocationResidencySource implements AllocationResidencySource {
     @Override
     @Transactional(readOnly = true)
     public boolean differentUnitPrice(long residentId, long previousRoomTypeId, long nextRoomTypeId, LocalDate date) {
-        Optional<BigDecimal> previous = feeAt(previousRoomTypeId, date);
-        Optional<BigDecimal> next = feeAt(nextRoomTypeId, date);
+        BillingPeriod period = currentPeriod(residentId);
+        Optional<BigDecimal> previous = feeAt(previousRoomTypeId, period, date);
+        Optional<BigDecimal> next = feeAt(nextRoomTypeId, period, date);
         return previous.isEmpty() || next.isEmpty() || previous.get().compareTo(next.get()) != 0;
     }
 
@@ -142,11 +144,24 @@ class M02AllocationResidencySource implements AllocationResidencySource {
         waitingList.allocated(residentId, allocationId);
     }
 
-    private Optional<BigDecimal> feeAt(long roomTypeId, LocalDate date) {
-        return prices.residencyFeeServiceOf(roomTypeId)
+    private Optional<BigDecimal> feeAt(long roomTypeId, BillingPeriod period, LocalDate date) {
+        return prices.residencyFeeServiceOf(roomTypeId, period)
                 .map(ServiceView::id)
                 .flatMap(serviceId -> prices.unitPriceAt(serviceId, date, false))
                 .map(UnitPriceView::unitPrice);
+    }
+
+    /** Q-462: kỳ tính phí của hợp đồng hiện hành (Hiệu lực, không thì đang chuẩn bị); chưa có hợp đồng thì giá tháng. */
+    private BillingPeriod currentPeriod(long residentId) {
+        List<Contract> all = contracts.ofResident(residentId);
+        return latest(all, Set.of(ContractStatus.ACTIVE))
+                .or(() -> latest(all, IN_PREPARATION))
+                .map(contract -> contracts
+                        .latestVersion(contract.id())
+                        .map(v -> BillingPeriod.valueOf(
+                                v.content().get("residencyFeeBillingPeriod").asString()))
+                        .orElse(contract.content().residencyFeeBillingPeriod()))
+                .orElse(BillingPeriod.MONTH);
     }
 
     private ResidenceType currentType(Contract contract) {

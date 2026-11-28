@@ -3,11 +3,14 @@ package com.eldercare.backend.admission.internal.contract.service;
 import com.eldercare.backend.admission.internal.contract.domain.ContractContent;
 import com.eldercare.backend.admission.internal.contract.domain.ContractContent.ArrivalLine;
 import com.eldercare.backend.admission.internal.contract.domain.ContractContent.ServiceLine;
+import com.eldercare.backend.admission.internal.domain.ResidencyFeeBillingPeriods;
+import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.springframework.http.HttpStatus;
 
 /**
  * Kiểm tra nội dung hợp đồng khi lập và sửa (FR-019, Q-286; hàm thuần): sai thì 422. Kiểm dịch vụ có tồn tại
@@ -20,6 +23,14 @@ final class ContractRules {
     static void validate(ContractContent content) {
         if (content.residenceType() == ResidenceType.SHORT_TERM_RESIDENTIAL && content.endDate() == null) {
             throw new InvalidValueException("endDate là bắt buộc với nội trú ngắn ngày (FR-019)");
+        }
+        if (content.residencyFeeBillingPeriod() != null
+                && !ResidencyFeeBillingPeriods.isAllowed(
+                        content.residenceType(), content.residencyFeeBillingPeriod())) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    ResidencyFeeBillingPeriods.NOT_ALLOWED,
+                    ResidencyFeeBillingPeriods.message(content.residenceType(), content.residencyFeeBillingPeriod()));
         }
         if (content.endDate() != null && content.endDate().isBefore(content.startDate())) {
             throw new InvalidValueException("endDate không được sớm hơn startDate");

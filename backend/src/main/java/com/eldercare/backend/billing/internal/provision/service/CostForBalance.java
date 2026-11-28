@@ -1,6 +1,7 @@
 package com.eldercare.backend.billing.internal.provision.service;
 
 import com.eldercare.backend.admission.api.*;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ServiceType;
 import com.eldercare.backend.billing.api.dto.CostTypeTotal;
 import com.eldercare.backend.billing.internal.period.persistence.CostStatementStore;
@@ -56,8 +57,9 @@ public class CostForBalance implements CostForBalancePort {
             if ("DAY_CARE".equals(c.content().path("residenceType").asString()))
                 return dayCare(resident, date, c, period);
             if (!c.content().path("roomTypeId").isNumber()) return Optional.empty();
+            if (!"MONTH".equals(period) && !"DAY".equals(period)) return Optional.empty();
             var price = prices.residencyFeeServiceOf(
-                            c.content().path("roomTypeId").asLong())
+                            c.content().path("roomTypeId").asLong(), BillingPeriod.valueOf(period))
                     .flatMap(service ->
                             Optional.ofNullable(c.recordedUnitPrices().get(service.id())));
             return switch (period) {

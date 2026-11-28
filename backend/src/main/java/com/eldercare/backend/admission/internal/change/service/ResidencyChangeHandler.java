@@ -18,6 +18,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.admission.api.UnitPriceApi;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
 import com.eldercare.backend.admission.api.events.AddendumApplied;
@@ -41,6 +42,7 @@ import com.eldercare.backend.admission.internal.contract.domain.Contract;
 import com.eldercare.backend.admission.internal.contract.domain.ContractVersion;
 import com.eldercare.backend.admission.internal.contract.persistence.ContractStore;
 import com.eldercare.backend.admission.internal.contract.service.ContractService;
+import com.eldercare.backend.admission.internal.domain.ResidencyFeeBillingPeriods;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
@@ -223,6 +225,13 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                     RESIDENCE_TYPE_UNCHANGED,
                     residenceType.stream().map(UnmetCondition::description).collect(Collectors.joining("; ")));
         }
+        List<UnmetCondition> billingPeriod = billingPeriodConditions(change);
+        if (!billingPeriod.isEmpty()) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    ResidencyFeeBillingPeriods.NOT_ALLOWED,
+                    billingPeriod.stream().map(UnmetCondition::description).collect(Collectors.joining("; ")));
+        }
         List<UnmetCondition> arrivalSchedule = arrivalScheduleConditions(change);
         if (!arrivalSchedule.isEmpty()) {
             throw new BusinessException(
@@ -291,6 +300,31 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                     RESIDENCE_TYPE_UNCHANGED, "Loại lưu trú mới trùng loại lưu trú hiện hành của hợp đồng."));
         }
         return List.of();
+    }
+
+    /**
+     * Q-462 (FR-037): đổi loại lưu trú thì kỳ tính phí sau thay đổi (kỳ mới nếu nêu, không thì kỳ hiện hành) phải hợp loại
+     * mới. Kiểm khi lập, sửa (422 qua {@link #validateContent}) và gửi duyệt (409 qua {@link #checkOnSubmit}).
+     */
+    List<UnmetCondition> billingPeriodConditions(ResidencyChangeContent change) {
+        if (!change.has(ChangeType.RESIDENCE_TYPE) || change.residenceType() == null) {
+            return List.of();
+        }
+        Optional<ContractVersion> base = base(change.contractId());
+        if (base.isEmpty()) {
+            return List.of();
+        }
+        BillingPeriod period = change.residencyFeeBillingPeriod() != null
+                ? change.residencyFeeBillingPeriod()
+                : BillingPeriod.valueOf(
+                        base.get().content().get("residencyFeeBillingPeriod").asString());
+        if (ResidencyFeeBillingPeriods.isAllowed(change.residenceType(), period)) {
+            return List.of();
+        }
+        return List.of(new UnmetCondition(
+                ResidencyFeeBillingPeriods.NOT_ALLOWED,
+                ResidencyFeeBillingPeriods.message(change.residenceType(), period)
+                        + "; chọn kỳ tính phí mới (residencyFeeBillingPeriod)."));
     }
 
     /**
@@ -489,6 +523,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         content.addAll(careLevelConditions(change));
         content.addAll(roomTypeConditions(change));
         content.addAll(residenceTypeConditions(change));
+        content.addAll(billingPeriodConditions(change));
         content.addAll(arrivalScheduleConditions(change));
         if (!content.isEmpty()) {
             return content;
