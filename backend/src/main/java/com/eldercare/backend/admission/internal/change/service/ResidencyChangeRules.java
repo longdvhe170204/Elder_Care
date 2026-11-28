@@ -1,6 +1,7 @@
 package com.eldercare.backend.admission.internal.change.service;
 
 import com.eldercare.backend.admission.api.UnitPriceApi;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
@@ -396,22 +397,26 @@ class ResidencyChangeRules {
             }
         }
         if (change.newBedId() != null) {
-            // Phí lưu trú theo loại phòng của giường mới, như billing tính theo roomTypeId
+            // Phí lưu trú theo loại phòng của giường mới và kỳ tính (Q-462), như billing tính theo roomTypeId và kỳ
+            BillingPeriod basePeriod =
+                    BillingPeriod.valueOf(base.path("residencyFeeBillingPeriod").asString(BillingPeriod.MONTH.name()));
+            BillingPeriod nextPeriod =
+                    change.residencyFeeBillingPeriod() != null ? change.residencyFeeBillingPeriod() : basePeriod;
             BigDecimal previous = base.path("roomTypeId").isNumber()
-                    ? residencyFeeAt(base.path("roomTypeId").asLong(), effective)
+                    ? residencyFeeAt(base.path("roomTypeId").asLong(), basePeriod, effective)
                     : BigDecimal.ZERO;
             BigDecimal next = structure
                     .getObject()
                     .roomTypeOfBed(change.newBedId())
-                    .map(type -> residencyFeeAt(type.id(), effective))
+                    .map(type -> residencyFeeAt(type.id(), nextPeriod, effective))
                     .orElse(BigDecimal.ZERO);
             items.add(item("RESIDENCY_FEE", previous, next));
         }
         return items;
     }
 
-    private BigDecimal residencyFeeAt(long roomTypeId, LocalDate date) {
-        return prices.residencyFeeServiceOf(roomTypeId)
+    private BigDecimal residencyFeeAt(long roomTypeId, BillingPeriod period, LocalDate date) {
+        return prices.residencyFeeServiceOf(roomTypeId, period)
                 .flatMap(fee -> priceAt(fee.id(), date))
                 .orElse(BigDecimal.ZERO);
     }

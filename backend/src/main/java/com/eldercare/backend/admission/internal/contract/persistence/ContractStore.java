@@ -383,6 +383,7 @@ public class ContractStore {
                         item.attributes().type().name(),
                         item.attributes().careLevelCode(),
                         item.attributes().roomTypeId(),
+                        item.attributes().billingPeriod(),
                         item.status() == CatalogStatus.ACTIVE));
     }
 

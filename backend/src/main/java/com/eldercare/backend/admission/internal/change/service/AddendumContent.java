@@ -56,6 +56,14 @@ final class AddendumContent {
 
         if (change.has(ChangeType.RESIDENCE_TYPE)) {
             replace(content, before, after, "residenceType", F.stringNode(resultType.name()));
+            if (change.residencyFeeBillingPeriod() != null) {
+                replace(
+                        content,
+                        before,
+                        after,
+                        "residencyFeeBillingPeriod",
+                        F.stringNode(change.residencyFeeBillingPeriod().name()));
+            }
             if (resultType == ResidenceType.SHORT_TERM_RESIDENTIAL && change.endDate() != null) {
                 replace(
                         content,

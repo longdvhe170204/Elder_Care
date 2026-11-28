@@ -1,5 +1,6 @@
 package com.eldercare.backend.admission.api;
 
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ServiceType;
 import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
@@ -23,7 +24,8 @@ public interface UnitPriceApi {
     /** Q-297: dịch vụ chăm sóc Hiệu lực của mức. */
     Optional<ServiceView> careServiceOf(CareLevel level);
 
-    Optional<ServiceView> residencyFeeServiceOf(long roomTypeId);
+    /** Phí lưu trú Hiệu lực của loại phòng theo kỳ tính của hợp đồng (Q-462: mỗi loại phòng có thể có giá tháng, giá ngày). */
+    Optional<ServiceView> residencyFeeServiceOf(long roomTypeId, BillingPeriod period);
 
     Optional<ServiceView> facilityMedicationServiceOf(long medicationId);
 

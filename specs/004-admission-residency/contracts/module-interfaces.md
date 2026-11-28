@@ -52,7 +52,7 @@ Trường tài chính mang `@NhomTruong(TAI_CHINH)`; 012 hiển thị cho ngư�
 Optional<DonGiaView> donGiaTaiNgay(long dichVuId, LocalDate ngay, boolean danhDauThamChieu); // MANDATORY khi danhDauThamChieu; BR-M11-02
 Optional<DonGiaView> donGiaHopDong(long nctId, long dichVuId, LocalDate ngay);              // đơn giá đã ghi trong nội dung hợp đồng (FR-036)
 Optional<DichVuView> dichVuChamSoc(MaMucChamSoc muc);                                       // Q-297
-Optional<DichVuView> phiLuuTruTheoLoaiPhong(long loaiPhongId);
+Optional<DichVuView> phiLuuTruTheoLoaiPhong(long loaiPhongId, KyTinh ky);                  // Q-462: theo loại phòng và kỳ tính của hợp đồng (đổi api 2026-11-28)
 Optional<DichVuView> thuocNguonVien(long thuocId);
 ```
 

@@ -38,7 +38,8 @@ class FR_041_DayCareToResidentialIT extends ChangeTestBase {
         return request(
                 contractId,
                 "[\"RESIDENCE_TYPE\"]",
-                "{\"residenceType\": \"LONG_TERM_RESIDENTIAL\", \"newBedId\": %d}".formatted(bedId),
+                "{\"residenceType\": \"LONG_TERM_RESIDENTIAL\", \"newBedId\": %d, \"residencyFeeBillingPeriod\": \"MONTH\"}"
+                        .formatted(bedId),
                 effective);
     }
 

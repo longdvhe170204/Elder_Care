@@ -20,6 +20,8 @@ import com.eldercare.backend.admission.api.dto.DayCareCalendarView;
 import com.eldercare.backend.admission.api.dto.DayCareSessionView;
 import com.eldercare.backend.admission.api.dto.ServiceType;
 import com.eldercare.backend.admission.api.dto.ServiceView;
+import com.eldercare.backend.billing.internal.source.domain.IndexedBillingSource;
+import com.eldercare.backend.billing.internal.source.domain.IndexedSourceMatch;
 import com.eldercare.backend.billing.internal.source.persistence.BillingSourceIndexStore;
 import com.eldercare.backend.billing.internal.source.service.DayCareBillingSources;
 import java.time.DayOfWeek;
@@ -108,6 +110,66 @@ class DayCareBillingSourcesTest {
 
         assertThat(candidate.facts()).containsEntry("lastScheduledSession", true);
         assertThat(candidate.factor()).isEqualByComparingTo("50");
+    }
+
+    /** Buổi phát sinh ngày thứ Tư (không có lịch), nguồn không mang mã dịch vụ. */
+    private void adHocSession(LocalDate day) {
+        var source = new IndexedBillingSource(
+                "DAY_CARE_SESSION",
+                "42:adhoc:" + day,
+                "UNIT",
+                RESIDENT,
+                day,
+                day.atTime(8, 0).toInstant(java.time.ZoneOffset.ofHours(7)),
+                null,
+                null,
+                java.math.BigDecimal.ONE,
+                null);
+        when(index.find(anyLong(), eq("DAY_CARE_SESSION"), any(), any()))
+                .thenReturn(List.of(new IndexedSourceMatch(source, false, 0, null)));
+        when(days.dayCareSessions(RESIDENT, day, day)).thenReturn(List.of());
+    }
+
+    @Test
+    void Q_462_adHocSession_ofMonthlyContract_usesTheSessionPricedService() {
+        contract("[{\"serviceId\":7}]");
+        when(prices.activeServicesOf(ServiceType.DAY_CARE_SESSION))
+                .thenReturn(List.of(
+                        new ServiceView(
+                                7,
+                                ServiceType.DAY_CARE_SESSION,
+                                "Bán trú tháng",
+                                "tháng",
+                                BillingPeriod.MONTH,
+                                true,
+                                null),
+                        new ServiceView(
+                                8,
+                                ServiceType.DAY_CARE_SESSION,
+                                "Buổi bán trú",
+                                "buổi",
+                                BillingPeriod.SESSION,
+                                true,
+                                null)));
+        var wednesday = TUESDAY.plusDays(1);
+        adHocSession(wednesday);
+
+        var candidate = sources.between(RESIDENT, wednesday, wednesday).getFirst();
+
+        assertThat(candidate.serviceId()).isEqualTo(8L);
+    }
+
+    @Test
+    void Q_462_adHocSession_ofSessionContract_usesTheContractLine() {
+        when(prices.service(9))
+                .thenReturn(Optional.of(new ServiceView(
+                        9, ServiceType.DAY_CARE_SESSION, "Buổi riêng", "buổi", BillingPeriod.SESSION, true, null)));
+        contract("[{\"serviceId\":9}]");
+        var wednesday = TUESDAY.plusDays(1);
+        adHocSession(wednesday);
+
+        assertThat(sources.between(RESIDENT, wednesday, wednesday).getFirst().serviceId())
+                .isEqualTo(9L);
     }
 
     @Test

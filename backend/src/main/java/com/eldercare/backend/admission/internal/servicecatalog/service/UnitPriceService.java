@@ -3,6 +3,7 @@ package com.eldercare.backend.admission.internal.servicecatalog.service;
 import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
 import com.eldercare.backend.admission.api.UnitPriceApi;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ServiceType;
 import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
@@ -66,9 +67,10 @@ public class UnitPriceService implements UnitPriceApi {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ServiceView> residencyFeeServiceOf(long roomTypeId) {
+    public Optional<ServiceView> residencyFeeServiceOf(long roomTypeId, BillingPeriod period) {
         return activeService(a -> a.type() == ServiceType.RESIDENCY_FEE
-                && Long.valueOf(roomTypeId).equals(a.roomTypeId()));
+                && Long.valueOf(roomTypeId).equals(a.roomTypeId())
+                && a.billingPeriod() == period);
     }
 
     @Override
